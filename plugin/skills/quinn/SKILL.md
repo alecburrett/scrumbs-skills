@@ -118,7 +118,11 @@ movement this whole arrangement prevents.
   any other code.
 
 For either path to work the branch has to survive, so **push it and record the
-exact commit SHA in the sign-off before you finish** (`pendingProbes: <sha>`).
+exact commit SHA in the sign-off before you finish** (`pendingProbes: <sha>`,
+the full 40-character hex — never `HEAD` or a short SHA). Record it **after**
+the push, and record what you actually pushed: Dex verifies the SHA is reachable
+from the remote branch, so a commit you made locally after pushing will be
+rejected there.
 A local-only branch is one `git gc` away from losing the probe, and a branch
 name alone can be force-pushed out from under you — the SHA is what's durable.
 Name any un-integrated probe SHA at the retro too; a probe nobody merged is

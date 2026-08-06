@@ -29,10 +29,20 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
   the release would succeed while the regression coverage quietly evaporates,
   because Viktor and Stella have nothing to integrate. Both means the contract
   is ambiguous. Either way, fail closed and route back to Quinn.
-  When `pendingProbes` is present, `git fetch` the recorded attempt-scoped
-  branch and confirm `git cat-file -e <sha>` before you promote: a SHA nobody
-  can resolve is not a durable reference, and this is the last point where that
-  is cheap to discover.
+  When `pendingProbes` is present, prove it is durably **on the remote** before
+  you promote — not merely present in someone's clone:
+
+  ```sh
+  git fetch origin sprint-N-attempt-A-probes
+  git rev-parse -q --verify "<sha>^{commit}"          # it is a commit
+  git merge-base --is-ancestor <sha> FETCH_HEAD       # …reachable from the pushed branch
+  ```
+
+  Require a full 40-character hex SHA, and fail closed on any of the three. A
+  local-only commit passes `git cat-file -e` quite happily — so does the string
+  `HEAD` — and either would hand Viktor and Stella a reference that vanishes
+  with Quinn's workspace, losing the regression coverage the record was supposed
+  to guarantee. This is the last point where that is cheap to discover.
 - **One revision, agreed by everyone.** The Build, the Review and the QA
   sign-off must all carry the same `attempt` and the same `revision`, and that
   review must be `approved`. **Recompute the code revision yourself** with the
@@ -92,7 +102,8 @@ didn't run.
   `CHANGELOG.md` entry).
 
 *Gate checklist:* ☐ QA signed off first ☐ probe record well-formed (exactly one
-of `pendingProbes`/`whyNotScripted`, SHA resolvable) ☐ pipeline fully green, no skipped gate
+of `pendingProbes`/`whyNotScripted`; full-hex SHA, a commit, reachable from the
+pushed branch) ☐ pipeline fully green, no skipped gate
 ☐ preview probe-verified **and built from the promoted revision** ☐ promoted
 revision identical to the reviewed and verified one ☐ same artifact promoted ☐ semver tag + changelog
 ☐ live confirmed ☐ rollback recorded before promote.
