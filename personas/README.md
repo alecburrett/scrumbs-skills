@@ -72,6 +72,65 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 - **The exit:** a retro whose "next direction" is *"nothing left worth a sprint"* →
   the project is complete.
 
+## Artifact status vs verdict (and why they're different fields)
+
+Every artifact header carries `status` — where it sits in its **lifecycle**.
+Judging stages *also* carry a `verdict` — what the judgement **was**. These are
+orthogonal, and collapsing them is a live failure mode:
+
+| | `status` (lifecycle) | `verdict` (judgement) |
+|---|---|---|
+| Owned by | the gate | the persona |
+| Values | `draft` · `approved` · `changes-requested` · `blocked` · `held` · `abandoned` · `superseded` | Rex: *Approve* / *Changes requested* · Quinn: *Signed off* / *Blocked* |
+| Answers | "is this stage finished?" | "was the work any good?" |
+
+A review with verdict *Changes requested* is **finished work with a negative
+result** — and an **unfinished stage**. Writing `status: approved` on it (because
+the lead approved *sending it back*) makes a rejection indistinguishable from a
+pass: the front door marches on toward QA, and the judge is locked out of the
+re-review because their own entry condition sees an approved artifact.
+
+**Stopping states have owners.** `held` is Dex's — a verified build the lead
+chose not to promote yet, recorded with its preview URL and rollback handle so
+resuming returns to the promote gate rather than the top of the pipeline.
+`abandoned` is Stella's — a sprint the lead ended unfinished, marked
+`sprintOutcome: abandoned` on the sprint's own artifact (never on the in-flight
+stage, which would just make the front door recommend resuming the thing that
+was abandoned) and still earning a retro. Both exist so a *decision to stop* is distinguishable from work nobody
+started. A state no persona can write is a state that doesn't exist.
+
+**Attempts and revisions.** Build, Review and QA carry `attempt: N` (from 1) and
+`revision` — the **code revision**, meaning the last commit touching anything
+outside Scrumbs' own artifacts — the reserved `sprints/` directory plus the four
+named files `docs/BRIEF.md`, `PRD.md`, `DESIGN.md`, `BACKLOG.md` and
+`CHANGELOG.md`. Not the branch head; and `docs/` is deliberately *not* excluded
+wholesale, because projects ship real content there. That distinction is load-bearing: artifacts are themselves
+committed, so a branch-head SHA would make every verdict stale against its own
+paperwork the instant it was written. `/scrumbs:next` carries the one command
+every persona runs. Viktor owns both and
+re-records them on every return-from-rejection — including when code lands on
+the branch that he didn't write, since the counter tracks the branch rather than
+his keystrokes. Rex and Quinn record the attempt and revision they judged, and
+re-enter only when the build attempt is **strictly greater** than theirs.
+
+That "strictly greater" matters in both directions. It lets a judge back in
+after a rebuild (or the loop deadlocks), and it keeps a judge *out* at their own
+standing attempt (or they can quietly overwrite their own verdict on unchanged
+code). Discussion is always available; only new code earns a new verdict.
+
+**The invalidation rule:** a verdict never survives the code it judged being
+rewritten. A Review or QA artifact is stale if its attempt is below the current
+approved Build attempt **or** the revision it judged differs — whatever its
+recorded status. For QA that comparison uses `reviewedRevision` (the revision
+Rex approved), not `revision` (the branch after Quinn's probe commits), or every
+sign-off that added a probe would invalidate itself on arrival. `attempt` keeps the loop legible to a human; `revision` is what makes
+staleness checkable rather than a hand-maintained integer someone forgets to
+bump.
+
+**Fail closed.** A Build/Review/QA artifact with a missing or malformed
+`attempt`/`revision` is not a complete stage. Nothing guesses; the owner
+rewrites it.
+
 ## Shared behaviours (all personas)
 
 Beyond their individual specs, every persona observes these team-wide rituals:

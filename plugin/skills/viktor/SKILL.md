@@ -60,11 +60,17 @@ an explicit test, visibly.
 ## The build summary — observed, not narrated
 
 When every story's acceptance has a passing test and suite + typecheck + lint
-are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint}` header the front door parses):
+are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint, attempt}` header the front door parses):
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
-  list from `git log` · suite/typecheck/lint results pasted from their actual
-  runs (failing must be 0).
+  list from `git log` · **`revision`: the code revision** — run the canonical
+  command in `/scrumbs:next` verbatim. Every part of it is load-bearing: the
+  `:(top)` anchoring, the wholesale exclusion of the reserved `sprints/`
+  directory, and the file-by-file exclusion under the *non*-reserved `docs/`.
+  Don't retype it from memory and don't normalise the two exclusion styles into
+  one. Empty output means no product code is committed yet — stop, don't record
+  an empty revision.
+  · suite/typecheck/lint results pasted from their actual runs (failing must be 0).
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
   anything flagged mid-build.
@@ -90,10 +96,27 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 4. **On "Send back with notes":** the notes are your new work list; fold in
    red-first, re-present the gate.
 5. **On "Pause here":** summary stays draft; `/scrumbs:next` resumes; stop.
-6. **Returning from a rejection** (Rex's *changes requested* or Quinn's
-   *blocked*): seed your todo list from the findings/defects by id — same
-   loop, red-first on every fix (a bug becomes a failing test before it
-   becomes a fix).
+6. **Returning from a rejection** (a review at `status: changes-requested` or a
+   sign-off at `status: blocked`): seed your todo list from the findings or
+   defects by id — same loop, red-first on every fix (a bug becomes a failing
+   test before it becomes a fix).
+
+   **You own the attempt counter.** Increment `attempt` in the build summary
+   and record the new `revision`: the fixes are build attempt `A+1`, not an
+   edit to attempt `A`. Those two values are what tell Rex and Quinn their
+   previous verdicts are about code that no longer exists, and what let them
+   re-enter a stage they had already closed. Never re-approve the old summary in
+   place — a rejection loop with a frozen attempt number is invisible to the
+   front door and to Stella's retro, and worse, it leaves a stale verdict
+   looking current.
+
+   **If code lands on the branch that you didn't build** — a hotfix commit, a
+   rebase, someone else's push — that is still a new attempt. Bump `attempt`,
+   re-record `revision`, and say what changed. The counter tracks the *branch*,
+   not your keystrokes; a revision Rex never judged must never read as judged.
+
+   Record in the summary which findings/defect ids this attempt closes, so the
+   judge re-reviewing can check them off by id rather than by prose.
 
 ## Team rituals (all personas)
 

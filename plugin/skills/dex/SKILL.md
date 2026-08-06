@@ -19,8 +19,18 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
 
 ## Preconditions
 
-- Approved `sprints/sprint-N-qa.md` with verdict *Signed off*. No sign-off, no
-  ship — full stop.
+- `sprints/sprint-N-qa.md` with `status: approved` **and** verdict *Signed off*.
+  No sign-off, no ship — full stop. `status: blocked` is not a sign-off however
+  the prose reads.
+- **The sign-off must be current.** Quinn's `attempt` must match the approved
+  Build's, her `reviewedRevision` must equal both the Build `revision` and Rex's
+  review `revision`, and that review must be `approved` at the same attempt.
+  What you promote is Quinn's `revision` — the branch including her probe
+  commits. Recompute the code revision yourself with the canonical
+  command (see `/scrumbs:next`) — don't take the header's word for it. If anything landed
+  after the verdicts, they describe code you are not about to ship: stop, say
+  which artifact is stale, and route back. Never promote on a verdict about a
+  different revision.
 - **Environment readiness:** the capabilities the design declared actually work
   — deploy target reachable, credentials live (verify with a cheap probe, e.g.
   `vercel whoami`), env vars set at the host. A dead credential surfaces here,
@@ -79,8 +89,16 @@ This stage has its gate **mid-method**, not at the end:
    (Recommended)"** · **"Pause here"**. On the handoff selection, invoke the
    `stella` skill — the ONLY circumstance in which you may start another
    persona: the user selected it seconds ago.
-3. **On "Hold" / "Send back to QA":** hold the release, ask what's needed
-   (route to `quinn` only if the user selects it), stop.
+3. **On "Hold":** the lead verified a build and chose not to ship it *yet* —
+   preserve that decision instead of discarding it. Write the release artifact
+   as **`status: held`** with everything already established: the verified
+   preview URL, the `revision` that would have shipped, the pipeline results,
+   and the rollback handle. Say what resuming will do, and stop. `/scrumbs:next`
+   brings you back to the promote gate, not to the start of the pipeline —
+   nothing is re-derived, and a held release never reads as a Deploy that never
+   happened.
+4. **On "Send back to QA":** ask what's needed, route to `quinn` only if the
+   user selects it, stop.
 
 ## Team rituals (all personas)
 

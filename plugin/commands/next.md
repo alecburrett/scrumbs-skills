@@ -13,8 +13,125 @@ nothing happens silently. The user starts every stage.
 ## 1. Derive state from the repo (artifacts are the truth)
 
 Check for these files in the current repo. Each Scrumbs artifact starts with a
-YAML header: `scrumbs: {stage, status: draft|approved, sprint}` — plus
-`project: closed` on a terminal retro (see closure, below).
+YAML header: `scrumbs: {stage, status, sprint, attempt}` — plus `project: closed`
+on a terminal retro (see closure, below).
+
+### The status vocabulary (canonical — skills use these exact words)
+
+`status` records **where the artifact sits in its lifecycle**. It is *not* the
+verdict. A review that says "changes requested" is a finished piece of work with
+a negative verdict — and an **unfinished stage**. Conflating the two is what
+makes a rejection look like a completed stage.
+
+| `status` | Means | Stage complete? | Position routes to |
+|---|---|---|---|
+| `draft` | mid-flight, gate not yet answered | no | resume this stage's owner |
+| `approved` | the lead approved it at its gate | **yes** | the next stage |
+| `changes-requested` | Rex reviewed, lead agreed the work needs fixes | no | **Viktor** |
+| `blocked` | Quinn found failures, lead agreed | no | **Viktor** |
+| `held` | Dex verified a build, lead declined to promote *for now* | no | **Dex**, resuming at the promote gate |
+| `abandoned` | the lead ended this sprint unfinished | terminal for the sprint | **Stella**, for a retro on what happened |
+| `superseded` | an earlier attempt, replaced by a later one | n/a | ignore when deriving position |
+
+`held` and `abandoned` exist so a *decision to stop* is preserved rather than
+looking like work that never started. Both require their artifact to be written
+before stopping — a held release records the preview URL, what would have
+shipped, and the rollback handle, so resuming doesn't re-derive them.
+
+### Attempts and revisions
+
+**Build, Review and QA** — the three stages that can legitimately loop — carry
+two extra keys. Every other stage omits both.
+
+- `attempt` — an integer from 1. Viktor increments it; Rex and Quinn record the
+  attempt they judged.
+- `revision` — the **code revision** the artifact is about (defined below).
+  Viktor records what he built; Rex and Quinn copy the exact revision they
+  judged.
+
+**The code revision, defined once.** Scrumbs artifacts are themselves committed,
+so a plain branch head is useless as an identity: writing the build summary
+changes HEAD, and every verdict would be instantly stale against its own
+paperwork. The code revision is the last commit touching anything *outside* the
+lifecycle artifacts:
+
+```sh
+git log -1 --format=%H -- ':(top)' \
+  ':(top,exclude)sprints/' \
+  ':(top,exclude)docs/BRIEF.md'   ':(top,exclude)docs/PRD.md' \
+  ':(top,exclude)docs/DESIGN.md'  ':(top,exclude)docs/BACKLOG.md' \
+  ':(top,exclude)CHANGELOG.md'
+```
+
+**`sprints/` is reserved for Scrumbs.** Everything in it is lifecycle paperwork,
+which is why it can be excluded wholesale. `docs/` is *not* reserved — projects
+keep real, shipped content there — so only Scrumbs' four named files are
+excluded and everything else under `docs/` counts as product. If a repo already
+uses `sprints/` for product content, say so at first run and ask the lead to
+move it: a product file living in the reserved directory would silently stop
+advancing the revision, and every persona would agree on the same stale answer.
+
+Every persona that records or checks `revision` runs exactly that command, so
+they are always comparing the same thing. Committing an artifact, approving it,
+or appending a changelog line does not move it; changing a line of product code
+or a test does.
+
+Two details in that command are load-bearing, and both are easy to "simplify"
+back into bugs:
+
+- **`:(top)` anchors every pathspec at the repository root**, so the answer
+  doesn't depend on which directory the persona happens to be in. Without it,
+  running from `sprints/` returns the *paperwork* commit — reintroducing the
+  deadlock — and running from a directory the last commit didn't touch returns
+  nothing at all.
+- **The two exclusion styles are deliberately different, and not
+  interchangeable.** `sprints/` is reserved for Scrumbs, so it is excluded
+  wholesale. `docs/` is shared with the project, so *only* the four named
+  Scrumbs files are excluded there. Do not "tidy" these into one style: making
+  `docs/` a directory exclusion would silently ignore real product content — a
+  docs site, fixtures, executable examples — and leave a verdict looking current
+  when shipped files changed underneath it; making `sprints/` file-by-file
+  reopens the glob hole where a product file in the reserved directory stops
+  advancing the revision.
+
+**No output means no code.** If the command returns empty, nothing outside the
+lifecycle artifacts has ever been committed — there is no build to judge. Say
+so; don't record an empty `revision`.
+
+`attempt` makes the loop legible to a human; `revision` is what makes staleness
+*checkable* rather than a manually-maintained integer anyone can forget to bump.
+
+**Staleness rule.** An artifact is stale if its `attempt` is lower than the
+current approved Build attempt, **or** if the revision it judged differs from
+the current Build `revision`. Treat a stale artifact as `superseded` regardless
+of its recorded status: a verdict never survives the code it judged being
+rewritten.
+
+*"The revision it judged"* is `revision` for a Review — and **`reviewedRevision`
+for a QA sign-off**, which carries two revisions on purpose:
+
+| key | meaning |
+|---|---|
+| `reviewedRevision` | the code revision Rex approved — copied from the review, and what staleness is measured against |
+| `revision` | where the branch stands after Quinn's probe commits — what actually gets deployed |
+
+Quinn commits her probes to the branch, and probes are tests, so they *do*
+advance the code revision. Without this split, every QA pass that adds a probe
+would invalidate itself the moment it was written: a blocked sign-off would look
+stale and bounce back to Quinn instead of Viktor, and a clean one could never
+satisfy Dex. Measuring staleness against `reviewedRevision` keeps the verdict
+anchored to the code Rex judged, while `revision` stays honest about what is
+actually on the branch.
+
+That split is deliberately *narrow*: it says probe commits don't invalidate
+Quinn's own verdict. It does not establish that the delta between the two
+revisions is genuinely test-only — nothing here verifies that yet, and Dex is
+promoting `revision`, not `reviewedRevision`.
+
+**Fail closed.** If `attempt` or `revision` is missing, malformed, or
+non-monotonic on a Build/Review/QA artifact, do **not** guess and do not treat
+the stage as complete. Say exactly which artifact is malformed and recommend its
+owner to rewrite it. An unreadable lifecycle record is an unfinished stage.
 
 | Order | Stage | Persona | Artifact |
 |---|---|---|---|
@@ -44,16 +161,50 @@ it themselves, as an ordinary git operation with no Scrumbs semantics attached.
 
 A closed project stays closed. There is no path back into its backlog.
 
-Otherwise the current position is the first stage whose artifact is missing or
-`status: draft` — **except Re-prioritise (row 4), which exists only from
-sprint 2**: it requires the previous sprint's approved retro, so skip that row
-entirely when scanning sprint 1 (Requirements → PRD → Plan → …). From sprint 2,
-each lap begins at Re-prioritise. Between Plan and Tech Design sits Iris's
-**Design Pass** (`sprints/sprint-N-design-pass.md`) — expected only when the
-sprint's stories touch new/changed UI; skip that row for backend sprints. A `draft` artifact means that stage is
-mid-flight (resume it); a missing one means that stage hasn't started. A
-rejected stage routes to its owner per the routing table below — check the
-latest artifact's notes.
+**Then check for an abandoned sprint**, before any ordinary stage inference. If
+`sprints/sprint-N.md` carries `sprintOutcome: abandoned` **and sprint N has no
+approved retro yet**, sprint N stopped by the lead's decision. Every unfinished
+stage in it is moot: the **only** remaining stage for that sprint is **Retro**.
+Do not scan sprint N's stages and recommend resuming a draft build or a pending
+review — the sprint they belonged to is over.
+
+The "no approved retro yet" condition is what makes this override *terminate*.
+The marker stays on the plan permanently — it's history, and Stella is right not
+to erase it — so an unconditional check would keep declaring Retro the only
+remaining stage forever, re-recommending it after it was already done. Once the
+abandonment retro is approved, the marker has been consumed: derive the next lap
+normally from that retro, which routes to Pablo like any other.
+
+Otherwise the current position is **the first stage whose artifact is not
+`approved`** — missing, `draft`, `changes-requested`, `blocked`, or stale by the
+staleness rule. Only `approved` completes a stage; nothing else advances the
+position past it.
+
+Two rows are conditional. **Re-prioritise (row 4) exists only from sprint 2** —
+it requires the previous sprint's approved retro, so skip it entirely when
+scanning sprint 1 (Requirements → PRD → Plan → …); from sprint 2, each lap
+begins there. Between Plan and Tech Design sits Iris's **Design Pass**
+(`sprints/sprint-N-design-pass.md`), expected only when the sprint's stories
+touch new/changed UI — skip it for backend sprints.
+
+What each state means for the recommendation:
+
+- **missing** — the stage hasn't started; recommend its owner.
+- **`draft`** — mid-flight; recommend its owner, resuming at the gate.
+- **`changes-requested` / `blocked`** — the work was judged and found wanting.
+  Recommend **Viktor**, with the blocking findings or defects by id as his work
+  list. Do *not* recommend re-running the judge: Rex and Quinn re-enter on their
+  own terms once a new build attempt lands.
+- **stale** — a judged stage whose build has since been rewritten. Recommend the
+  **judge**, not Viktor: Rex for a stale Review, Quinn for a stale QA. The build
+  is finished; what's missing is a verdict on *this* revision. Say plainly that
+  the previous verdict no longer applies.
+- **`held`** — recommend **Dex**, resuming at the promote gate. The build was
+  verified; the lead chose not to ship it yet. Never re-run the pipeline from
+  scratch or treat Deploy as unstarted.
+- **`abandoned`** — the sprint ended unfinished by the lead's decision.
+  Recommend **Stella** for a retro on it, then the normal lap. Never recommend
+  continuing the abandoned stage.
 
 ## 2. Report position, then present the options — native, not prose
 
