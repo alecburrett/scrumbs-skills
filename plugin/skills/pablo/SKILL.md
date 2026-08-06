@@ -128,16 +128,21 @@ re-confirmed unnecessarily at every handoff.
   that failed.
 - **Record the gate, not just the outcome.** Never write a status alone. Every
   status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
-  abandonment — **appends** an entry to the artifact's `decisions` list: `type`,
-  `at`, `by`, the gate `question` you asked verbatim, and the `answer` they
-  chose verbatim. Never rewrite an earlier entry; one artifact can be approved
-  and later abandoned, and both belong on the record. Add `inputs` naming what
-  the stage consumed by path **and blob OID** (paths alone don't identify
-  content that gets overwritten each attempt), and `schema: 2`. Commit it. Check
-  the same on any upstream artifact before trusting it: a non-draft status with
-  no matching last entry is malformed — stop, don't inherit it. None of this
-  proves who really answered; it makes a missing or broken record visible, which
-  is a different and more modest thing.
+  `returned`, abandonment — **appends** an entry to the artifact's `decisions`
+  list: `type`, `at`, `by`, the gate `question` you asked verbatim, and the
+  `answer` they chose verbatim. Never rewrite an earlier entry; one artifact can
+  be approved and later abandoned, and both belong on the record. Add `inputs`
+  naming what the stage consumed by path **and blob OID** (paths alone don't
+  identify content overwritten each attempt), and `schema: 2`. Commit it.
+  **Check schema first when reading an upstream artifact.** No `schema`, or
+  `schema: 1`, means *legacy*, not malformed: trust its status, say once that
+  its record predates this contract, and carry on — refusing it would strand
+  every project that started before the record existed. Only at `schema: 2` does
+  a non-draft status with no matching last entry mean malformed; then you stop
+  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a one-line re-confirmation and write a proper record from their answer. None of
+  this proves who really answered; it makes a missing or broken record visible,
+  which is a different and more modest thing.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present

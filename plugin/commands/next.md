@@ -99,6 +99,13 @@ record from their answer. Migration therefore happens lazily, in dependency
 order, and finishes on its own — there is no migration script, no separate
 owner, and no half-migrated state to resume from.
 
+Some artifacts will simply never be upgraded, because their owning persona has
+no reason to run again — a shipped sprint's release record, a closed project's
+retro. **That is fine and final.** They stay legacy, stay flagged, and stay
+trusted for routing. A one-off upgrade of settled history would be pure
+ceremony: it would record today's date against a decision made months ago, which
+is worse evidence than admitting the record predates the contract.
+
 **Never backfill a `decisions` entry the lead did not actually give you**, and
 never date one earlier than the moment it was recorded. Inventing the record
 would fabricate exactly the evidence this design exists to protect.
@@ -150,14 +157,26 @@ makes a rejection look like a completed stage.
 | `approved` | the lead approved it at its gate | **yes** | the next stage |
 | `changes-requested` | Rex reviewed, lead agreed the work needs fixes | no | **Viktor** |
 | `blocked` | Quinn found failures, lead agreed | no | **Viktor** |
+| `authorized` | Dex recorded the lead's promote decision; production not yet confirmed | no | **Dex**, resuming at step (b) — see below |
 | `held` | Dex verified a build, lead declined to promote *for now* | no | **Dex**, resuming at the promote gate |
+| `returned` | a later stage sent the work back; the last decision names `to:` | no | the stage named in `to` |
 | `abandoned` | the lead ended this sprint unfinished | terminal for the sprint | **Stella**, for a retro on what happened |
 | `superseded` | an earlier attempt, replaced by a later one | n/a | ignore when deriving position |
 
-`held` and `abandoned` exist so a *decision to stop* is preserved rather than
-looking like work that never started. Both require their artifact to be written
-before stopping — a held release records the preview URL, what would have
-shipped, and the rollback handle, so resuming doesn't re-derive them.
+`held`, `returned` and `abandoned` exist so a *decision to stop or turn back* is
+preserved rather than looking like work that never started. Each requires its
+artifact to be written before stopping — a held release records the preview URL,
+what would have shipped, and the rollback handle, so resuming doesn't re-derive
+them; a `returned` release records who it went back to and why, so a session
+that ends there doesn't silently bounce the lead back to the stage they just
+left.
+
+**`authorized` is the one that matters most.** It is the narrow window where the
+lead has said "promote" and production may or may not have been touched yet.
+Being a non-draft status, it is subject to the full decision check: its last
+entry must be the `approved` promote decision, complete. That is deliberate —
+resuming into production off an artifact that merely *looks* half-written is the
+one mistake in this whole lifecycle that cannot be undone.
 
 ### Attempts and revisions
 

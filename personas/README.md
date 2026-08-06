@@ -95,9 +95,14 @@ paint valid work as a broken chain. A difference is reported as "written against
 an earlier version," not treated as an error.
 
 Artifacts predating this contract are **legacy** — a third state, not malformed.
-A legacy `approved` routes as approved, is flagged as *unverified record*, and is
-upgraded lazily by its owning persona on that persona's next natural run. No
-migration script, no separate owner, nothing half-migrated to resume from.
+Personas check `schema` *before* validating decisions: a legacy `approved` routes
+as approved, is flagged as *unverified record*, and is upgraded lazily by its
+owning persona on that persona's next natural run. No migration script, no
+separate owner, nothing half-migrated to resume from. Artifacts whose owner never
+runs again — a shipped release record, a closed project's retro — stay legacy
+permanently, and that is the right answer: stamping today's date on a decision
+made months ago would be worse evidence than admitting the record predates the
+contract.
 
 **The honest limit, stated precisely.** This does *not* detect a skipped gate.
 Anyone who can commit can write a complete, self-consistent entry for a gate that

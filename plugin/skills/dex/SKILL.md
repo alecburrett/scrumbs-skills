@@ -122,7 +122,7 @@ This stage has its gate **mid-method**, not at the end:
    This is the one gate whose side effects can't be taken back, so the order
    matters:
 
-   a. Write the release artifact as **`status: draft`** carrying the
+   a. Write the release artifact as **`status: authorized`** carrying the
       `decisions` entry (the promote question and the lead's exact answer), the
       `revision` being promoted, the deploy target, **and the immutable
       identity of the thing you are about to promote** — the verified preview's
@@ -148,12 +148,18 @@ This stage has its gate **mid-method**, not at the end:
    handoff selection, invoke the `stella` skill — the ONLY circumstance in
    which you may start another persona: the user selected it seconds ago.
 
-   **On resume from a `draft` release artifact:** production may or may not
-   have been touched. Do not re-promote blind — query the host for the exact
-   deployment id recorded in step (a), and promote only if it genuinely didn't
-   land. If the artifact has no id (it predates this rule, or the crash beat
-   the first commit), say so plainly and ask the lead to confirm the live state
-   before you touch anything.
+   **On resume from an `authorized` release artifact:** production may or may
+   not have been touched. Before anything else, **validate the authorization
+   itself** — the last `decisions` entry must be the complete `approved` promote
+   decision, with the lead's verbatim answer. If it is missing, partial, or says
+   anything else, this is not an authorization: stop and re-present the promote
+   gate. A deployment id alone is not permission, and an incomplete artifact
+   must never be enough to touch production.
+
+   Only then query the host for the exact deployment id recorded in step (a),
+   and promote only if it genuinely didn't land. If the artifact has no id (it
+   predates this rule, or the crash beat the first commit), say so plainly and
+   ask the lead to confirm the live state before you touch anything.
 3. **On "Hold":** the lead verified a build and chose not to ship it *yet* —
    preserve that decision instead of discarding it. Write the release artifact
    as **`status: held`** with everything already established: the verified
@@ -170,8 +176,15 @@ This stage has its gate **mid-method**, not at the end:
    moved, the hold is void — route to Viktor as a new build attempt. Skipping
    the pipeline on resume is fine when nothing changed; skipping the integrity
    check is how a stale hold ships unreviewed code.
-4. **On "Send back to QA":** ask what's needed, route to `quinn` only if the
-   user selects it, stop.
+4. **On "Send back to QA":** write the release artifact as
+   **`status: returned`** with a `decisions` entry naming `to: qa` and the
+   lead's verbatim answer, and commit it *before* you invoke anyone. Then ask
+   what's needed and route to `quinn` only if the user selects it.
+
+   Persisting it is the point: a send-back changes routing, so if the session
+   ends here with nothing written, the repo still shows an approved QA and an
+   unfinished Deploy, `/scrumbs:next` sends the lead straight back to you, and
+   the decision they just made has evaporated.
 
 ## Team rituals (all personas)
 
@@ -193,16 +206,21 @@ This stage has its gate **mid-method**, not at the end:
   that failed.
 - **Record the gate, not just the outcome.** Never write a status alone. Every
   status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
-  abandonment — **appends** an entry to the artifact's `decisions` list: `type`,
-  `at`, `by`, the gate `question` you asked verbatim, and the `answer` they
-  chose verbatim. Never rewrite an earlier entry; one artifact can be approved
-  and later abandoned, and both belong on the record. Add `inputs` naming what
-  the stage consumed by path **and blob OID** (paths alone don't identify
-  content that gets overwritten each attempt), and `schema: 2`. Commit it. Check
-  the same on any upstream artifact before trusting it: a non-draft status with
-  no matching last entry is malformed — stop, don't inherit it. None of this
-  proves who really answered; it makes a missing or broken record visible, which
-  is a different and more modest thing.
+  `returned`, abandonment — **appends** an entry to the artifact's `decisions`
+  list: `type`, `at`, `by`, the gate `question` you asked verbatim, and the
+  `answer` they chose verbatim. Never rewrite an earlier entry; one artifact can
+  be approved and later abandoned, and both belong on the record. Add `inputs`
+  naming what the stage consumed by path **and blob OID** (paths alone don't
+  identify content overwritten each attempt), and `schema: 2`. Commit it.
+  **Check schema first when reading an upstream artifact.** No `schema`, or
+  `schema: 1`, means *legacy*, not malformed: trust its status, say once that
+  its record predates this contract, and carry on — refusing it would strand
+  every project that started before the record existed. Only at `schema: 2` does
+  a non-draft status with no matching last entry mean malformed; then you stop
+  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a one-line re-confirmation and write a proper record from their answer. None of
+  this proves who really answered; it makes a missing or broken record visible,
+  which is a different and more modest thing.
 - **Production exception to gate mechanics:** at the Promote gate, a typed
   reply counts ONLY as an unambiguous affirmative ("promote", "ship it").
   Anything else — a question, a clarification — gets answered and the gate
