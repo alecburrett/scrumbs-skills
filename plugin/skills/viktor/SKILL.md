@@ -63,10 +63,11 @@ When every story's acceptance has a passing test and suite + typecheck + lint
 are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint, attempt}` header the front door parses):
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
-  list from `git log` · **`revision`: the code revision, from**
-  ```sh
-  git log -1 --format=%H -- . ':(exclude)sprints/' ':(exclude)docs/' ':(exclude)CHANGELOG.md'
-  ```
+  list from `git log` · **`revision`: the code revision** — run the canonical
+  command in `/scrumbs:next` verbatim (it is anchored at the repo root with
+  `:(top)` and excludes Scrumbs' artifact files by name; both details matter,
+  so don't retype it from memory). Empty output means no product code is
+  committed yet — stop, don't record an empty revision.
   · suite/typecheck/lint results pasted from their actual runs (failing must be 0).
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·

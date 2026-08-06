@@ -53,16 +53,37 @@ two extra keys. Every other stage omits both.
 so a plain branch head is useless as an identity: writing the build summary
 changes HEAD, and every verdict would be instantly stale against its own
 paperwork. The code revision is the last commit touching anything *outside* the
-lifecycle paperwork:
+lifecycle artifacts:
 
 ```sh
-git log -1 --format=%H -- . ':(exclude)sprints/' ':(exclude)docs/' ':(exclude)CHANGELOG.md'
+git log -1 --format=%H -- ':(top)' \
+  ':(top,exclude)sprints/sprint-*.md' \
+  ':(top,exclude)docs/BRIEF.md'   ':(top,exclude)docs/PRD.md' \
+  ':(top,exclude)docs/DESIGN.md'  ':(top,exclude)docs/BACKLOG.md' \
+  ':(top,exclude)CHANGELOG.md'
 ```
 
 Every persona that records or checks `revision` runs exactly that command, so
 they are always comparing the same thing. Committing an artifact, approving it,
 or appending a changelog line does not move it; changing a line of product code
 or a test does.
+
+Two details in that command are load-bearing, and both are easy to "simplify"
+back into bugs:
+
+- **`:(top)` anchors every pathspec at the repository root**, so the answer
+  doesn't depend on which directory the persona happens to be in. Without it,
+  running from `sprints/` returns the *paperwork* commit — reintroducing the
+  deadlock — and running from a directory the last commit didn't touch returns
+  nothing at all.
+- **The exclusions name Scrumbs' own artifact files, not whole directories.**
+  Excluding `docs/` wholesale would silently ignore real product content — a
+  docs site, fixtures, executable examples — and leave a verdict looking current
+  when shipped files changed underneath it.
+
+**No output means no code.** If the command returns empty, nothing outside the
+lifecycle artifacts has ever been committed — there is no build to judge. Say
+so; don't record an empty `revision`.
 
 `attempt` makes the loop legible to a human; `revision` is what makes staleness
 *checkable* rather than a manually-maintained integer anyone can forget to bump.
@@ -107,11 +128,18 @@ it themselves, as an ordinary git operation with no Scrumbs semantics attached.
 A closed project stays closed. There is no path back into its backlog.
 
 **Then check for an abandoned sprint**, before any ordinary stage inference. If
-`sprints/sprint-N.md` carries `sprintOutcome: abandoned`, sprint N stopped by
-the lead's decision. Every unfinished stage in it is moot: the **only** remaining
-stage for that sprint is **Retro**, and after that the lap resumes at Pablo. Do
-not scan sprint N's stages and recommend resuming a draft build or a pending
+`sprints/sprint-N.md` carries `sprintOutcome: abandoned` **and sprint N has no
+approved retro yet**, sprint N stopped by the lead's decision. Every unfinished
+stage in it is moot: the **only** remaining stage for that sprint is **Retro**.
+Do not scan sprint N's stages and recommend resuming a draft build or a pending
 review — the sprint they belonged to is over.
+
+The "no approved retro yet" condition is what makes this override *terminate*.
+The marker stays on the plan permanently — it's history, and Stella is right not
+to erase it — so an unconditional check would keep declaring Retro the only
+remaining stage forever, re-recommending it after it was already done. Once the
+abandonment retro is approved, the marker has been consumed: derive the next lap
+normally from that retro, which routes to Pablo like any other.
 
 Otherwise the current position is **the first stage whose artifact is not
 `approved`** — missing, `draft`, `changes-requested`, `blocked`, or stale by the
