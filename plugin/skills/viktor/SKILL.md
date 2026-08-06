@@ -27,7 +27,9 @@ redefine scope, don't gold-plate beyond the story.
 - Create/switch to the feature branch (`sprint-N-<goal-slug>`). Never work on
   the default branch.
 - **Pick up any pending probes.** If the previous sprint's QA sign-off recorded
-  a `pendingProbes` SHA that was never integrated, merge it into this build
+  a `pendingProbes` SHA that was never integrated, `git fetch` it, confirm
+  `git cat-file -e <sha>` and that the SHA is what the artifact recorded — the
+  branch name can have moved, the SHA can't — then merge it into this build
   before you start, and say so. Quinn's probes only compound if someone lands
   them, and you are that someone — a released sprint leaves them un-merged by
   design, because merging onto a candidate after QA is exactly what the

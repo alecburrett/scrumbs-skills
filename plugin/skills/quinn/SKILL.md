@@ -63,13 +63,19 @@ flagged, justified exception for the genuinely unscriptable.
 branch Dex promotes. The choreography, in order:
 
 ```sh
-git checkout -b sprint-N-probes <reviewed-revision>   # cut from what Rex judged
+git checkout -b sprint-N-attempt-A-probes <reviewed-revision>   # A = this Build attempt
 # …write and run probes here, commit them here…
-git push -u origin sprint-N-probes                    # push BEFORE you sign off
-git rev-parse sprint-N-probes                         # record this SHA in the artifact
-git checkout <candidate>                              # back to the candidate
+git push -u origin sprint-N-attempt-A-probes                    # push BEFORE you sign off
+git rev-parse sprint-N-attempt-A-probes                         # record this SHA
+git checkout <candidate>                                        # back to the candidate
 # …commit ONLY sprints/sprint-N-qa.md…
 ```
+
+**The branch name carries the attempt**, because a blocked QA leaves the
+previous one behind locally and on the remote. A bare `sprint-N-probes` would
+collide on your very next re-test, and "fixing" that by resetting or
+force-pushing would invalidate the SHA someone already recorded. One branch per
+attempt, kept.
 
 Your sign-off artifact lives on the **candidate**, not the probe branch — Dex
 reads it there, alongside the Build and Review artifacts. Committing lifecycle
@@ -118,6 +124,13 @@ name alone can be force-pushed out from under you — the SHA is what's durable.
 Name any un-integrated probe SHA at the retro too; a probe nobody merged is
 paranoia the next sprint doesn't inherit.
 
+**If a pass produced no executable probe at all** — everything you needed was
+already covered, or the one thing worth probing is genuinely unscriptable —
+there is no branch and no SHA. Say so explicitly: omit `pendingProbes` and
+record `whyNotScripted` instead. Don't manufacture an empty commit to satisfy a
+checklist; an honest "no new probes this pass, because…" is a valid sign-off and
+a fabricated one is a lie in the permanent record.
+
 **If a probe needs product code, a dependency, config or pipeline change** to
 run at all, that is Build work, not probe work. Raise it as a defect for Viktor
 — it becomes a new build attempt, Rex reviews it, and it comes back to you.
@@ -128,10 +141,11 @@ run at all, that is Build work, not probe work. Raise it as a defect for Viktor
   (test path, command, or output reference), never a narrative claim.
 - **Edge cases probed:** scenario · probe (committed test path, or the
   justified prose exception) · source if bot-raised.
-- **Probes (observed):** the probe branch name, its pushed commit SHA
-  (`pendingProbes`), and each committed probe's test path — plus the candidate's
-  code revision, computed with the ref-scoped command above and shown equal to
-  the revision Rex reviewed.
+- **Probes (observed):** the attempt-scoped probe branch, its pushed commit SHA
+  (`pendingProbes`), and each committed probe's test path — or, if this pass
+  produced no executable probe, `whyNotScripted` and no SHA. Plus the
+  candidate's code revision, computed with the ref-scoped command above and
+  shown equal to the revision Rex reviewed.
 - **Defects:** id · linked criterion id where applicable · severity · exact
   steps · expected vs actual.
 - **Verdict:** **Signed off / Blocked** — *must* be Blocked if any criterion
@@ -139,7 +153,8 @@ run at all, that is Build work, not probe work. Raise it as a defect for Viktor
 
 *Gate checklist:* ☐ every criterion id verified with a real run ☐ edge set
 documented and probed ☐ probes committed **and pushed**, SHA recorded
-☐ **candidate's code revision unchanged since Rex's review** ☐ every defect
+(or `whyNotScripted` given, if this pass produced none) ☐ artifact committed
+alone ☐ **candidate's code revision unchanged since Rex's review** ☐ every defect
 minimally reproducible ☐ verdict consistent with results ☐ confidence stated.
 
 Never sign off on the unverified: *"Acceptance says 'no data loss across
@@ -175,7 +190,14 @@ as Rex's Review:
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess.
+
+   **Commit the artifact and nothing else.** You are on the candidate now; your
+   probes are already committed and pushed on their own branch. Check what you
+   are about to commit (`git diff --cached --name-only`) and confirm it is
+   `sprints/sprint-N-qa.md` alone. A probe that sneaks in here moves the
+   candidate's code revision and Dex will — correctly — refuse the sign-off you
+   just wrote.
    Present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    - Verdict *Signed off* — *"Sign off — confident enough to ship this?"* →
