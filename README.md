@@ -1,0 +1,108 @@
+# Scrumbs
+
+### Your AI scrum team. Minus the standups.
+
+Seven teammates take your project from *"I've got an idea"* to shipped code.
+One works at a time. Each one stops and asks you before anything moves.
+
+```
+/scrumbs
+```
+
+That's the whole interface. It tells you where you are and who's up next.
+
+---
+
+## Meet the team
+
+| | Who | Role | They say |
+|---|---|---|---|
+| 📋 | **Pablo** | Product Owner | *"Let's get clear on what we're building."* |
+| 🎨 | **Iris** | Product Designer | *"Let's give this thing a face."* |
+| 🌀 | **Stella** | Scrum Master | *"Let's break this into a sprint."* |
+| 🏗️ | **Rex** | Tech Lead | *"Let's shape how we build this."* |
+| 🔴 | **Viktor** | Senior Developer | *"Red first, then green."* |
+| 🔍 | **Quinn** | QA Engineer | *"Now… what if the user does this?"* |
+| 🚀 | **Dex** | DevOps Engineer | *"We're green. Let's ship it."* |
+
+---
+
+## Install
+
+```sh
+claude plugin marketplace add alecburrett/scrumbs-skills
+claude plugin install scrumbs
+```
+
+Then, inside the git repo you want built:
+
+```
+/scrumbs
+```
+
+<sub>Already in a Claude Code session? `/plugin marketplace add alecburrett/scrumbs-skills` works too.</sub>
+
+---
+
+## The one rule
+
+**Every stage ends at a gate, and the gate is yours.**
+
+Nobody hands off to anybody until you tap approve. No persona starts
+itself. Nothing happens silently — you always know who is working, what
+they produced, and what happens next.
+
+Ask the team to "just do the whole thing" and they'll politely decline.
+That's the point.
+
+---
+
+## What actually happens
+
+You talk to Pablo about your idea. He asks one question at a time, pushes
+back on scope, and writes it down. You approve. Iris gives it a look. You
+approve. Stella cuts it into a sprint. Rex designs it, Viktor builds it
+test-first, Rex reviews his own design being met, Quinn tries to break it,
+Dex ships it. Stella runs the retro and the next sprint starts.
+
+Every stage leaves a real file in your repo:
+
+```
+docs/BRIEF.md          what we're building, and what we're not
+docs/PRD.md            the spec, with numbered acceptance criteria
+docs/DESIGN.md         the visual identity
+docs/BACKLOG.md        everything we parked, with provenance
+sprints/sprint-1.md    the plan · the design · the build · review · QA · retro
+CHANGELOG.md           what shipped
+```
+
+Your repo is the source of truth. Delete the plugin tomorrow and every
+artifact still reads perfectly on its own.
+
+---
+
+## Why personas, and not one big prompt
+
+Because a product owner who is also the developer will always cut the
+awkward requirement. Splitting the work across seven agents with narrow
+remits and hard handoffs is what keeps each one honest:
+
+- Pablo is **pre-technical on purpose** — no stack, no UI, no solutions.
+- Rex **designs and judges but never implements**. Viktor implements.
+- Quinn judges **behaviour**, not code — Rex already did the code.
+- Nobody re-opens someone else's decision. They bounce it back to its owner.
+
+Each persona is a plain Markdown skill. Read one, disagree with it, change
+it — it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/).
+The longer specs they're compiled from live in
+[`personas/`](./personas/).
+
+---
+
+## Requirements
+
+[Claude Code](https://code.claude.com), and a git repo to work in.
+
+## Licence
+
+MIT — see [LICENSE](./LICENSE).

@@ -1,0 +1,10 @@
+{
+  "name": "scrumbs",
+  "description": "Your AI scrum team. Minus the standups. Seven personas walk a project from raw idea to shipped software through explicit, approval-gated stages — you always know who is working and what happens next.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Alec Burrett"
+  },
+  "homepage": "https://github.com/alecburrett/scrumbs-skills",
+  "license": "MIT"
+}

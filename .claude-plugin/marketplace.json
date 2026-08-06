@@ -1,0 +1,13 @@
+{
+  "name": "scrumbs",
+  "owner": {
+    "name": "Alec Burrett"
+  },
+  "plugins": [
+    {
+      "name": "scrumbs",
+      "source": "./plugin",
+      "description": "Your AI scrum team. Minus the standups. /scrumbs to start — every stage is explicit, every handoff signposted, every gate yours."
+    }
+  ]
+}
