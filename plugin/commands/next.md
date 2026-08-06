@@ -45,8 +45,24 @@ two extra keys. Every other stage omits both.
 
 - `attempt` — an integer from 1. Viktor increments it; Rex and Quinn record the
   attempt they judged.
-- `revision` — the **full commit SHA** the artifact is about. Viktor records the
-  branch head he built; Rex and Quinn copy the exact SHA they judged.
+- `revision` — the **code revision** the artifact is about (defined below).
+  Viktor records what he built; Rex and Quinn copy the exact revision they
+  judged.
+
+**The code revision, defined once.** Scrumbs artifacts are themselves committed,
+so a plain branch head is useless as an identity: writing the build summary
+changes HEAD, and every verdict would be instantly stale against its own
+paperwork. The code revision is the last commit touching anything *outside* the
+lifecycle paperwork:
+
+```sh
+git log -1 --format=%H -- . ':(exclude)sprints/' ':(exclude)docs/' ':(exclude)CHANGELOG.md'
+```
+
+Every persona that records or checks `revision` runs exactly that command, so
+they are always comparing the same thing. Committing an artifact, approving it,
+or appending a changelog line does not move it; changing a line of product code
+or a test does.
 
 `attempt` makes the loop legible to a human; `revision` is what makes staleness
 *checkable* rather than a manually-maintained integer anyone can forget to bump.
@@ -89,6 +105,13 @@ this command never writes. If the user wants the old code, they fork or copy
 it themselves, as an ordinary git operation with no Scrumbs semantics attached.
 
 A closed project stays closed. There is no path back into its backlog.
+
+**Then check for an abandoned sprint**, before any ordinary stage inference. If
+`sprints/sprint-N.md` carries `sprintOutcome: abandoned`, sprint N stopped by
+the lead's decision. Every unfinished stage in it is moot: the **only** remaining
+stage for that sprint is **Retro**, and after that the lap resumes at Pablo. Do
+not scan sprint N's stages and recommend resuming a draft build or a pending
+review — the sprint they belonged to is over.
 
 Otherwise the current position is **the first stage whose artifact is not
 `approved`** — missing, `draft`, `changes-requested`, `blocked`, or stale by the

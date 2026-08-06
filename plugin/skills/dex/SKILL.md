@@ -24,8 +24,8 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
   the prose reads.
 - **The sign-off must be current.** Quinn's `attempt` **and** `revision` must
   match the approved Build's, and Rex's review must be `approved` at that same
-  attempt and revision. Verify `revision` against the branch yourself with
-  `git rev-parse` — don't take the header's word for it. If anything landed
+  attempt and revision. Recompute the code revision yourself with the canonical
+  command (see `/scrumbs:next`) — don't take the header's word for it. If anything landed
   after the verdicts, they describe code you are not about to ship: stop, say
   which artifact is stale, and route back. Never promote on a verdict about a
   different revision.

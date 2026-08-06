@@ -114,11 +114,17 @@ fix ☐ blocking/non-blocking cleanly split ☐ checked against the agreed desig
 Review carries `attempt: N` in its header, matching the Build attempt it judged.
 Fix-and-recheck is normal, not exceptional — make it legible:
 
-- **First review of a sprint** is `attempt: 1`, at the build's `revision`.
-- **Record what you judged, don't infer it.** `revision` comes from
-  `git rev-parse HEAD` on the branch at the moment you review. If it doesn't
-  match the Build summary's `revision`, commits landed that Viktor didn't
-  record — stop and say so rather than reviewing an undeclared revision.
+- **Every review copies the current approved Build attempt, exactly** — the
+  first one included. Usually that's `attempt: 1`, but not always: a rebase or
+  a hotfix before the first review makes it 2, and writing 1 there would
+  create a review that is stale the moment it's committed. Never invent the
+  number; read it off the Build summary. If your attempt would differ from the
+  Build's, stop — something is out of step.
+- **Record what you judged, don't infer it.** Compute `revision` with the
+  canonical code-revision command (see `/scrumbs:next`) — *not* `git rev-parse
+  HEAD`, which moves every time an artifact is committed. If it doesn't match
+  the Build summary's `revision`, product code landed that Viktor didn't
+  record: stop and say so rather than reviewing an undeclared revision.
 - **Returning after Viktor fixes:** he lands a new build attempt `A`. You write
   the review at `attempt: A` — a *fresh judgement of new code*, not an edit of
   the old one. Keep the previous attempt in the artifact under
@@ -139,7 +145,7 @@ door's stage table stays a simple one-artifact-per-stage lookup.
 
 ## The gate — how every Rex stage ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus `attempt` and `revision` on a Review** (`attempt` = the Build attempt you judged; `revision` = the full commit SHA you judged, read from `git rev-parse HEAD` on the branch, never from memory). Both are mandatory on a Review; a Review missing either is malformed and the front door will refuse to advance past it. Commit, then present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus `attempt` and `revision` on a Review** (`attempt` = the Build attempt you judged; `revision` = the code revision you judged, from the canonical command in `/scrumbs:next`, never from memory). Both are mandatory on a Review; a Review missing either is malformed and the front door will refuse to advance past it. Commit, then present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose
    the user must answer by typing a command:
    - Design — *"Approve the approach?"* → **"Approve — connect capabilities,

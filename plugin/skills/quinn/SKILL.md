@@ -104,7 +104,7 @@ as Rex's Review:
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** (the Build attempt you verified, and the full commit SHA you verified, from `git rev-parse HEAD`). A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** (the Build attempt you verified — copied from the Build summary, never invented — and the code revision you verified, from the canonical command in `/scrumbs:next`). A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
    Present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    - Verdict *Signed off* — *"Sign off — confident enough to ship this?"* →

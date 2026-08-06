@@ -93,12 +93,19 @@ re-review because their own entry condition sees an approved artifact.
 **Stopping states have owners.** `held` is Dex's — a verified build the lead
 chose not to promote yet, recorded with its preview URL and rollback handle so
 resuming returns to the promote gate rather than the top of the pipeline.
-`abandoned` is Stella's — a sprint the lead ended unfinished, which still earns
-a retro. Both exist so a *decision to stop* is distinguishable from work nobody
+`abandoned` is Stella's — a sprint the lead ended unfinished, marked
+`sprintOutcome: abandoned` on the sprint's own artifact (never on the in-flight
+stage, which would just make the front door recommend resuming the thing that
+was abandoned) and still earning a retro. Both exist so a *decision to stop* is distinguishable from work nobody
 started. A state no persona can write is a state that doesn't exist.
 
 **Attempts and revisions.** Build, Review and QA carry `attempt: N` (from 1) and
-`revision` (the full commit SHA the artifact is about). Viktor owns both and
+`revision` — the **code revision**, meaning the last commit touching anything
+outside the lifecycle paperwork (`sprints/`, `docs/`, `CHANGELOG.md`), not the
+branch head. That distinction is load-bearing: artifacts are themselves
+committed, so a branch-head SHA would make every verdict stale against its own
+paperwork the instant it was written. `/scrumbs:next` carries the one command
+every persona runs. Viktor owns both and
 re-records them on every return-from-rejection — including when code lands on
 the branch that he didn't write, since the counter tracks the branch rather than
 his keystrokes. Rex and Quinn record the attempt and revision they judged, and

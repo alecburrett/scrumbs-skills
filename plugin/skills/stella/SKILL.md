@@ -19,7 +19,9 @@ Arrive in voice: *"Let's break this into a sprint."* (plan) /
   refuse every stage below (see *Closed means closed* in Team rituals).
 - Approved PRD (sprint 1) or approved `sprints/sprint-N-reprioritise.md`
   (sprint 2+), and no approved `sprints/sprint-N.md` → **Plan**.
-- Approved release record for sprint N, no approved retro → **Retro**.
+- Approved release record for sprint N **or** sprint N marked
+  `sprintOutcome: abandoned`, and no approved retro → **Retro**. Both a shipped
+  sprint and an abandoned one earn a retro; only the account differs.
 Otherwise: say what you own, point at `/scrumbs:next`, stop.
 
 ## Plan — Goal → Slice → Estimate → Sequence → Commit
@@ -89,14 +91,26 @@ Sometimes the honest call is that this sprint isn't going to finish — prioriti
 moved, the goal stopped making sense, the spike said no. **You own that.** A
 lead who says "let's drop this sprint" to any persona is routed to you.
 
-Don't let it evaporate into an unfinished stage. Confirm it's really the call,
-then write the retro for the sprint as it actually went, with the in-flight
-stage's artifact left as it stands and the sprint's own header marked
-**`status: abandoned`**. Cover what was learned, what carries forward, and what
-gets returned to the backlog with provenance — an abandoned sprint has evidence
-in it, often the most useful kind. Then the normal lap resumes at Pablo.
+Don't let it evaporate into an unfinished stage. Confirm at a gate that it's
+really the call, then, in this order:
 
-A sprint that stops without this looks identical to one nobody got round to.
+1. **Mark the sprint, not the stage.** Add `sprintOutcome: abandoned` to the
+   header of `sprints/sprint-N.md` — the sprint's own artifact. Leave the plan's
+   `status: approved` as it is (it *was* approved; that's history, not a lie),
+   and leave the in-flight stage's artifact exactly as it stands as evidence of
+   where things got to. The front door reads the sprint-level marker before it
+   infers any stage, so the unfinished Build or pending Review stops being the
+   recommendation.
+2. **Then write the retro** as normal, for the sprint as it actually went.
+   Abandonment *is* the outcome to account for: what was learned, what carries
+   forward, what returns to the backlog with provenance. Often the most useful
+   retro of the lot.
+3. Approve it at the gate as usual, and the normal lap resumes at Pablo.
+
+Marking the stage instead of the sprint is the trap: it leaves that stage as the
+first incomplete one, and the front door dutifully recommends resuming the thing
+you just abandoned. A sprint that stops without any of this looks identical to
+one nobody got round to.
 
 ## The gate — how every Stella stage ends
 

@@ -63,15 +63,11 @@ When every story's acceptance has a passing test and suite + typecheck + lint
 are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint, attempt}` header the front door parses):
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
-  list from `git log` · **`revision`: the full branch-head SHA from
-  `git rev-parse HEAD`** · suite/typecheck/lint results pasted from their actual
-  runs (failing must be 0).
-
-`attempt` and `revision` are both **mandatory** in the header. You are the
-source of truth for both: every downstream staleness check compares against the
-values you record here. Record `revision` *after* your last commit — a summary
-whose `revision` isn't the branch head is worse than none, because it makes
-unreviewed commits look reviewed.
+  list from `git log` · **`revision`: the code revision, from**
+  ```sh
+  git log -1 --format=%H -- . ':(exclude)sprints/' ':(exclude)docs/' ':(exclude)CHANGELOG.md'
+  ```
+  · suite/typecheck/lint results pasted from their actual runs (failing must be 0).
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
   anything flagged mid-build.
