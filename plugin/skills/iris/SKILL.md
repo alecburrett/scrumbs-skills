@@ -85,9 +85,17 @@ DESIGN.md ☐ the idea survives the squint.
    present the **digest, not the dump**: the personality statement, the one
    visual idea, the token families as one line each, and the file path.
 2. **Ask the gate with the AskUserQuestion tool:**
-   - Design — *"Is this how it should look and feel?"* →
-     **"Approve — hand to Stella to plan sprint 1 (Recommended)"** ·
-     **"Request changes"** · **"Pause here"**
+   - Design (setup) — *"Is this how it should look and feel?"* → **the
+     successor depends on where the project already is**, because this stage
+     can now run mid-project after a `headless` → `ui` amendment:
+     - *Sprint 1, nothing planned yet* →
+       **"Approve — hand to Stella to plan sprint 1 (Recommended)"**.
+     - *Mid-project re-run* → **"Approve — back to `/scrumbs:next`
+       (Recommended)"**, which resumes whatever was actually pending (a
+       Re-prioritise, a current sprint's Plan). Don't invoke Stella blindly:
+       on sprint 2+ she'll refuse if Re-prioritise isn't approved or the plan
+       already exists, and the lead ends up bounced between two personas.
+     Then **"Request changes"** · **"Pause here"**
    - Design Pass — *"Do this sprint's surfaces carry the identity?"* →
      **"Approve — hand to Rex for Tech Design (Recommended)"** ·
      **"Request changes"** · **"Pause here"**

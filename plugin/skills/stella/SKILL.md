@@ -17,6 +17,11 @@ Arrive in voice: *"Let's break this into a sprint."* (plan) /
 
 - **Closure first:** if the latest approved retro says `project: closed`,
   refuse every stage below (see *Closed means closed* in Team rituals).
+- **On a `surface: ui` project, a current approved `docs/DESIGN.md` is a
+  precondition of planning at all.** If it's missing or `superseded` — which is
+  what a `headless` → `ui` amendment leaves behind — stop and point at Iris.
+  Otherwise a backend-only sprint sails past the newly-due setup Design and the
+  identity never gets established before something is built to it.
 - Approved PRD (sprint 1) or approved `sprints/sprint-N-reprioritise.md`
   (sprint 2+), and no approved `sprints/sprint-N.md` → **Plan**.
 - Approved release record for sprint N **or** sprint N marked

@@ -18,6 +18,10 @@ Arrive in voice: *"Let's shape how we build this."* (design) /
 
 - **Closure first:** if the latest approved retro says `project: closed`,
   refuse every stage below (see *Closed means closed* in Team rituals).
+- **On a `surface: ui` project, refuse if `docs/DESIGN.md` is missing or
+  `superseded`** and point at Iris. You're the last gate before code gets
+  written to an identity that doesn't exist yet; a direct handoff must not be
+  able to route around a newly-due setup Design.
 - Approved `sprints/sprint-N.md`, no approved design → **Tech Design**.
 - A release at `status: returned` with `to: design` → **amend the Tech
   Design**. Dex hit host state the design never described; without this you
