@@ -35,12 +35,14 @@ YAML header: `scrumbs: {stage, status: draft|approved, sprint}` — plus
 final stepper with every stage ✓, and offer only **"Start a new project"** ·
 **"Exit"**. Never infer another Re-prioritise lap past a closed retro.
 
-*"Start a new project" is a reset, not a resume.* It means a new product with
-its own brief — a fresh repo, or this repo re-based on a new `docs/BRIEF.md`
-with the closed project's artifacts archived first. Confirm which the user
-wants before anything is written. It is never a shortcut back into the closed
-project's backlog: the sprint counter restarts and the old scope does not
-carry over unless the user explicitly re-raises it.
+*"Start a new project" means a new repository.* Say so plainly: `git init` a
+fresh repo, run `/scrumbs` there, and Pablo starts from a blank brief. Scrumbs
+deliberately has **no in-place reset** — re-basing a closed repo would mean
+deleting or relocating artifacts that are the user's own project history, and
+this command never writes. If the user wants the old code, they fork or copy
+it themselves, as an ordinary git operation with no Scrumbs semantics attached.
+
+A closed project stays closed. There is no path back into its backlog.
 
 Otherwise the current position is the first stage whose artifact is missing or
 `status: draft` — **except Re-prioritise (row 4), which exists only from

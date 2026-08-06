@@ -32,10 +32,15 @@ behaves badly more often than you'd think.
 
 ### The shared bullets
 
-Every skill ends with a `## Team rituals (all personas)` section. Two of those
-bullets — **"Explicit, never silent"** and **"Gate mechanics"** — are
-byte-identical across all seven skills on purpose. Change them in every skill
-or in none; a partial edit is a silent divergence nobody notices for months.
+Every skill ends with a `## Team rituals (all personas)` section. Three of those
+bullets — **"Explicit, never silent"**, **"Closed means closed"** and
+**"Gate mechanics"** — are byte-identical across all seven skills on purpose.
+Change them in every skill or in none; a partial edit is a silent divergence
+nobody notices for months.
+
+"Closed means closed" is shared for a specific reason: a terminal project has to
+be refused by *every* persona that can be reached directly, not just by the one
+that closed it. An invariant enforced only at the sender isn't enforced.
 
 Every other bullet in that section is deliberately tailored per persona.
 Viktor's "shape before you write" is rewritten because his summary is
