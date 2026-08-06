@@ -189,23 +189,28 @@ them; a `returned` release records who it went back to and why, so a session
 that ends there doesn't silently bounce the lead back to the stage they just
 left.
 
-**A `returned` is consumed once it has been answered — whatever the answer
-was.** Check whether the current artifact of the stage named in `to:` lists that
-release artifact's blob OID in its `inputs`. If it does, the return has been
-acted on; stop routing by the return and **route by that artifact's own status
-instead**:
+**A `returned` is cleared by the persona who answers it**, whatever the answer
+was. When Quinn writes her verdict she sets the release artifact back to
+`status: draft` — leaving its `decisions` list untouched, so the `returned`
+entry stays on the record as history — and cites the release blob in her own
+`inputs` for provenance.
 
-- QA `approved` → **Dex**, to resume the release.
-- QA `blocked` → **Viktor**, per the normal blocked routing. The re-test found a
-  real defect; that verdict outranks the return that prompted it.
-- QA `draft` → **Quinn**, still mid-flight.
+That single write is what makes the clearing **durable**. It lives on the
+release artifact, so it survives everything that happens afterwards: the block
+routes to Viktor, Viktor builds attempt A+1, Rex reviews it, Quinn writes a
+fresh sign-off that has no reason to mention the old release blob — and the
+return still does not come back to life, because it was cleared at the source
+rather than inferred from whatever the current QA artifact happens to cite.
 
-Consumption is about *reference, not outcome*. Requiring the answering artifact
-to be `approved` would strand every re-test that found something: the return
-would stay live, the front door would keep pointing at Quinn, and her
-current-attempt `blocked` guard would refuse to let her back in — a loop with no
-exit, in exactly the case where a defect was found. Without any consumption test
-at all, a return becomes a permanent instruction rather than a one-shot request.
+Once cleared, routing is just the ordinary rules: QA `blocked` → Viktor, QA
+`approved` with Deploy `draft` → Dex. Nothing special to remember.
+
+Leaving the clearing to be *derived* — "is this blob referenced by the current
+QA?" — looks equivalent and isn't. It holds for exactly one hop and then fails:
+the next attempt's sign-off drops the reference, the release still reads
+`returned`, the front door routes to Quinn, and her exception only accepts a
+return at the *current* build attempt — which this one no longer is. Stranded,
+with no way forward.
 
 **`authorized` is the one that matters most.** It is the narrow window where the
 lead has said "promote" and production may or may not have been touched yet.

@@ -192,15 +192,20 @@ as Rex's Review:
   before. Without this, the return Dex just persisted would route to a persona
   contractually barred from acting on it.
 
-  **Consume the return, or it fires forever.** Record the release artifact's
-  blob OID (`git rev-parse HEAD:sprints/sprint-N-release.md`) in your `inputs`,
-  tagged `stage: release`. That is what marks *this* return as answered — and
-  record it **whichever way the re-test goes**, signed off or blocked. Leave it
-  out and the release still reads as returned-to-QA after you've written your
-  verdict: a pause and a `/scrumbs:next` would send the work straight back to
-  you, and if you blocked it, your own current-attempt guard would then refuse
-  to let you back in. Answered is answered; the verdict decides where it goes
-  next.
+  **Clear the return when you answer it, or it fires forever.** In the same
+  commit as your verdict — signed off *or* blocked, it makes no difference —
+  set the release artifact back to `status: draft`, and cite its blob OID
+  (`git rev-parse HEAD:sprints/sprint-N-release.md`) in your `inputs` as
+  `stage: release`.
+
+  Leave its `decisions` list exactly as it is. You are not re-opening Dex's
+  decision — that `returned` entry is history and stays — you are clearing the
+  routing flag you just answered, which is yours to clear because you answered
+  it. Touch nothing else in his artifact.
+
+  Skip this and the release still reads returned-to-QA after you've written your
+  verdict: `/scrumbs:next` sends the work straight back to you, and if you
+  blocked it, your own current-attempt guard then refuses to let you back in.
 - **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
   Re-verify **every** acceptance criterion id, not only the failed ones — a fix
   is exactly the kind of change that breaks a criterion that passed last time.
