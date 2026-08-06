@@ -194,11 +194,13 @@ as Rex's Review:
 
   **Consume the return, or it fires forever.** Record the release artifact's
   blob OID (`git rev-parse HEAD:sprints/sprint-N-release.md`) in your `inputs`,
-  tagged `stage: release`. That is what marks *this* return as answered. Leave
-  it out and the release still reads as returned-to-QA after you've signed off:
-  a pause and a `/scrumbs:next` would send the work straight back to you again,
-  and the release would strand unless the handoff to Dex happened to complete
-  uninterrupted.
+  tagged `stage: release`. That is what marks *this* return as answered — and
+  record it **whichever way the re-test goes**, signed off or blocked. Leave it
+  out and the release still reads as returned-to-QA after you've written your
+  verdict: a pause and a `/scrumbs:next` would send the work straight back to
+  you, and if you blocked it, your own current-attempt guard would then refuse
+  to let you back in. Answered is answered; the verdict decides where it goes
+  next.
 - **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
   Re-verify **every** acceptance criterion id, not only the failed ones — a fix
   is exactly the kind of change that breaks a criterion that passed last time.

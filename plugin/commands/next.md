@@ -189,13 +189,23 @@ them; a `returned` release records who it went back to and why, so a session
 that ends there doesn't silently bounce the lead back to the stage they just
 left.
 
-**A `returned` is consumed once it has been answered.** Check whether the
-current approved artifact of the stage named in `to:` lists that release
-artifact's blob OID in its `inputs`. If it does, the return has already been
-acted on: route **onward** — back to Dex — not around the loop again. Without
-this test a return is a permanent instruction rather than a one-shot request,
-and the lead gets sent back to the same stage every time they run the front
-door.
+**A `returned` is consumed once it has been answered — whatever the answer
+was.** Check whether the current artifact of the stage named in `to:` lists that
+release artifact's blob OID in its `inputs`. If it does, the return has been
+acted on; stop routing by the return and **route by that artifact's own status
+instead**:
+
+- QA `approved` → **Dex**, to resume the release.
+- QA `blocked` → **Viktor**, per the normal blocked routing. The re-test found a
+  real defect; that verdict outranks the return that prompted it.
+- QA `draft` → **Quinn**, still mid-flight.
+
+Consumption is about *reference, not outcome*. Requiring the answering artifact
+to be `approved` would strand every re-test that found something: the return
+would stay live, the front door would keep pointing at Quinn, and her
+current-attempt `blocked` guard would refuse to let her back in — a loop with no
+exit, in exactly the case where a defect was found. Without any consumption test
+at all, a return becomes a permanent instruction rather than a one-shot request.
 
 **`authorized` is the one that matters most.** It is the narrow window where the
 lead has said "promote" and production may or may not have been touched yet.
