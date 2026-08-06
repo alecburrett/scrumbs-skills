@@ -95,20 +95,32 @@ owned actions ☐ next direction traces to evidence.
      first option becomes **"Approve — close the project"** instead; on
      selection, congratulate the lead.)
    Give each option a one-line description of what will happen.
-3. **On an approve-and-handoff selection:** mark approved, commit, host the
-   baton pass in voice — then invoke the skill named by the option the user
-   just selected. **Route by the stage you are in, never by a single rule:**
-   - Plan → `iris` when the sprint's stories touch new/changed UI, else `rex`.
-   - Retro, sprint continues → `pablo` (Re-prioritise opens the next lap).
-     Never `iris` or `rex` — skipping Pablo starts the next sprint from stale
-     scope.
-   - Retro, project closed → invoke nobody. Congratulate the lead and stop.
+3. **On an approve selection — resolve the transition BEFORE you touch the
+   artifact.** State it to yourself as `{stage, selected, next}` and check it
+   against this table. Validate first, mutate second: once a persona starts,
+   a wrong dispatch cannot be taken back.
 
-   The skill you invoke must be the one named in the option the lead chose; if
-   they diverge, stop and re-present the gate. This is the ONLY circumstance in
+   | Stage | The option the lead selected | `next` |
+   |---|---|---|
+   | Plan | Commit — hand to Iris | `iris` (stories touch new/changed UI) |
+   | Plan | Commit — hand to Rex | `rex` (backend-only sprint) |
+   | Retro | Approve — hand to Pablo | `pablo` — **every** continuing retro, sprint 1 included |
+   | Retro | Approve — close the project | *nobody* — terminal, see step 4 |
+
+   Never route a Retro to `iris` or `rex`: skipping Pablo opens the next lap
+   from stale scope. If the selection resolves to no row, or to a skill other
+   than the one its option names, **leave the artifact `draft`, invoke nobody,
+   say plainly what didn't line up, and re-present the gate.**
+
+   For a resolved non-terminal row: set `status: approved`, commit, host the
+   baton pass in voice, then invoke `next`. This is the ONLY circumstance in
    which you may start another persona: the user selected it seconds ago.
-4. **On "Request changes":** fold the notes in, re-present the gate.
-5. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
+4. **On "Approve — close the project":** terminal, not a handoff. Set
+   `status: approved` **and add `project: closed`** to the retro's header, so
+   the front door reads the project as complete instead of inferring another
+   Re-prioritise lap. Commit, congratulate the lead, invoke nobody, stop.
+5. **On "Request changes":** fold the notes in, re-present the gate.
+6. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
 
 ## Team rituals (all personas)
 
