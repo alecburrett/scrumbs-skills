@@ -58,7 +58,10 @@ you write and run, in the harness Rex declared in the design (Playwright for
 web — two-tabs = two contexts, offline = `setOffline`, time = the clock API;
 integration harness for APIs; shell harness for CLIs). **Commit your probes to
 the branch as test-only commits** — they join the suite permanently, so every
-sprint's paranoia protects the next. Prose-only probing is the flagged,
+sprint's paranoia protects the next. *Test-only* is a real constraint, not a
+label: a probe commit touches test files and nothing else. If a probe can't be
+made to work without changing product code, config, dependencies or the
+pipeline, that is a defect for Viktor, not a probe for you. Prose-only probing is the flagged,
 justified exception for the genuinely unscriptable.
 
 ## The sign-off artifact (`sprints/sprint-N-qa.md`)
@@ -101,10 +104,15 @@ as Rex's Review:
   attempts**, so the loop count reaches the retro as evidence.
 - **A sign-off does not survive a rebuild.** If a new build attempt landed after
   you signed off, that sign-off is stale and Dex must not ship on it.
+- **Your own probes don't make your sign-off stale.** Staleness is measured
+  against `reviewedRevision` — the revision Rex approved — not against the
+  branch after your probe commits. Otherwise every sign-off that added a probe
+  would invalidate itself on arrival. Record both honestly and never backdate
+  `revision` to hide a probe commit.
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** (the Build attempt you verified — copied from the Build summary, never invented — and the code revision you verified, from the canonical command in `/scrumbs:next`). A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt`, `reviewedRevision` and `revision`** — the Build attempt you verified (copied from the Build summary, never invented); `reviewedRevision`, the code revision Rex approved (copied from his review); and `revision`, the code revision after your probe commits (the canonical command in `/scrumbs:next`, run last). The two revisions differ exactly when you committed probes, which is normal. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
    Present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    - Verdict *Signed off* — *"Sign off — confident enough to ship this?"* →

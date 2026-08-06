@@ -120,8 +120,10 @@ code). Discussion is always available; only new code earns a new verdict.
 
 **The invalidation rule:** a verdict never survives the code it judged being
 rewritten. A Review or QA artifact is stale if its attempt is below the current
-approved Build attempt **or** its revision differs — whatever its recorded
-status. `attempt` keeps the loop legible to a human; `revision` is what makes
+approved Build attempt **or** the revision it judged differs — whatever its
+recorded status. For QA that comparison uses `reviewedRevision` (the revision
+Rex approved), not `revision` (the branch after Quinn's probe commits), or every
+sign-off that added a probe would invalidate itself on arrival. `attempt` keeps the loop legible to a human; `revision` is what makes
 staleness checkable rather than a hand-maintained integer someone forgets to
 bump.
 

@@ -101,11 +101,32 @@ so; don't record an empty `revision`.
 `attempt` makes the loop legible to a human; `revision` is what makes staleness
 *checkable* rather than a manually-maintained integer anyone can forget to bump.
 
-**Staleness rule.** A Review or QA artifact is stale if **either** its `attempt`
-is lower than the current approved Build attempt **or** its `revision` differs
-from the current Build `revision`. Treat a stale artifact as `superseded`
-regardless of its recorded status: a verdict never survives the code it judged
-being rewritten.
+**Staleness rule.** An artifact is stale if its `attempt` is lower than the
+current approved Build attempt, **or** if the revision it judged differs from
+the current Build `revision`. Treat a stale artifact as `superseded` regardless
+of its recorded status: a verdict never survives the code it judged being
+rewritten.
+
+*"The revision it judged"* is `revision` for a Review — and **`reviewedRevision`
+for a QA sign-off**, which carries two revisions on purpose:
+
+| key | meaning |
+|---|---|
+| `reviewedRevision` | the code revision Rex approved — copied from the review, and what staleness is measured against |
+| `revision` | where the branch stands after Quinn's probe commits — what actually gets deployed |
+
+Quinn commits her probes to the branch, and probes are tests, so they *do*
+advance the code revision. Without this split, every QA pass that adds a probe
+would invalidate itself the moment it was written: a blocked sign-off would look
+stale and bounce back to Quinn instead of Viktor, and a clean one could never
+satisfy Dex. Measuring staleness against `reviewedRevision` keeps the verdict
+anchored to the code Rex judged, while `revision` stays honest about what is
+actually on the branch.
+
+That split is deliberately *narrow*: it says probe commits don't invalidate
+Quinn's own verdict. It does not establish that the delta between the two
+revisions is genuinely test-only — nothing here verifies that yet, and Dex is
+promoting `revision`, not `reviewedRevision`.
 
 **Fail closed.** If `attempt` or `revision` is missing, malformed, or
 non-monotonic on a Build/Review/QA artifact, do **not** guess and do not treat

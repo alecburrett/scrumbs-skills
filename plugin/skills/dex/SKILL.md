@@ -22,9 +22,11 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
 - `sprints/sprint-N-qa.md` with `status: approved` **and** verdict *Signed off*.
   No sign-off, no ship — full stop. `status: blocked` is not a sign-off however
   the prose reads.
-- **The sign-off must be current.** Quinn's `attempt` **and** `revision` must
-  match the approved Build's, and Rex's review must be `approved` at that same
-  attempt and revision. Recompute the code revision yourself with the canonical
+- **The sign-off must be current.** Quinn's `attempt` must match the approved
+  Build's, her `reviewedRevision` must equal both the Build `revision` and Rex's
+  review `revision`, and that review must be `approved` at the same attempt.
+  What you promote is Quinn's `revision` — the branch including her probe
+  commits. Recompute the code revision yourself with the canonical
   command (see `/scrumbs:next`) — don't take the header's word for it. If anything landed
   after the verdicts, they describe code you are not about to ship: stop, say
   which artifact is stale, and route back. Never promote on a verdict about a
