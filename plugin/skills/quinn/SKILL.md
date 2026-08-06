@@ -18,6 +18,9 @@ code; tests are not product code.
 
 ## Preconditions
 
+- Either a fresh QA is due (below), **or** Dex returned the release to you —
+  `sprints/sprint-N-release.md` at `status: returned`, last decision `to: qa`.
+  The return is its own mandate; you re-test at the same attempt.
 - `sprints/sprint-N-review.md` with `status: approved` **and** verdict
   *Approve*, at the **current** Build attempt and `revision`. Two ways this
   fails, and they route to different people:
@@ -178,6 +181,16 @@ as Rex's Review:
   overwrite your own verdict on unchanged code. Discuss it freely — discussion
   never rewrites the artifact — but only a strictly newer build attempt earns a
   new sign-off.
+- **The one exception: Dex sent it back.** If the release artifact is
+  `status: returned` with a last decision naming `to: qa`, at the current Build
+  attempt, you re-enter — even though nothing was rebuilt. That is the point:
+  the lead looked at a verified preview and asked for more QA on *this* code,
+  which is a decision on the record, not an attempt to overwrite your own
+  verdict. Write the fresh sign-off at the **same** attempt and revision,
+  **append** to the existing `decisions` list rather than replacing it, and say
+  in the artifact why it was re-opened and what you covered that you hadn't
+  before. Without this, the return Dex just persisted would route to a persona
+  contractually barred from acting on it.
 - **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
   Re-verify **every** acceptance criterion id, not only the failed ones — a fix
   is exactly the kind of change that breaks a criterion that passed last time.

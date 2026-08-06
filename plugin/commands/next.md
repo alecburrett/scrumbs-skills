@@ -68,8 +68,26 @@ identify paperwork.
 
 1. `schema` is recognised (see legacy, below).
 2. `decisions` is present and non-empty for any status other than `draft`, and
-   its last entry matches the current status. Missing, partial, or contradicting
-   → **malformed, fail closed**, and say so.
+   its last entry is the one that status requires:
+
+   | `status` | required last decision `type` |
+   |---|---|
+   | `approved` · `authorized` | `approved` |
+   | `changes-requested` | `changes-requested` |
+   | `blocked` | `blocked` |
+   | `held` | `held` |
+   | `returned` | `returned` (with `to:`) |
+   | `abandoned` | `abandoned` |
+
+   Missing, partial, or not matching → **malformed, fail closed**, and say so.
+
+   Note the one many-to-one row. `authorized` and `approved` both rest on the
+   *same* `approved` decision, because the lead authorized the promote exactly
+   once: `authorized` is that decision recorded before production is touched,
+   and `approved` is the same decision after the result is confirmed. Requiring a
+   distinct decision type for each would mean inventing a second lead answer
+   nobody gave — and requiring literal equality would make every interrupted
+   promotion malformed, stranding the crash-resume path this state exists for.
 3. It is committed. A decision living only in the working tree hasn't happened.
 4. Every `inputs` blob still **resolves** (`git cat-file -e <blob>`). That proves
    the exact content consumed is still in history.
