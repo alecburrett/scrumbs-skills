@@ -112,6 +112,14 @@ This stage has its gate **mid-method**, not at the end:
    brings you back to the promote gate, not to the start of the pipeline —
    nothing is re-derived, and a held release never reads as a Deploy that never
    happened.
+
+   **On resume, re-check the revision before you re-present the gate.** A hold
+   can last days, and the candidate can move while it does. Recompute its code
+   revision and confirm it still equals the held `revision` and the approved
+   Build/Review/QA set; confirm the stored preview still points at it. If it
+   moved, the hold is void — route to Viktor as a new build attempt. Skipping
+   the pipeline on resume is fine when nothing changed; skipping the integrity
+   check is how a stale hold ships unreviewed code.
 4. **On "Send back to QA":** ask what's needed, route to `quinn` only if the
    user selects it, stop.
 

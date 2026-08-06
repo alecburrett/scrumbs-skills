@@ -59,11 +59,38 @@ web — two-tabs = two contexts, offline = `setOffline`, time = the clock API;
 integration harness for APIs; shell harness for CLIs). Prose-only probing is the
 flagged, justified exception for the genuinely unscriptable.
 
-**Probes never touch the candidate.** The branch Rex approved is the branch Dex
-promotes — you do not add commits to it. Write and run your probes against the
-reviewed revision, and commit them to a **separate probe branch**
-(`sprint-N-probes`, branched from that same revision). Reference it in the
-sign-off by branch and test path.
+**Probes never touch the candidate's code.** The branch Rex approved is the
+branch Dex promotes. The choreography, in order:
+
+```sh
+git checkout -b sprint-N-probes <reviewed-revision>   # cut from what Rex judged
+# …write and run probes here, commit them here…
+git push -u origin sprint-N-probes                    # push BEFORE you sign off
+git rev-parse sprint-N-probes                         # record this SHA in the artifact
+git checkout <candidate>                              # back to the candidate
+# …commit ONLY sprints/sprint-N-qa.md…
+```
+
+Your sign-off artifact lives on the **candidate**, not the probe branch — Dex
+reads it there, alongside the Build and Review artifacts. Committing lifecycle
+paperwork to the candidate is fine and expected: `sprints/` is excluded from the
+code revision, so it doesn't move what Rex approved. Never bundle a probe commit
+into that artifact commit.
+
+**Check the candidate with the code-revision command scoped to its ref**, not
+`git rev-parse`:
+
+```sh
+git log -1 --format=%H <candidate> -- ':(top)' ':(top,exclude)sprints/' \
+  ':(top,exclude)docs/BRIEF.md' ':(top,exclude)docs/PRD.md' \
+  ':(top,exclude)docs/DESIGN.md' ':(top,exclude)docs/BACKLOG.md' \
+  ':(top,exclude)CHANGELOG.md'
+```
+
+`git rev-parse <candidate>` would compare branch tips and report the candidate as
+moved the moment anyone commits an artifact to it — including your own sign-off.
+The scoped command answers the question you actually mean: *has any product code
+changed since Rex approved this?*
 
 This is what keeps the review gate real. If probes landed on the candidate, the
 shipped revision would be strictly newer than the reviewed one, and "it's only a
@@ -72,12 +99,24 @@ snapshot the product reads, or a helper imported by product code all live in
 perfectly ordinary test directories, and packaging can sweep any of them in.
 Rather than trying to prove a mutation is harmless, don't mutate.
 
-**Probes still compound** — that property was never about *when* they land.
-After the release is live, the probe branch merges, and those tests are part of
-the next sprint's Review diff like any other code. If QA is blocked, they travel
-to Viktor with the defects and land in his next build attempt, which Rex
-reviews. Either way they join the suite permanently, and no unreviewed line ever
-reaches a deployed artifact.
+**Probes still compound, and integration has an owner.** That property was never
+about *when* they land. **Viktor** integrates them, always — never a bare merge
+onto a released candidate, which would be exactly the unreviewed post-QA
+movement this whole arrangement prevents.
+
+- **Blocked** — the probe SHA travels to Viktor with the defects. He merges it
+  into his next build attempt, so your failing probe becomes the red test the
+  fix has to turn green.
+- **Signed off** — the probe SHA carries to the **next sprint's Build**. Viktor
+  picks it up as a precondition and Rex reviews it in that sprint's Review, like
+  any other code.
+
+For either path to work the branch has to survive, so **push it and record the
+exact commit SHA in the sign-off before you finish** (`pendingProbes: <sha>`).
+A local-only branch is one `git gc` away from losing the probe, and a branch
+name alone can be force-pushed out from under you — the SHA is what's durable.
+Name any un-integrated probe SHA at the retro too; a probe nobody merged is
+paranoia the next sprint doesn't inherit.
 
 **If a probe needs product code, a dependency, config or pipeline change** to
 run at all, that is Build work, not probe work. Raise it as a defect for Viktor
@@ -89,18 +128,19 @@ run at all, that is Build work, not probe work. Raise it as a defect for Viktor
   (test path, command, or output reference), never a narrative claim.
 - **Edge cases probed:** scenario · probe (committed test path, or the
   justified prose exception) · source if bot-raised.
-- **Probe branch (observed):** the probe branch name and each committed probe's
-  test path, plus the confirmation that the candidate branch is untouched —
-  `git rev-parse <candidate>` still equal to the reviewed revision.
+- **Probes (observed):** the probe branch name, its pushed commit SHA
+  (`pendingProbes`), and each committed probe's test path — plus the candidate's
+  code revision, computed with the ref-scoped command above and shown equal to
+  the revision Rex reviewed.
 - **Defects:** id · linked criterion id where applicable · severity · exact
   steps · expected vs actual.
 - **Verdict:** **Signed off / Blocked** — *must* be Blocked if any criterion
   failed. Plus a one-line confidence statement you personally own.
 
 *Gate checklist:* ☐ every criterion id verified with a real run ☐ edge set
-documented and probed ☐ probes committed to the probe branch ☐ **candidate
-branch unchanged since Rex's review** ☐ every defect minimally reproducible
-☐ verdict consistent with results ☐ confidence stated.
+documented and probed ☐ probes committed **and pushed**, SHA recorded
+☐ **candidate's code revision unchanged since Rex's review** ☐ every defect
+minimally reproducible ☐ verdict consistent with results ☐ confidence stated.
 
 Never sign off on the unverified: *"Acceptance says 'no data loss across
 reconnects' — I haven't been able to verify that yet, so I can't sign off."*

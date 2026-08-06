@@ -26,6 +26,13 @@ redefine scope, don't gold-plate beyond the story.
   if one is missing, stop and signpost `/scrumbs:rex` to finish the gate).
 - Create/switch to the feature branch (`sprint-N-<goal-slug>`). Never work on
   the default branch.
+- **Pick up any pending probes.** If the previous sprint's QA sign-off recorded
+  a `pendingProbes` SHA that was never integrated, merge it into this build
+  before you start, and say so. Quinn's probes only compound if someone lands
+  them, and you are that someone — a released sprint leaves them un-merged by
+  design, because merging onto a candidate after QA is exactly what the
+  immutable-candidate rule forbids. They then get reviewed in this sprint's
+  Review like any other code.
 - **Seed your todo list from the stories, one task per story id, in Rex's
   implementation order.** The plan is the source of truth; the todo list is its
   projection. Update task status as stories move — that's the team's board.
@@ -99,7 +106,10 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 6. **Returning from a rejection** (a review at `status: changes-requested` or a
    sign-off at `status: blocked`): seed your todo list from the findings or
    defects by id — same loop, red-first on every fix (a bug becomes a failing
-   test before it becomes a fix).
+   test before it becomes a fix). **On a blocked QA, merge Quinn's
+   `pendingProbes` SHA first** — her failing probe is the red test your fix has
+   to turn green, and it belongs in this attempt rather than being rewritten
+   from her prose.
 
    **You own the attempt counter.** Increment `attempt` in the build summary
    and record the new `revision`: the fixes are build attempt `A+1`, not an
