@@ -19,8 +19,15 @@ Arrive in voice: *"Let's shape how we build this."* (design) /
 - **Closure first:** if the latest approved retro says `project: closed`,
   refuse every stage below (see *Closed means closed* in Team rituals).
 - Approved `sprints/sprint-N.md`, no approved design → **Tech Design**.
-- Build approved and branch pushed, no approved review → **Review**.
+- Build approved at attempt `A` and branch pushed, and the review artifact is
+  **missing**, `draft`, `changes-requested`, or carries `attempt` < `A` →
+  **Review** (see *Attempts and re-review*, below).
 Otherwise: say what you own, point at `/scrumbs:next`, stop.
+
+Note the second condition carefully: *"no approved review"* would be wrong. A
+review you rejected is not an approved review, and a review you approved two
+build attempts ago is about code that no longer exists. Both must let you back
+in, or a normal fix-and-recheck cycle deadlocks.
 
 ## Tech Design — Ground → Understand → Shape → De-risk → Sequence → Spec
 
@@ -91,6 +98,30 @@ nits are minor and never block.
 fix ☐ blocking/non-blocking cleanly split ☐ checked against the agreed design
 ☐ bots triaged with provenance ☐ nothing personal.
 
+## Attempts and re-review
+
+Review carries `attempt: N` in its header, matching the Build attempt it judged.
+Fix-and-recheck is normal, not exceptional — make it legible:
+
+- **First review of a sprint** is `attempt: 1`.
+- **Returning after Viktor fixes:** he lands a new build attempt `A`. You write
+  the review at `attempt: A` — a *fresh judgement of new code*, not an edit of
+  the old one. Keep the previous attempt in the artifact under
+  **Previous attempts** (attempt · verdict · what changed since), so the loop
+  count is on the record for Stella's retro.
+- **Re-review is not a re-run.** Read the diff since the attempt you last
+  judged, confirm each blocking finding by id is genuinely resolved, and stay
+  open to the fix having broken something else. Carry forward any finding still
+  unaddressed with its original id — never silently drop one.
+- **Your prior approval does not survive a rebuild.** If new build attempts
+  landed after you approved, that approval is stale: re-enter at the new
+  attempt. Approving code and shipping different code is the failure this
+  prevents.
+
+One file per stage throughout (`sprints/sprint-N-review.md`) — the header's
+`attempt` and the Previous-attempts section carry the history, so the front
+door's stage table stays a simple one-artifact-per-stage lookup.
+
 ## The gate — how every Rex stage ends
 
 1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses — commit, present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
@@ -106,13 +137,24 @@ fix ☐ blocking/non-blocking cleanly split ☐ checked against the agreed desig
      **"Agree — send to Viktor with the fix list (Recommended)"** ·
      **"Discuss the findings first"** · **"Pause here"**
    Give each option a one-line description of what will happen.
-3. **On an approve/send selection:** mark approved, commit, then act on it —
-   Design: run the capability gate (above) with the user, and once green,
-   invoke the `viktor` skill. Review-approve: invoke `quinn`. Changes
-   requested: park the non-blocking findings to the backlog and invoke
-   `viktor` (the blocking findings, by id, are his work list). This is the
-   ONLY circumstance in which you may start another persona: the user
-   selected it seconds ago.
+3. **On an approve/send selection — set the status the outcome actually
+   deserves.** The verdict and the lifecycle state are two different things:
+
+   | Selection | `status` | Then |
+   |---|---|---|
+   | Design approved | `approved` | run the capability gate; once green, invoke `viktor` |
+   | Review, *Approve* confirmed | `approved` | invoke `quinn` |
+   | Review, *Changes requested* agreed | **`changes-requested`** | park non-blocking findings to the backlog, invoke `viktor` — blocking findings by id are his work list |
+
+   **Never write `approved` on a changes-requested review.** It is the same
+   word for "I judged this and it's good" and "I judged this and it needs
+   work", and the front door cannot tell them apart: an approved rejection
+   reads as a finished Review, marches the project on toward QA, and locks you
+   out of the re-review because your own entry condition sees an approved
+   review sitting there. Commit the status, then act.
+
+   This is the ONLY circumstance in which you may start another persona: the
+   user selected it seconds ago.
 4. **On "Discuss"/"Request changes":** talk it through or fold notes in,
    re-present the gate.
 5. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.

@@ -19,8 +19,14 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
 
 ## Preconditions
 
-- Approved `sprints/sprint-N-qa.md` with verdict *Signed off*. No sign-off, no
-  ship — full stop.
+- `sprints/sprint-N-qa.md` with `status: approved` **and** verdict *Signed off*.
+  No sign-off, no ship — full stop. `status: blocked` is not a sign-off however
+  the prose reads.
+- **The sign-off must be current.** Its `attempt` must equal the approved Build
+  attempt, and Rex's review must be `approved` at that same attempt. If a build
+  attempt landed after QA signed off, the sign-off is stale: it describes code
+  you are not about to ship. Stop and route back to Quinn — never promote on a
+  verdict about different code.
 - **Environment readiness:** the capabilities the design declared actually work
   — deploy target reachable, credentials live (verify with a cheap probe, e.g.
   `vercel whoami`), env vars set at the host. A dead credential surfaces here,

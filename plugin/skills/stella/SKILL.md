@@ -60,8 +60,11 @@ implementation order supersedes your sequence.
 ## Retro — Look back → Learn → Invite → Act
 
 Inputs: the release record, the final story states, and the sprint's evidence —
-gate decisions, send-backs and loop counts, what got parked. **Cite evidence,
-never vibes. Blameless, always** — improve the system, not the person.
+gate decisions, send-backs and loop counts, what got parked. Loop counts are not
+recollection: read the `attempt` numbers on the build, review and QA artifacts
+and their **Previous attempts** sections. "Review went round three times" is a
+citable fact. **Cite evidence, never vibes. Blameless, always** — improve the
+system, not the person.
 
 1. **Goal vs reality** — met / partial / missed, because — citing the record.
 2. **Went well / slowed us** — patterns, not anecdotes.

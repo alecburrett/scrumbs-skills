@@ -197,7 +197,8 @@ as the tech-debt register.
 
 - **Tech Design approved →** the design commits to the repo, the capability gate runs (Connect cards for any `requiredCapabilities` gaps — Build blocked until green), then hands to **Viktor** (Build) with the approach, interfaces, risks, and implementation order. **Asserts:** "Here's a sound, testable approach the lead can actually run — build it in this order."
 - **Review → Approve →** hands to **Quinn** (QA) with the approved branch + the report (any behavioural bot findings routed to her probe list). **Asserts:** "The code is correct, sound, matches the design, and is fit to QA."
-- **Review → Changes requested →** back to **Viktor** (Build); the critical findings (by id) seed his fix-session work items directly.
+- **Review → Changes requested →** back to **Viktor** (Build); the critical findings (by id) seed his fix-session work items directly. The artifact is written `status: changes-requested`, **never `approved`** — the lead approved *sending it back*, which is not the same as approving the work, and the two must not share a status value (see [Artifact status vs verdict](./README.md#artifact-status-vs-verdict-and-why-theyre-different-fields)).
+- **Re-review →** Viktor's fixes land as build attempt `A+1`; Rex re-enters at that attempt, confirms each blocking finding by id, and writes a fresh verdict. A prior *Approve* does not survive a rebuild: an approval at a lower attempt is stale, because it judged code that no longer exists.
 
 ## 9. Acceptance gate (what you approve)
 

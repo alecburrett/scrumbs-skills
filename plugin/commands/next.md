@@ -13,8 +13,32 @@ nothing happens silently. The user starts every stage.
 ## 1. Derive state from the repo (artifacts are the truth)
 
 Check for these files in the current repo. Each Scrumbs artifact starts with a
-YAML header: `scrumbs: {stage, status: draft|approved, sprint}` — plus
-`project: closed` on a terminal retro (see closure, below).
+YAML header: `scrumbs: {stage, status, sprint, attempt}` — plus `project: closed`
+on a terminal retro (see closure, below).
+
+### The status vocabulary (canonical — skills use these exact words)
+
+`status` records **where the artifact sits in its lifecycle**. It is *not* the
+verdict. A review that says "changes requested" is a finished piece of work with
+a negative verdict — and an **unfinished stage**. Conflating the two is what
+makes a rejection look like a completed stage.
+
+| `status` | Means | Stage complete? | Position routes to |
+|---|---|---|---|
+| `draft` | mid-flight, gate not yet answered | no | resume this stage's owner |
+| `approved` | the lead approved it at its gate | **yes** | the next stage |
+| `changes-requested` | Rex reviewed, lead agreed the work needs fixes | no | **Viktor** |
+| `blocked` | Quinn found failures, lead agreed | no | **Viktor** |
+| `superseded` | an earlier attempt, replaced by a later one | n/a | ignore when deriving position |
+
+`attempt` is an integer, starting at 1, on the three stages that can legitimately
+loop: **Build, Review, QA**. It is how a fix-and-recheck cycle stays honest.
+Every other stage omits it.
+
+**Staleness rule.** A Review or QA artifact whose `attempt` is *lower* than the
+current approved Build attempt was written about work that no longer exists.
+Treat it as `superseded` regardless of its recorded status — an approval never
+survives the code it approved being rewritten.
 
 | Order | Stage | Persona | Artifact |
 |---|---|---|---|
@@ -44,16 +68,29 @@ it themselves, as an ordinary git operation with no Scrumbs semantics attached.
 
 A closed project stays closed. There is no path back into its backlog.
 
-Otherwise the current position is the first stage whose artifact is missing or
-`status: draft` — **except Re-prioritise (row 4), which exists only from
-sprint 2**: it requires the previous sprint's approved retro, so skip that row
-entirely when scanning sprint 1 (Requirements → PRD → Plan → …). From sprint 2,
-each lap begins at Re-prioritise. Between Plan and Tech Design sits Iris's
-**Design Pass** (`sprints/sprint-N-design-pass.md`) — expected only when the
-sprint's stories touch new/changed UI; skip that row for backend sprints. A `draft` artifact means that stage is
-mid-flight (resume it); a missing one means that stage hasn't started. A
-rejected stage routes to its owner per the routing table below — check the
-latest artifact's notes.
+Otherwise the current position is **the first stage whose artifact is not
+`approved`** — missing, `draft`, `changes-requested`, `blocked`, or stale by the
+staleness rule. Only `approved` completes a stage; nothing else advances the
+position past it.
+
+Two rows are conditional. **Re-prioritise (row 4) exists only from sprint 2** —
+it requires the previous sprint's approved retro, so skip it entirely when
+scanning sprint 1 (Requirements → PRD → Plan → …); from sprint 2, each lap
+begins there. Between Plan and Tech Design sits Iris's **Design Pass**
+(`sprints/sprint-N-design-pass.md`), expected only when the sprint's stories
+touch new/changed UI — skip it for backend sprints.
+
+What each state means for the recommendation:
+
+- **missing** — the stage hasn't started; recommend its owner.
+- **`draft`** — mid-flight; recommend its owner, resuming at the gate.
+- **`changes-requested` / `blocked`** — the work was judged and found wanting.
+  Recommend **Viktor**, with the blocking findings or defects by id as his work
+  list. Do *not* recommend re-running the judge: Rex and Quinn re-enter on their
+  own terms once a new build attempt lands.
+- **stale** — a judged stage whose build has since been rewritten. Recommend the
+  judge (Rex for Review, Quinn for QA) for a fresh attempt, and say plainly that
+  the previous verdict no longer applies.
 
 ## 2. Report position, then present the options — native, not prose
 

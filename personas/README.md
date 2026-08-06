@@ -72,6 +72,34 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 - **The exit:** a retro whose "next direction" is *"nothing left worth a sprint"* →
   the project is complete.
 
+## Artifact status vs verdict (and why they're different fields)
+
+Every artifact header carries `status` — where it sits in its **lifecycle**.
+Judging stages *also* carry a `verdict` — what the judgement **was**. These are
+orthogonal, and collapsing them is a live failure mode:
+
+| | `status` (lifecycle) | `verdict` (judgement) |
+|---|---|---|
+| Owned by | the gate | the persona |
+| Values | `draft` · `approved` · `changes-requested` · `blocked` · `superseded` | Rex: *Approve* / *Changes requested* · Quinn: *Signed off* / *Blocked* |
+| Answers | "is this stage finished?" | "was the work any good?" |
+
+A review with verdict *Changes requested* is **finished work with a negative
+result** — and an **unfinished stage**. Writing `status: approved` on it (because
+the lead approved *sending it back*) makes a rejection indistinguishable from a
+pass: the front door marches on toward QA, and the judge is locked out of the
+re-review because their own entry condition sees an approved artifact.
+
+**Attempts.** Build, Review and QA carry `attempt: N` (from 1). Viktor owns the
+counter and increments it on every return-from-rejection; Rex and Quinn write
+their verdict at the attempt they judged, and re-enter when the current build
+attempt is higher than theirs. This is what makes fix-and-recheck terminate
+instead of deadlock, and what puts loop counts in front of Stella at the retro.
+
+**The invalidation rule:** a verdict never survives the code it judged being
+rewritten. A Review or QA artifact at an attempt below the current approved
+Build attempt is stale, whatever its recorded status.
+
 ## Shared behaviours (all personas)
 
 Beyond their individual specs, every persona observes these team-wide rituals:

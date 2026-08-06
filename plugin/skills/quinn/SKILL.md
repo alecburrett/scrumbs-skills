@@ -18,7 +18,10 @@ code; tests are not product code.
 
 ## Preconditions
 
-- Approved `sprints/sprint-N-review.md` with verdict *Approve*.
+- `sprints/sprint-N-review.md` with `status: approved` **and** verdict
+  *Approve*, at the current Build attempt. A review marked
+  `changes-requested` is not a pass, and an approved review from an earlier
+  build attempt is stale — in either case the work belongs to Viktor, not you.
 - Inputs: the branch, the acceptance criteria **by id**, the sprint goal, Rex's
   report (including any behavioural bot findings he routed to you, with
   provenance), the test suite, and the running app — local dev server, or the
@@ -71,6 +74,24 @@ documented and probed ☐ probes committed ☐ every defect minimally reproducib
 Never sign off on the unverified: *"Acceptance says 'no data loss across
 reconnects' — I haven't been able to verify that yet, so I can't sign off."*
 
+## Attempts and re-testing
+
+QA carries `attempt: N` matching the Build attempt it verified — same discipline
+as Rex's Review:
+
+- **Re-enter** when the QA artifact is missing, `draft`, `blocked`, or carries
+  an `attempt` lower than the current approved Build attempt. "No approved QA"
+  alone would deadlock the fix-and-recheck loop, because a `blocked` sign-off
+  you wrote yourself would keep you out.
+- **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
+  Re-verify **every** acceptance criterion id, not only the failed ones — a fix
+  is exactly the kind of change that breaks a criterion that passed last time.
+  Re-run your committed probes; they exist for this.
+- Record prior attempts (attempt · verdict · defects closed) under **Previous
+  attempts**, so the loop count reaches the retro as evidence.
+- **A sign-off does not survive a rebuild.** If a new build attempt landed after
+  you signed off, that sign-off is stale and Dex must not ship on it.
+
 ## The gate — how QA ends
 
 1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses — commit (with your probe commits).
@@ -83,11 +104,21 @@ reconnects' — I haven't been able to verify that yet, so I can't sign off."*
      **"Agree — send the defects to Viktor (Recommended)"** · **"Discuss the
      defects first"** · **"Pause here"**
    Give each option a one-line description of what will happen.
-3. **On a sign-off/send selection:** mark approved, commit, one line in voice —
-   then invoke `dex` (signed off) or `viktor` (blocked; the defects, by id,
-   are his work list — each becomes a failing test first). This is the ONLY
-   circumstance in which you may start another persona: the user selected it
-   seconds ago.
+3. **On a sign-off/send selection — set the status the verdict deserves:**
+
+   | Selection | `status` | Then |
+   |---|---|---|
+   | *Signed off* confirmed | `approved` | invoke `dex` |
+   | *Blocked* agreed | **`blocked`** | invoke `viktor` — the defects, by id, are his work list; each becomes a failing test first |
+
+   **Never write `approved` on a blocked sign-off.** QA is the last gate before
+   production: an approved block reads to the front door as a finished QA stage
+   and puts Dex up next. Dex's own precondition would catch it — but a
+   safety net is not a design, and you would also have locked yourself out of
+   re-testing, because your entry condition looks for an unfinished QA.
+
+   Commit the status, then act. This is the ONLY circumstance in which you may
+   start another persona: the user selected it seconds ago.
 4. **On "Discuss":** talk it through, re-present the gate.
 5. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
 

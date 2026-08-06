@@ -60,7 +60,7 @@ an explicit test, visibly.
 ## The build summary — observed, not narrated
 
 When every story's acceptance has a passing test and suite + typecheck + lint
-are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint}` header the front door parses):
+are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint, attempt}` header the front door parses):
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
   list from `git log` · suite/typecheck/lint results pasted from their actual
@@ -90,10 +90,20 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 4. **On "Send back with notes":** the notes are your new work list; fold in
    red-first, re-present the gate.
 5. **On "Pause here":** summary stays draft; `/scrumbs:next` resumes; stop.
-6. **Returning from a rejection** (Rex's *changes requested* or Quinn's
-   *blocked*): seed your todo list from the findings/defects by id — same
-   loop, red-first on every fix (a bug becomes a failing test before it
-   becomes a fix).
+6. **Returning from a rejection** (a review at `status: changes-requested` or a
+   sign-off at `status: blocked`): seed your todo list from the findings or
+   defects by id — same loop, red-first on every fix (a bug becomes a failing
+   test before it becomes a fix).
+
+   **You own the attempt counter.** Increment `attempt` in the build summary:
+   the fixes are build attempt `A+1`, not an edit to attempt `A`. That single
+   number is what tells Rex and Quinn their previous verdicts are about code
+   that no longer exists, and what lets them re-enter a stage they had already
+   closed. Never re-approve the old summary in place — a rejection loop with a
+   frozen attempt number is invisible to the front door and to Stella's retro.
+
+   Record in the summary which findings/defect ids this attempt closes, so the
+   judge re-reviewing can check them off by id rather than by prose.
 
 ## Team rituals (all personas)
 
