@@ -76,12 +76,14 @@ Two facts shape the run: whether there's a **screen** (a headless project drops
 Iris's stages entirely, rather than getting a token version of them) and whether
 there's **already code** (brownfield means Pablo documents what exists instead
 of interviewing you about it). Then each sprint declares its own kind — an
-ordinary feature, a defect, or a hotfix that collapses the planning and goes
-straight to the build.
+ordinary feature, a defect, or a hotfix where the plan and the technical
+approach are a few lines each rather than a morning's work.
 
-What never scales down: **review, QA and deploy**. A hotfix skips the paperwork
-about what to build, never the checks on whether it works — that's when you need
-them most.
+What never scales down: **every stage still runs**. A hotfix's plan might be one
+story and its design three lines, but both are still written and still approved
+*before* the code changes — so there's a record of what was authorised — and
+review, QA and deploy are untouched. A rushed change going straight to
+production is exactly when you want them.
 
 ## What actually happens
 

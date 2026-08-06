@@ -61,14 +61,19 @@ to documentation: the product already exists, and interviewing the lead about
 who it's for reads as ceremony.
 
 **Sprint kind**, decided per lap on the plan: `kind: feature | defect | hotfix`.
-It scales the *planning*: a defect gets a one-story plan and possibly a
-one-paragraph tech design; a hotfix collapses both into the build summary.
+It scales how *long* an artifact is, never whether it exists: a defect gets a
+one-story plan and often a one-paragraph tech design; a hotfix gets the smallest
+honest version of both, written in minutes.
 
-**The invariant that makes this safe:** kind scales planning, never assurance.
-Review, QA and Deploy run in every mode, and a hotfix — rushed, unrehearsed,
-going straight to production — is precisely where they earn their keep. A mode
-that skipped them would defeat the tool. A hotfix additionally owes a backlog
-entry for the proper fix and a retro.
+**The invariant that makes this safe:** every stage runs for every kind. The
+plan and tech design of a hotfix are brief, but they are gated and approved
+*before* code changes, so an approved record exists of what the developer was
+authorised to touch — folding them into the build summary would put the
+authorisation after the work, which is no authorisation at all. And the
+assurance stages never compress: Review, QA and Deploy run in every combination,
+and a hotfix — rushed, unrehearsed, going straight to production — is precisely
+where they earn their keep. A hotfix additionally owes a backlog entry for the
+proper fix and a retro.
 
 ## The multi-sprint cycle
 

@@ -19,24 +19,28 @@ builder to consume: tokens and rules, never vibes.
 
 ## Which stage am I in?
 
-- **Closure first:** if the latest approved retro says `project: closed`,
-  refuse every stage below (see *Closed means closed* in Team rituals).
-- Approved `docs/PRD.md`, no approved `docs/DESIGN.md` → **Design** (setup).
-- Approved `sprints/sprint-N.md` whose stories touch new/changed UI, no
-  approved design pass for sprint N → **Design Pass**.
-- **Check `shape.surface` before anything else.** If the brief says
-  `headless`, you have **no stage on this project** — stop here and don't read
-  another condition. A CLI, library, API or infrastructure repo has no visual
-  identity to design, and inventing one is ceremony the lead would be right to
-  resent. Say so plainly and warmly, point at `/scrumbs:next`, stop. Don't offer
-  a "lightweight" version; there isn't one.
+Work these **in order** and stop at the first that matches. The order is the
+contract, not a suggestion — two of these guards are only correct because they
+run before the positive predicates.
 
-  Order matters here: an approved PRD with no `docs/DESIGN.md` satisfies the
-  Design condition below on *every* project, headless included. Evaluate that
-  first and you'll start drafting a colour system for a Rust CLI before the
-  refusal ever gets read.
-- Sprint has no UI stories → say so, and that your pass is rightly skipped —
-  point at `/scrumbs:next`.
+1. **Closed?** If the latest approved retro says `project: closed`, refuse
+   (see *Closed means closed* in Team rituals). Stop.
+2. **Headless?** If the brief says `shape.surface: headless`, you have **no
+   stage on this project at all**. Say so plainly and warmly — a CLI, library,
+   API or infrastructure repo has no visual identity to design, and inventing
+   one is ceremony the lead would be right to resent. Point at `/scrumbs:next`.
+   Stop. Don't offer a "lightweight" version; there isn't one.
+
+   This guard has to come before step 3, because an approved PRD with no
+   `docs/DESIGN.md` matches step 3 on *every* project, headless included. Check
+   it after and you'll be drafting a colour system for a Rust CLI before you
+   ever reach the refusal.
+3. **Setup Design** — approved `docs/PRD.md`, and no `docs/DESIGN.md` that is
+   both approved and current for the project's latest `ui` shape decision.
+4. **Design Pass** — approved `sprints/sprint-N.md` whose stories touch
+   new/changed UI, no approved design pass for sprint N.
+5. Otherwise the sprint has no UI stories: say so, and that your pass is rightly
+   skipped — point at `/scrumbs:next`.
 
 ## Design (setup) — Feel → Distill → Systematize → Surfaces → Check
 

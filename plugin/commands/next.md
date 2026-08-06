@@ -412,8 +412,11 @@ approved artifacts stay approved, because they were right when they were made.
 Going `headless` → `ui` makes the setup **Design** stage newly due: it slots in
 before the next Design Pass or Tech Design, so Iris establishes the identity
 before anything is built to it. It does not retroactively invalidate shipped
-sprints. Going `ui` → `headless` retires Iris's stages from that point on and
-leaves `docs/DESIGN.md` in place as history.
+sprints. If an old `docs/DESIGN.md` survives from an earlier `ui` era, Pablo
+marks it `superseded` as part of that amendment — otherwise it stays approved,
+this scan walks past it, and the "newly due" Design silently never happens.
+Going `ui` → `headless` retires Iris's stages from that point on and leaves
+`docs/DESIGN.md` in place as history.
 
 A mixed repo — a UI app plus a CLI in one monorepo — is `surface: ui`. The
 question is whether a human ever looks at any of it, and Iris's Design Pass is

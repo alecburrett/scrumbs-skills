@@ -98,12 +98,28 @@ Get this wrong and the whole lap is wrong — a brief that promises a design
 system for a Rust CLI, or a greenfield interrogation about an app the lead
 shipped two years ago. Ask, confirm, record.
 
-**Shape isn't a life sentence.** When a headless project grows a UI, or a UI
-project spins out a CLI, amend `shape` on the brief at a gate and append the
-decision — you never rewrite the old one. Say what changes as a result: going
-`headless` → `ui` means Iris's setup Design becomes due before the next sprint
-builds anything to it. Previously approved artifacts stay approved; they were
-right when they were made.
+**Shape isn't a life sentence**, and changing it is its own gate — not a quiet
+edit to an approved brief.
+
+Ask: *"This changes the shape of the project — `<old>` → `<new>`. Confirm?"* →
+**"Confirm the change (Recommended)"** · **"Leave it as it is"**, each with a
+one-line description of what follows. On confirmation, update `shape` on the
+brief, **append** that exact question and answer to its `decisions` list, cite
+the previous brief blob in `inputs` as provenance, and commit.
+
+Then say what actually changes, and do the one thing that makes it real:
+
+- **`headless` → `ui`:** Iris's setup Design becomes due before anything is
+  built to it. If a `docs/DESIGN.md` already exists from an earlier `ui` era,
+  **mark it `status: superseded`** in the same commit. Without that it stays
+  approved, the front door's scan walks straight past it, and Iris's own
+  predicate — *no approved DESIGN.md* — never fires. The identity would silently
+  never be revisited.
+- **`ui` → `headless`:** Iris's stages retire from here on. Leave
+  `docs/DESIGN.md` exactly as it is; it's history, and history stays.
+
+Previously approved artifacts stay approved either way. They were right when
+they were made.
 
 Every artifact starts with `---\nscrumbs: {schema: 2, stage: <stage>, status: draft, sprint: N}\n---`.
 **`schema: 2` is mandatory** — an artifact without it reads as legacy and gets
