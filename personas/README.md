@@ -120,16 +120,30 @@ code). Discussion is always available; only new code earns a new verdict.
 
 **The invalidation rule:** a verdict never survives the code it judged being
 rewritten. A Review or QA artifact is stale if its attempt is below the current
-approved Build attempt **or** the revision it judged differs — whatever its
-recorded status. For QA that comparison uses `reviewedRevision` (the revision
-Rex approved), not `revision` (the branch after Quinn's probe commits), or every
-sign-off that added a probe would invalidate itself on arrival. `attempt` keeps the loop legible to a human; `revision` is what makes
+approved Build attempt **or** its `revision` differs from the Build's — whatever
+its recorded status. Because the candidate is immutable between Review and
+Deploy, all three artifacts of a healthy attempt carry the same revision, and a
+disagreement is a signal rather than something to reconcile. `attempt` keeps the loop legible to a human; `revision` is what makes
 staleness checkable rather than a hand-maintained integer someone forgets to
 bump.
 
 **Fail closed.** A Build/Review/QA artifact with a missing or malformed
 `attempt`/`revision` is not a complete stage. Nothing guesses; the owner
 rewrites it.
+
+**The candidate is immutable between Review and Deploy.** What Rex approves is
+what Dex promotes, byte for byte. Quinn's probes go to a separate probe branch
+rather than onto the candidate, and merge after the release — so they still
+compound into the permanent suite, and they are still reviewed, just at the next
+Review rather than post-hoc.
+
+The rejected alternative is worth recording, because it looks reasonable: allow
+probe commits on the candidate but constrain them to declared test paths. A
+pathname allowlist cannot carry that weight. A conftest, a global setup file, a
+snapshot the product reads at runtime, or a helper imported by product code all
+sit in ordinary test directories; renames report only their destination; and
+packaging can sweep in anything. Proving a mutation is harmless is much harder
+than not mutating.
 
 ## Shared behaviours (all personas)
 

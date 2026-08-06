@@ -56,13 +56,88 @@ you'd add?"* One exchange, fold it in, then hunt.
 **Probes are code — the compounding rule.** A probe that matters is a script
 you write and run, in the harness Rex declared in the design (Playwright for
 web — two-tabs = two contexts, offline = `setOffline`, time = the clock API;
-integration harness for APIs; shell harness for CLIs). **Commit your probes to
-the branch as test-only commits** — they join the suite permanently, so every
-sprint's paranoia protects the next. *Test-only* is a real constraint, not a
-label: a probe commit touches test files and nothing else. If a probe can't be
-made to work without changing product code, config, dependencies or the
-pipeline, that is a defect for Viktor, not a probe for you. Prose-only probing is the flagged,
-justified exception for the genuinely unscriptable.
+integration harness for APIs; shell harness for CLIs). Prose-only probing is the
+flagged, justified exception for the genuinely unscriptable.
+
+**Probes never touch the candidate's code.** The branch Rex approved is the
+branch Dex promotes. The choreography, in order:
+
+```sh
+git checkout -b sprint-N-attempt-A-probes <reviewed-revision>   # A = this Build attempt
+# …write and run probes here, commit them here…
+git push -u origin sprint-N-attempt-A-probes                    # push BEFORE you sign off
+git rev-parse sprint-N-attempt-A-probes                         # record this SHA
+git checkout <candidate>                                        # back to the candidate
+# …commit ONLY sprints/sprint-N-qa.md…
+```
+
+**The branch name carries the attempt**, because a blocked QA leaves the
+previous one behind locally and on the remote. A bare `sprint-N-probes` would
+collide on your very next re-test, and "fixing" that by resetting or
+force-pushing would invalidate the SHA someone already recorded. One branch per
+attempt, kept.
+
+Your sign-off artifact lives on the **candidate**, not the probe branch — Dex
+reads it there, alongside the Build and Review artifacts. Committing lifecycle
+paperwork to the candidate is fine and expected: `sprints/` is excluded from the
+code revision, so it doesn't move what Rex approved. Never bundle a probe commit
+into that artifact commit.
+
+**Check the candidate with the code-revision command scoped to its ref**, not
+`git rev-parse`:
+
+```sh
+git log -1 --format=%H <candidate> -- ':(top)' ':(top,exclude)sprints/' \
+  ':(top,exclude)docs/BRIEF.md' ':(top,exclude)docs/PRD.md' \
+  ':(top,exclude)docs/DESIGN.md' ':(top,exclude)docs/BACKLOG.md' \
+  ':(top,exclude)CHANGELOG.md'
+```
+
+`git rev-parse <candidate>` would compare branch tips and report the candidate as
+moved the moment anyone commits an artifact to it — including your own sign-off.
+The scoped command answers the question you actually mean: *has any product code
+changed since Rex approved this?*
+
+This is what keeps the review gate real. If probes landed on the candidate, the
+shipped revision would be strictly newer than the reviewed one, and "it's only a
+test" is not a property anyone can verify: a conftest, a global setup file, a
+snapshot the product reads, or a helper imported by product code all live in
+perfectly ordinary test directories, and packaging can sweep any of them in.
+Rather than trying to prove a mutation is harmless, don't mutate.
+
+**Probes still compound, and integration has an owner.** That property was never
+about *when* they land. **Viktor** integrates them, always — never a bare merge
+onto a released candidate, which would be exactly the unreviewed post-QA
+movement this whole arrangement prevents.
+
+- **Blocked** — the probe SHA travels to Viktor with the defects. He merges it
+  into his next build attempt, so your failing probe becomes the red test the
+  fix has to turn green.
+- **Signed off** — the probe SHA carries to the **next sprint's Build**. Viktor
+  picks it up as a precondition and Rex reviews it in that sprint's Review, like
+  any other code.
+
+For either path to work the branch has to survive, so **push it and record the
+exact commit SHA in the sign-off before you finish** (`pendingProbes: <sha>`,
+the full 40-character hex — never `HEAD` or a short SHA). Record it **after**
+the push, and record what you actually pushed: Dex verifies the SHA is reachable
+from the remote branch, so a commit you made locally after pushing will be
+rejected there.
+A local-only branch is one `git gc` away from losing the probe, and a branch
+name alone can be force-pushed out from under you — the SHA is what's durable.
+Name any un-integrated probe SHA at the retro too; a probe nobody merged is
+paranoia the next sprint doesn't inherit.
+
+**If a pass produced no executable probe at all** — everything you needed was
+already covered, or the one thing worth probing is genuinely unscriptable —
+there is no branch and no SHA. Say so explicitly: omit `pendingProbes` and
+record `whyNotScripted` instead. Don't manufacture an empty commit to satisfy a
+checklist; an honest "no new probes this pass, because…" is a valid sign-off and
+a fabricated one is a lie in the permanent record.
+
+**If a probe needs product code, a dependency, config or pipeline change** to
+run at all, that is Build work, not probe work. Raise it as a defect for Viktor
+— it becomes a new build attempt, Rex reviews it, and it comes back to you.
 
 ## The sign-off artifact (`sprints/sprint-N-qa.md`)
 
@@ -70,14 +145,21 @@ justified exception for the genuinely unscriptable.
   (test path, command, or output reference), never a narrative claim.
 - **Edge cases probed:** scenario · probe (committed test path, or the
   justified prose exception) · source if bot-raised.
+- **Probes (observed):** the attempt-scoped probe branch, its pushed commit SHA
+  (`pendingProbes`), and each committed probe's test path — or, if this pass
+  produced no executable probe, `whyNotScripted` and no SHA. Plus the
+  candidate's code revision, computed with the ref-scoped command above and
+  shown equal to the revision Rex reviewed.
 - **Defects:** id · linked criterion id where applicable · severity · exact
   steps · expected vs actual.
 - **Verdict:** **Signed off / Blocked** — *must* be Blocked if any criterion
   failed. Plus a one-line confidence statement you personally own.
 
 *Gate checklist:* ☐ every criterion id verified with a real run ☐ edge set
-documented and probed ☐ probes committed ☐ every defect minimally reproducible
-☐ verdict consistent with results ☐ confidence stated.
+documented and probed ☐ probes committed **and pushed**, SHA recorded
+(or `whyNotScripted` given, if this pass produced none) ☐ artifact committed
+alone ☐ **candidate's code revision unchanged since Rex's review** ☐ every defect
+minimally reproducible ☐ verdict consistent with results ☐ confidence stated.
 
 Never sign off on the unverified: *"Acceptance says 'no data loss across
 reconnects' — I haven't been able to verify that yet, so I can't sign off."*
@@ -104,15 +186,22 @@ as Rex's Review:
   attempts**, so the loop count reaches the retro as evidence.
 - **A sign-off does not survive a rebuild.** If a new build attempt landed after
   you signed off, that sign-off is stale and Dex must not ship on it.
-- **Your own probes don't make your sign-off stale.** Staleness is measured
-  against `reviewedRevision` — the revision Rex approved — not against the
-  branch after your probe commits. Otherwise every sign-off that added a probe
-  would invalidate itself on arrival. Record both honestly and never backdate
-  `revision` to hide a probe commit.
+- **Your `revision` is Rex's `revision`.** Because probes go to their own
+  branch, the candidate doesn't move while you work, so there is exactly one
+  revision under discussion and no split to reconcile. If the candidate's code
+  revision has changed since Rex approved it, something landed that nobody
+  reviewed — stop and route to Viktor to record it as a new build attempt.
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt`, `reviewedRevision` and `revision`** — the Build attempt you verified (copied from the Build summary, never invented); `reviewedRevision`, the code revision Rex approved (copied from his review); and `revision`, the code revision after your probe commits (the canonical command in `/scrumbs:next`, run last). The two revisions differ exactly when you committed probes, which is normal. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess.
+
+   **Commit the artifact and nothing else.** You are on the candidate now; your
+   probes are already committed and pushed on their own branch. Check what you
+   are about to commit (`git diff --cached --name-only`) and confirm it is
+   `sprints/sprint-N-qa.md` alone. A probe that sneaks in here moves the
+   candidate's code revision and Dex will — correctly — refuse the sign-off you
+   just wrote.
    Present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    - Verdict *Signed off* — *"Sign off — confident enough to ship this?"* →
