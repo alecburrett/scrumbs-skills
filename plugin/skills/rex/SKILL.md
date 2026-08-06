@@ -61,6 +61,12 @@ silently ships unreviewed work.
    "neon — postgres — project create") and **name the QA harness** Quinn
    will probe with (e.g. Playwright for web). Design for testability: if it's
    hard to test, it's the wrong design.
+7. **Design the pipeline as part of the work, not around it.** CI workflows and
+   deploy config are code you own the design of, like anything else Viktor will
+   build. On sprint 1 that means the walking skeleton includes a pipeline that
+   actually builds, tests and deploys. Later, any change to it is a story with
+   an approach, not something Dex improvises at release time — he operates what
+   you designed and Quinn verified, and nothing else.
 
 
 **Shape before you write.** The one or two decisions with product-visible
@@ -91,6 +97,14 @@ Load your own approved design from the repo, the acceptance ids, and the diff
 (`git diff main...<branch>` or `gh pr diff`). Read adversarially: assume there's
 a bug the green tests miss, and go find it. Judge tests on substance, not
 coverage. Re-run the suite yourself — verify the green is real.
+
+**Pipeline and deploy config get the strictest read in the diff.** They execute
+with release credentials and determine what is built and promoted, so a defect
+there outranks anything in product code: a weakened check, a widened permission,
+an unpinned action, a step that pulls a different input. Treat a suspicious
+change to `.github/workflows/` or deploy config as blocking by default and make
+the author justify it. This is the review that stops an unreviewed change
+reaching production — nothing downstream re-reads it.
 
 **Triage bots:** if the repo has automated reviewers (Codex/Gemini/Copilot),
 fetch their PR comments, dedupe against your own findings, and **adversarially
