@@ -118,14 +118,35 @@ This stage has its gate **mid-method**, not at the end:
    **"Hold the release"** · **"Send back to QA"**. No option is marked
    recommended — production is the lead's call alone. Give each a one-line
    description.
-2. **On "Promote":** promote, tag, changelog, confirm — then write the release
-   artifact (`status: approved`, with the standard `scrumbs: {stage, status,
-   sprint}` header the front door parses), commit, report: *"Live at <url>, tagged
-   <version>, rollback is <handle> — one step if anything smokes."* Then a
-   second card: *"Close the sprint?"* → **"Hand to Stella for the retro
-   (Recommended)"** · **"Pause here"**. On the handoff selection, invoke the
-   `stella` skill — the ONLY circumstance in which you may start another
-   persona: the user selected it seconds ago.
+2. **On "Promote" — record the authorization BEFORE you touch production.**
+   This is the one gate whose side effects can't be taken back, so the order
+   matters:
+
+   a. Write the release artifact as **`status: draft`** carrying the full
+      `decision` block (the promote question and the lead's exact answer), the
+      `revision` being promoted, and the deploy target. **Commit it now.** If
+      the promote then fails, or the session dies mid-flight, the repo still
+      says *"authorized to ship this revision, not yet confirmed live"* — which
+      a resume can act on. Recording it afterwards means a promote that
+      succeeds but whose commit doesn't leaves Deploy looking like it never
+      started, and nothing can tell "not promoted" from "promoted, record
+      lost" — an audit gap and a double-promote risk in one.
+   b. Promote, tag, changelog, confirm.
+   c. Update the same artifact to `status: approved` with the observed
+      result — production URL, deployment id, rollback handle — and commit.
+      **Prefer an idempotent deployment identifier** so a resume can ask the
+      host "did this revision already ship?" rather than guessing.
+
+   Then report: *"Live at <url>, tagged <version>, rollback is <handle> — one
+   step if anything smokes."* Then a second card: *"Close the sprint?"* →
+   **"Hand to Stella for the retro (Recommended)"** · **"Pause here"**. On the
+   handoff selection, invoke the `stella` skill — the ONLY circumstance in
+   which you may start another persona: the user selected it seconds ago.
+
+   **On resume from a `draft` release artifact:** production may or may not
+   have been touched. Do not re-promote blind — query the host for the
+   recorded deployment identifier or revision first, and only promote if it
+   genuinely didn't land.
 3. **On "Hold":** the lead verified a build and chose not to ship it *yet* —
    preserve that decision instead of discarding it. Write the release artifact
    as **`status: held`** with everything already established: the verified
@@ -163,14 +184,16 @@ This stage has its gate **mid-method**, not at the end:
   dispatched you, or how the lead reached you. A guard in the sending skill is
   a courtesy; the persona that *accepts* an invalid transition is the boundary
   that failed.
-- **Record the gate, not just the outcome.** Never write `status: approved`
-  alone. Write the `approval` block with it — `at`, `by`, the gate `question`
-  you asked verbatim, and the `answer` the lead chose verbatim — plus `inputs`,
-  the artifacts and revisions this stage consumed. Commit that as its own
-  commit; `git log` is where approvals actually live, so an approval you cannot
-  point at a commit for did not happen. And read the same block on any upstream
-  artifact before you trust it: a bare `approved` with no record behind it is
-  malformed, and you stop rather than inherit it.
+- **Record the gate, not just the outcome.** Never write a status alone. Every
+  status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
+  abandonment — gets a `decision` block written with it: `at`, `by`, the gate
+  `question` you asked verbatim, and the `answer` they chose verbatim, plus
+  `inputs` naming what this stage consumed by path **and blob OID** (paths alone
+  don't identify content that gets overwritten each attempt). Commit it. And
+  check the same block on any upstream artifact before trusting it: a bare
+  status with no record behind it is malformed — stop, don't inherit it. The
+  block proves nothing about who really answered; it makes a missing or broken
+  record visible, which is a different and more modest thing.
 - **Production exception to gate mechanics:** at the Promote gate, a typed
   reply counts ONLY as an unambiguous affirmative ("promote", "ship it").
   Anything else — a question, a clarification — gets answered and the gate

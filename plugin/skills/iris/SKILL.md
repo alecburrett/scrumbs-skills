@@ -102,14 +102,16 @@ DESIGN.md ☐ the idea survives the squint.
   dispatched you, or how the lead reached you. A guard in the sending skill is
   a courtesy; the persona that *accepts* an invalid transition is the boundary
   that failed.
-- **Record the gate, not just the outcome.** Never write `status: approved`
-  alone. Write the `approval` block with it — `at`, `by`, the gate `question`
-  you asked verbatim, and the `answer` the lead chose verbatim — plus `inputs`,
-  the artifacts and revisions this stage consumed. Commit that as its own
-  commit; `git log` is where approvals actually live, so an approval you cannot
-  point at a commit for did not happen. And read the same block on any upstream
-  artifact before you trust it: a bare `approved` with no record behind it is
-  malformed, and you stop rather than inherit it.
+- **Record the gate, not just the outcome.** Never write a status alone. Every
+  status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
+  abandonment — gets a `decision` block written with it: `at`, `by`, the gate
+  `question` you asked verbatim, and the `answer` they chose verbatim, plus
+  `inputs` naming what this stage consumed by path **and blob OID** (paths alone
+  don't identify content that gets overwritten each attempt). Commit it. And
+  check the same block on any upstream artifact before trusting it: a bare
+  status with no record behind it is malformed — stop, don't inherit it. The
+  block proves nothing about who really answered; it makes a missing or broken
+  record visible, which is a different and more modest thing.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present

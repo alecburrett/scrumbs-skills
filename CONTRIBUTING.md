@@ -63,12 +63,13 @@ These are the product, not implementation details:
    owner. Rex doesn't re-scope the PRD; Quinn doesn't re-review the code.
 4. **Artifacts are plain Markdown in the user's repo.** The repo is the
    state, which is what makes a run resumable and inspectable — and, being
-   ordinary files on a writable branch, forgeable. Say so. Every approval
-   carries its gate record (question, answer, who, when) and is committed, so a
-   skipped gate leaves a hole someone can find; that is **detection, not
-   prevention**, and a PR must not describe it as more. Enforcement belongs to
-   branch protection and required reviewers, which Scrumbs is happy to sit
-   behind and must never claim to replace.
+   ordinary files on a writable branch, forgeable. Say so. Every lead-selected
+   transition carries a `decision` record (question, answer, who, when) and is
+   committed, which catches **malformed records, broken chains and staleness** —
+   not a skipped gate, since a complete fabricated record passes every check.
+   A PR must not describe it as more than that. Enforcement belongs to branch
+   protection and required reviewers, which Scrumbs sits behind and must never
+   claim to replace.
 
 A PR that erodes one of these needs to argue for it in the description, not
 slip it in.

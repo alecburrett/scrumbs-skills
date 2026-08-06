@@ -72,27 +72,35 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 - **The exit:** a retro whose "next direction" is *"nothing left worth a sprint"* →
   the project is complete.
 
-## What an approval records, and what it's worth
+## What a gate decision records, and what it's worth
 
-`status: approved` is a claim; the `approval` block is the evidence for it. Every
-approved artifact carries `at`, `by`, the gate `question` asked verbatim and the
-`answer` the lead chose verbatim, plus `inputs` — the artifacts and revisions the
-stage consumed — and is committed, because `git log` is where approvals actually
-live. A persona reading an upstream artifact verifies that block and **fails
-closed on a bare `approved`** rather than inheriting it.
+A status is a claim; the `decision` block is the record behind it. **Every**
+lead-selected transition carries one — approvals, but equally
+`changes-requested`, `blocked`, `held` and abandonment, since those change
+routing or end a sprint just as consequentially. It holds `at`, `by`, the gate
+`question` asked verbatim and the `answer` chosen verbatim, alongside `inputs`
+naming what the stage consumed by path **and blob OID**. Paths alone can't
+identify content that is overwritten on every attempt.
 
-The question/answer pair is the part that does work. A boolean is set by accident
-or autopilot; naming the exact option chosen means a fabricated approval has to
-invent a specific human decision the lead can later read back and deny.
+A persona reading an upstream artifact checks that block and **fails closed on a
+bare status** rather than inheriting it.
 
-**The honest limit.** Artifacts are files on the same writable branch as the
-code. Anyone who can commit can write an approval, and no amount of schema fixes
-that: there is no ledger outside the repo, no signing key, no server holding
-state — the repo *is* the state, which is what makes runs resumable and
-inspectable, and precisely why they are forgeable. What the record buys is that
-a skipped gate is *visible*: absent or contradicting the history, and the next
-persona stops. Detection, not prevention. Enforcement lives in branch protection
-and required reviewers; Scrumbs sits behind those and does not replace them.
+**The honest limit, stated precisely.** This does *not* detect a skipped gate.
+Anyone who can commit can write a complete, self-consistent block for a gate
+that never happened, and it passes every check: `by` is a `git config` value the
+writer picks, `at` is a string in YAML. They record who wrote it down and what
+they claimed — nothing more.
+
+What it does catch is narrower and still worth the cost: **malformed or missing
+records**, **broken chains** (an input whose blob no longer matches, i.e. built
+on paperwork since edited), and **staleness**. Mistakes and drift, in other
+words, which is most of what actually goes wrong — not a determined forger,
+which no arrangement of Markdown files could stop. Git history corroborates when
+it survives, but squash merges collapse it and rebases rewrite it, so the block
+in the artifact is the record, not the log.
+
+Enforcement lives in branch protection and required reviewers. Scrumbs sits
+behind those and never claims to replace them.
 
 ## Artifact status vs verdict (and why they're different fields)
 

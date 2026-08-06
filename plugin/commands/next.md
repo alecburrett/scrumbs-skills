@@ -13,75 +13,104 @@ nothing happens silently. The user starts every stage.
 ## 1. Derive state from the repo (artifacts are the truth)
 
 Check for these files in the current repo. Each Scrumbs artifact starts with a
-YAML header: `scrumbs: {stage, status, sprint, attempt}` — plus `project: closed`
-on a terminal retro (see closure, below).
+YAML header: `scrumbs: {schema, stage, status, sprint, attempt}` — plus
+`project: closed` on a terminal retro (see closure, below).
 
-### What an approval has to carry
+### What every gate decision has to carry
 
-`status: approved` on its own is just a word someone typed. An approved artifact
-must also carry the record of the gate that produced it:
+A `status` value on its own is just a word someone typed. **Every lead-selected
+transition** — not only approvals, but `changes-requested`, `blocked`, `held`
+and abandonment too, since each of them changes routing or ends a sprint —
+carries the record of the gate that produced it:
 
 ```yaml
 scrumbs:
+  schema: 2
   stage: review
   sprint: 3
   attempt: 2
-  status: approved
-  revision: 9f2c1ab…
-  approval:
-    at: 2026-08-06T14:22:31Z        # when the lead answered
-    by: Alec Burrett                # the repo's git identity at that moment
-    question: "Approve — ready for QA?"          # what you asked, verbatim
-    answer: "Confirm — hand to Quinn"            # what they chose, verbatim
-  inputs:                            # what this stage consumed
-    - sprints/sprint-3-design.md
-    - sprints/sprint-3-build.md@9f2c1ab…
+  status: changes-requested
+  revision: 9f2c1ab…                # the code revision (see below)
+  decision:
+    at: 2026-08-06T14:22:31Z        # self-asserted by whoever recorded it
+    by: Alec Burrett                # the RECORDER's git identity, self-asserted
+    question: "Approve — ready for QA?"          # what was asked, verbatim
+    answer: "Agree — send to Viktor"             # what was chosen, verbatim
+  inputs:                            # exactly what this stage consumed
+    - stage: build
+      path: sprints/sprint-3-build.md
+      blob: 4e9a77c…                 # git rev-parse <commit>:<path>
+      attempt: 2
+      revision: 9f2c1ab…
 ```
 
-`question` and `answer` are the load-bearing pair. A bare boolean is trivial to
-set by accident or by autopilot; naming the exact question asked and the exact
-option chosen means a fabricated approval has to invent a specific human
-decision, and the lead can read it back later and say *"I never chose that."*
+`question` and `answer` are the pair that does work. A bare status is set by
+accident or by autopilot; naming the exact question asked and the exact option
+chosen means an invented decision has to invent a specific human choice — one
+the lead can read back later and say *"I never chose that."*
 
-`inputs` records what the stage actually consumed, so the chain is checkable:
-a Review that claims to have judged a build attempt whose revision doesn't
-appear in its inputs is not a Review of that build.
+`inputs` uses **blob OIDs, not just paths**. A path alone is worthless here:
+artifact files are overwritten in place on every attempt, so "I consumed
+`sprint-3-build.md`" doesn't say *which* content. `git rev-parse <commit>:<path>`
+names the exact bytes. Record `revision` separately — it is the *code* revision
+and deliberately excludes `sprints/`, so it can never identify paperwork.
 
-**Verifying an approval, before you trust it:**
+**Checking a decision, before you trust it:**
 
-1. The `approval` block is present and complete. A `status: approved` with no
-   approval block, or a partial one, is **malformed — fail closed** and say so.
-   Do not treat it as approved because the word is there.
-2. It is **committed**. An approval that exists only in the working tree hasn't
-   happened yet; `git log` is where approvals live.
-3. `inputs` line up with the artifacts they name, at the revisions they name.
-4. For Build/Review/QA, `attempt` and `revision` pass the staleness rule.
+1. `schema` is recognised (see legacy, below).
+2. The `decision` block is present and complete for any status other than
+   `draft`. Missing or partial → **malformed, fail closed**, and say so.
+3. It is committed. A decision living only in the working tree hasn't happened.
+4. Every `inputs` blob still resolves and matches the artifact it names
+   (`git rev-parse <commit>:<path>`). A mismatch means the thing you're building
+   on was edited after it was consumed.
+5. For Build/Review/QA, `attempt` and `revision` pass the staleness rule.
+
+### Legacy artifacts (`schema` absent or `1`)
+
+Artifacts written before this contract have no `decision` block. They are
+**legacy, not malformed** — the distinction matters, because treating them as
+malformed strands every existing project, and silently backfilling a block would
+fabricate exactly the evidence this design exists to protect.
+
+Report them as legacy, name them, and offer the lead a **re-confirmation pass**:
+they re-affirm each one and a fresh record is written with today's date and an
+`answer` of their own choosing. Never write a `decision` block the lead did not
+actually give you, and never date one earlier than the moment it was recorded.
 
 ### What this does and does not guarantee
 
-Be straight about this, because the alternative is a false sense of safety.
+Be exact about this, because a slightly-too-strong claim here is worse than none.
 
-Every Scrumbs artifact is a file on the same writable branch as the code. Anyone
-who can commit can write `status: approved`, invent an approval block, and push
-it. **Scrumbs cannot prevent that, and does not claim to.** There is no
-append-only ledger, no signing key, no server holding state the repo can't
-reach — the repo *is* the state, which is what makes a run resumable and
-inspectable, and is also exactly why it is forgeable.
+**It does not detect a skipped gate.** Anyone who can commit can write a
+complete, internally consistent `decision` block for a gate that never happened,
+and it will pass every check above. `by` is a `git config` value the writer
+chooses; `at` is a self-asserted string in YAML. Neither proves who answered or
+when — they record *who wrote it down and what they claimed*, and that is all.
 
-What the record does buy is real, and worth having:
+**What it does detect** is narrower and still worth having:
 
-- **A skipped gate leaves a hole.** No approval block, or one that contradicts
-  the git history, is visible to anyone who looks — including the next persona,
-  which fails closed rather than proceeding.
-- **An audit trail with names and times.** `git log --follow <artifact>` shows
-  who recorded each approval and when. Forging one means committing under an
-  identity, at a timestamp, alongside a specific claimed human answer.
-- **Detection, not prevention.** The honest framing: gates are a discipline this
-  repo makes *legible*, not an access control it enforces.
+- **Malformed and missing records.** A status with no decision behind it, or a
+  partial one, stops the next persona instead of being inherited.
+- **Broken chains.** `inputs` blob OIDs catch a stage built on paperwork that
+  has since been edited or replaced — the accidental case that actually happens.
+- **Staleness.** Attempt and revision catch a verdict about code that has moved.
 
-If you need enforcement rather than evidence, that lives where enforcement can
-actually live — branch protection, required reviewers, a CI check on the
-artifact headers. Scrumbs is happy to sit behind those; it cannot replace them.
+So: this catches **mistakes, drift and staleness**, which is most of what goes
+wrong. It does not catch a determined forger, and no arrangement of Markdown
+files could. There is no ledger outside the repo, no signing key, no server
+holding state the repo can't reach — the repo *is* the state, which is what makes
+a run resumable and inspectable, and is precisely why it is forgeable.
+
+**On git history as corroboration.** Committing each decision separately means
+`git log --follow <artifact>` usually shows who recorded what and when — useful,
+but not a guarantee: squash merges collapse those commits, and amend or rebase
+rewrites their identity and timestamps. Treat history as corroboration when it
+survives, never as proof. The record that matters is the block in the artifact.
+
+If you need enforcement rather than evidence, it lives where enforcement can
+actually live — branch protection, required reviewers, a CI check over these
+headers. Scrumbs is happy to sit behind those; it cannot replace them.
 
 ### The status vocabulary (canonical — skills use these exact words)
 
