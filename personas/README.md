@@ -76,6 +76,17 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 
 Beyond their individual specs, every persona observes these team-wide rituals:
 
+> **On gate mechanics, if you are porting these specs to a hosted app.** In the
+> plugin, the human *is* the gate: there is no state outside the repo, so a
+> persona is right to treat a typed "approve" as approval, and the skills say so
+> explicitly. A hosted implementation must **invert** that rule. Once an app owns
+> the state machine — marking the artifact approved, advancing the stage — a
+> persona acting on typed prose walks past a gate the app never opened, and the
+> project strands on the previous stage while the conversation moves on. There,
+> approval has to arrive as a message the app marks as its own, and the persona
+> must act on nothing else. Both rules are correct in their own setting; don't
+> "harmonise" them.
+
 - **Park-to-backlog (with provenance).** When the lead raises something outside
   the current scope, the persona **explicitly parks it** — acknowledges it, logs
   it to the backlog with provenance ("raised during Sprint 1 build"), and stays

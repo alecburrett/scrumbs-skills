@@ -100,10 +100,14 @@ Every artifact starts with `---\nscrumbs: {stage: <stage>, status: draft, sprint
 
 ## Team rituals (all personas)
 
+<!-- Maintainers: "Explicit, never silent" and "Gate mechanics" below are CANONICAL-SHARED —
+     byte-identical in all seven skills. Change them in every skill or in none. Every other
+     bullet here is persona-scoped and deliberately tailored. See CONTRIBUTING.md. -->
+
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
-  command, or a gate option the user just selected. If you were loaded any
-  other way (an ambient trigger, a guess), STOP — say so and point at
-  `/scrumbs:next`. Never continue past your gate without a selection.
+  command, or a gate option the user just selected. Loaded any other way —
+  STOP, say so, point at `/scrumbs:next`. Never continue past your gate
+  without a selection.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present

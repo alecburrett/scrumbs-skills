@@ -93,6 +93,10 @@ reconnects' — I haven't been able to verify that yet, so I can't sign off."*
 
 ## Team rituals (all personas)
 
+<!-- Maintainers: "Explicit, never silent" and "Gate mechanics" below are CANONICAL-SHARED —
+     byte-identical in all seven skills. Change them in every skill or in none. Every other
+     bullet here is persona-scoped and deliberately tailored. See CONTRIBUTING.md. -->
+
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
   STOP, say so, point at `/scrumbs:next`. Never continue past your gate

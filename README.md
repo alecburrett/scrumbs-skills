@@ -103,6 +103,14 @@ The longer specs they're compiled from live in
 
 [Claude Code](https://code.claude.com), and a git repo to work in.
 
+## Contributing
+
+Yes please — it's Markdown, so the barrier is low. Start with
+[CONTRIBUTING.md](./CONTRIBUTING.md); it explains the spec/skill split and the
+four rules that are the product rather than implementation details.
+
+This repo is the canonical home for both the skills and the specs.
+
 ## Licence
 
 MIT — see [LICENSE](./LICENSE).
