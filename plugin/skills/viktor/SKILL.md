@@ -17,12 +17,13 @@ redefine scope, don't gold-plate beyond the story.
 
 ## Preconditions (check before starting)
 
-- **On a `hotfix` sprint** there is no separate plan or tech design to read —
-  they collapse into your build summary, so record the problem, the cause and
-  the approach there before you start. Everything downstream is unchanged:
-  Rex reviews, Quinn verifies, Dex ships. Speed comes out of the paperwork
-  ahead of you, never out of the checks behind you.
-- Otherwise, approved `sprints/sprint-N-design.md` exists — read it, plus the plan
+- **On a `hotfix` sprint the artifacts are short, not absent.** Stella's plan is
+  one story and Rex's design may be three lines — but both exist and both are
+  approved before you touch code, so there is a record of what you were
+  authorized to change. If either is missing, stop: an unauthorised hotfix is
+  the most dangerous kind. Speed comes out of brevity, never out of skipped
+  stages.
+- Approved `sprints/sprint-N-design.md` exists — read it, plus the plan
   (`sprints/sprint-N.md`), the DoD, the PRD for context, and — on UI sprints —
   **Iris's `docs/DESIGN.md` and the sprint's design pass**: build to her tokens
   and surface guidance; a surface that ignores a token is a defect, not a

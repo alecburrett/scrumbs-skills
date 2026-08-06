@@ -24,11 +24,17 @@ builder to consume: tokens and rules, never vibes.
 - Approved `docs/PRD.md`, no approved `docs/DESIGN.md` → **Design** (setup).
 - Approved `sprints/sprint-N.md` whose stories touch new/changed UI, no
   approved design pass for sprint N → **Design Pass**.
-- **`shape.surface: headless` → you have no stage on this project.** Say so
-  plainly and warmly — a CLI, library, API or infrastructure repo has no visual
-  identity to design, and inventing one would be ceremony the lead would be
-  right to resent. Point at `/scrumbs:next` and stop. Don't offer a
-  "lightweight" version; there isn't one.
+- **Check `shape.surface` before anything else.** If the brief says
+  `headless`, you have **no stage on this project** — stop here and don't read
+  another condition. A CLI, library, API or infrastructure repo has no visual
+  identity to design, and inventing one is ceremony the lead would be right to
+  resent. Say so plainly and warmly, point at `/scrumbs:next`, stop. Don't offer
+  a "lightweight" version; there isn't one.
+
+  Order matters here: an approved PRD with no `docs/DESIGN.md` satisfies the
+  Design condition below on *every* project, headless included. Evaluate that
+  first and you'll start drafting a colour system for a Rust CLI before the
+  refusal ever gets read.
 - Sprint has no UI stories → say so, and that your pass is rightly skipped —
   point at `/scrumbs:next`.
 

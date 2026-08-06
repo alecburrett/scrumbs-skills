@@ -376,21 +376,49 @@ shape:
 **Sprint kind** — decided per lap, recorded in `sprints/sprint-N.md`'s header as
 `kind: feature | defect | hotfix`:
 
-| kind | Planning | Assurance |
-|---|---|---|
-| `feature` | the full lap | Review · QA · Deploy |
-| `defect` | a one-story plan; Tech Design may be a paragraph | Review · QA · Deploy |
-| `hotfix` | production is broken — Plan and Tech Design collapse into the build summary | Review · QA · Deploy |
+| kind | Plan | Tech Design | Assurance |
+|---|---|---|---|
+| `feature` | the full method | the full method | Review · QA · Deploy |
+| `defect` | one story: the repro, the fix | often a paragraph | Review · QA · Deploy |
+| `hotfix` | one story, minutes not hours | the smallest honest one: cause, fix, test | Review · QA · Deploy |
 
-**The line that never moves:** planning ceremony scales to the work; **Review,
-QA and Deploy do not.** A hotfix skips the paperwork about *what* to build,
-because that is obvious and urgent — it does not skip the checks on whether what
-was built is correct, which is when you need them most. Any mode that let a
-change reach production unreviewed would defeat the entire point of the tool.
+**Every stage still runs.** `kind` changes how *long* an artifact is, never
+whether it exists. That is deliberate: a hotfix's Tech Design might be three
+lines, but it is written, gated and approved *before* code changes, so there is
+an approved record of what Viktor was authorized to touch. Collapsing it into
+the build summary would put the authorization after the work, which is no
+authorization at all.
+
+**And the assurance stages never compress.** A hotfix is rushed, unrehearsed and
+going straight to production — Review, QA and Deploy are exactly what it needs
+most. Speed comes out of brevity, never out of skipped checks. If anyone reads
+`hotfix` as "skip QA", the answer is no.
 
 A `hotfix` also carries an obligation: it ends with a backlog entry for the
-proper fix and a retro, because "we shipped it fast" is a thing to learn from,
-not a thing to leave unexamined.
+proper fix and a retro, because "we shipped it fast" is a thing to learn from.
+
+**Validate `kind` before you route on it.** Exactly one of `feature`, `defect`,
+`hotfix`. Anything else — `urgent`, a typo, a value someone invented — is
+**malformed, fail closed**: different personas would otherwise silently pick
+different planning depths. A schema-2 plan written before `kind` existed and
+carrying none is **legacy**: treat it as `feature`, say that you defaulted it,
+and let Stella set it properly on her next run.
+
+**Shape can change, and there's a route for it.** A library grows a dashboard;
+a UI project spins out a CLI. Pablo amends `shape` on the brief at a gate,
+appending a decision like any other — history is not rewritten, and previously
+approved artifacts stay approved, because they were right when they were made.
+
+Going `headless` → `ui` makes the setup **Design** stage newly due: it slots in
+before the next Design Pass or Tech Design, so Iris establishes the identity
+before anything is built to it. It does not retroactively invalidate shipped
+sprints. Going `ui` → `headless` retires Iris's stages from that point on and
+leaves `docs/DESIGN.md` in place as history.
+
+A mixed repo — a UI app plus a CLI in one monorepo — is `surface: ui`. The
+question is whether a human ever looks at any of it, and Iris's Design Pass is
+already per-sprint and conditional on the stories, so backend-only laps skip her
+anyway.
 
 **If the shape is missing** (an older project, or a repo that never ran the
 first-run card), don't guess and don't force the full chain. Say the shape isn't

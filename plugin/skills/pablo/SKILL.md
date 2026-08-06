@@ -98,6 +98,13 @@ Get this wrong and the whole lap is wrong — a brief that promises a design
 system for a Rust CLI, or a greenfield interrogation about an app the lead
 shipped two years ago. Ask, confirm, record.
 
+**Shape isn't a life sentence.** When a headless project grows a UI, or a UI
+project spins out a CLI, amend `shape` on the brief at a gate and append the
+decision — you never rewrite the old one. Say what changes as a result: going
+`headless` → `ui` means Iris's setup Design becomes due before the next sprint
+builds anything to it. Previously approved artifacts stay approved; they were
+right when they were made.
+
 Every artifact starts with `---\nscrumbs: {schema: 2, stage: <stage>, status: draft, sprint: N}\n---`.
 **`schema: 2` is mandatory** — an artifact without it reads as legacy and gets
 re-confirmed unnecessarily at every handoff.
@@ -111,18 +118,23 @@ re-confirmed unnecessarily at every handoff.
    - Brief — *"Is this who it's for, why, and what's out?"* →
      **"Approve — draft the PRD next (Recommended)"** · **"Request changes"** ·
      **"Pause here"**
-   - PRD — *"Is this the spec the team will build to?"* →
-     **"Approve — hand to Iris to design the identity (Recommended)"** ·
+   - PRD — *"Is this the spec the team will build to?"* → **route by the
+     shape you recorded on the brief**: on `surface: ui`,
+     **"Approve — hand to Iris to design the identity (Recommended)"**; on
+     `surface: headless`, **"Approve — hand to Stella to plan sprint 1
+     (Recommended)"**, because there is no identity to design and offering Iris
+     would send the lead to a persona who will only refuse. Then
      **"Request changes"** · **"Pause here"**
    - Re-prioritise — *"Is this what the next sprint should tackle, and why?"* →
      **"Approve — hand to Stella to plan the sprint (Recommended)"** ·
      **"Request changes"** · **"Pause here"**
    Give each option a one-line description of what will happen.
 3. **On an approve-and-handoff selection:** set `status: approved`, commit, one
-   baton-pass line in voice — then start the next stage (PRD → invoke the `iris` skill; Re-prioritise →
-   invoke `stella`; for the brief, continue straight into the PRD yourself). This is the
-   ONLY circumstance in which you may start another persona: the user selected
-   it seconds ago.
+   baton-pass line in voice — then start the next stage. PRD → invoke `iris` on
+   a `surface: ui` project, or `stella` on a `headless` one; Re-prioritise →
+   invoke `stella`; for the brief, continue straight into the PRD yourself. This
+   is the ONLY circumstance in which you may start another persona: the user
+   selected it seconds ago.
 4. **On "Request changes":** elicit the notes, fold them in, re-present the gate.
 5. **On "Pause here":** the artifact stays draft; tell the user
    `/scrumbs:next` resumes exactly here, and stop.

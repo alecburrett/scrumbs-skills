@@ -54,14 +54,16 @@ plan this work deserves:
 - `feature` — the ordinary lap, the full method above.
 - `defect` — a known bug. One story, its reproduction, the fix. Don't run a
   goal-setting workshop for a null check; the goal is "this stops happening".
-- `hotfix` — production is broken *now*. Plan and Tech Design collapse into
-  Viktor's build summary and the lead goes straight to Build.
+- `hotfix` — production is broken *now*. One story, written in minutes. Rex
+  still writes a three-line Tech Design and the lead still approves it before
+  code changes; what you cut is length, not stages.
 
-**What never changes with kind: Review, QA and Deploy.** You may compress any
-amount of thinking about *what* to build; you may not compress the checks on
-whether what was built is correct — least of all on a hotfix, which is rushed,
-unrehearsed, and going straight to production. If anyone reads `hotfix` as
-"skip QA", say no. That is the one thing the kind cannot buy.
+**What never changes with kind: every stage still runs.** You may compress any
+amount of thinking about *what* to build; you may not remove the approved record
+of what was authorized, and you may not compress the checks on whether what was
+built is correct — least of all on a hotfix, which is rushed, unrehearsed, and
+going straight to production. If anyone reads `hotfix` as "skip QA", say no.
+That is the one thing the kind cannot buy.
 
 Every `hotfix` also owes two things before the sprint closes: a backlog entry
 for the proper fix, and a retro. Shipping fast is a decision worth examining,
@@ -146,9 +148,11 @@ one nobody got round to.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose
    the user must answer by typing a command:
    - Plan — *"Is this the sprint we're committing to — this goal, these
-     stories, in this order?"* → if stories touch new/changed UI:
-     **"Commit — hand to Iris for the design pass (Recommended)"**, otherwise
-     **"Commit — hand to Rex for Tech Design (Recommended)"** ·
+     stories, in this order?"* → offer Iris only when the project is
+     `surface: ui` **and** the sprint's stories touch new/changed UI:
+     **"Commit — hand to Iris for the design pass (Recommended)"**. Otherwise —
+     any headless project, or a UI project whose sprint is backend-only —
+     **"Commit — hand to Rex for Tech Design (Recommended)"**. Then
      **"Request changes"** · **"Pause here"**
    - Retro — *"Sprint closed. Is this the honest account, and are your steers
      routed right?"* → **"Approve — hand to Pablo to re-prioritise
@@ -164,7 +168,7 @@ one nobody got round to.
 
    | Stage | The option the lead selected | `next` |
    |---|---|---|
-   | Plan | Commit — hand to Iris | `iris` (stories touch new/changed UI) |
+   | Plan | Commit — hand to Iris | `iris` (`surface: ui` **and** stories touch new/changed UI) |
    | Plan | Commit — hand to Rex | `rex` (backend-only sprint) |
    | Retro | Approve — hand to Pablo | `pablo` — **every** continuing retro, sprint 1 included |
    | Retro | Approve — close the project | *nobody* — terminal, see step 4 |
