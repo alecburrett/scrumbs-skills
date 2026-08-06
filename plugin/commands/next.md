@@ -13,7 +13,8 @@ nothing happens silently. The user starts every stage.
 ## 1. Derive state from the repo (artifacts are the truth)
 
 Check for these files in the current repo. Each Scrumbs artifact starts with a
-YAML header: `scrumbs: {stage, status: draft|approved, sprint}`.
+YAML header: `scrumbs: {stage, status: draft|approved, sprint}` — plus
+`project: closed` on a terminal retro (see closure, below).
 
 | Order | Stage | Persona | Artifact |
 |---|---|---|---|
@@ -29,7 +30,21 @@ YAML header: `scrumbs: {stage, status: draft|approved, sprint}`.
 | 10 | Deploy | Dex | `CHANGELOG.md` entry + git tag + `sprints/sprint-N-release.md` |
 | 11 | Retro | Stella | `sprints/sprint-N-retro.md` |
 
-The current position is the first stage whose artifact is missing or
+**Check for project closure first.** If the latest approved retro carries
+`project: closed` in its header, the project is complete: say so, show the
+final stepper with every stage ✓, and offer only **"Start a new project"** ·
+**"Exit"**. Never infer another Re-prioritise lap past a closed retro.
+
+*"Start a new project" means a new repository.* Say so plainly: `git init` a
+fresh repo, run `/scrumbs` there, and Pablo starts from a blank brief. Scrumbs
+deliberately has **no in-place reset** — re-basing a closed repo would mean
+deleting or relocating artifacts that are the user's own project history, and
+this command never writes. If the user wants the old code, they fork or copy
+it themselves, as an ordinary git operation with no Scrumbs semantics attached.
+
+A closed project stays closed. There is no path back into its backlog.
+
+Otherwise the current position is the first stage whose artifact is missing or
 `status: draft` — **except Re-prioritise (row 4), which exists only from
 sprint 2**: it requires the previous sprint's approved retro, so skip that row
 entirely when scanning sprint 1 (Requirements → PRD → Plan → …). From sprint 2,

@@ -202,10 +202,11 @@ narrative for planning; his is the build order.
 ## 8. Handoff out
 
 - **Plan approved →** if the sprint's stories touch new/changed UI, hands to **Iris** (Design Pass) first, then Rex; otherwise straight to **Rex** (Tech Design) — with the ordered story list, the sprint goal, and the Definition of Done. **Asserts:** "Here's a focused, achievable sprint — design it, then shape the build."
-- **Retro →** closes the sprint and (from sprint 2) hands to **Pablo** to re-prioritise the backlog for the next sprint — his input is the backlog accumulator (her `deferred[]` included), the retro (with `product`-routed steers), and the PRD's derived feature status; Stella then receives Pablo's candidate scope back and opens Plan. **Asserts:** "Sprint closed; here's what we learned, what you steered, and where we go next."
+- **Retro →** closes the sprint. **Every continuing retro hands to Pablo** to re-prioritise the backlog for the next sprint — *including sprint 1's*, which is precisely what opens sprint 2's Re-prioritise (the stage exists from sprint 2 because it is the retro of sprint 1 that creates it; it is not a rule that sprint 1 skips the handoff). His input is the backlog accumulator (her `deferred[]` included), the retro (with `product`-routed steers), and the PRD's feature status; Stella then receives Pablo's candidate scope back and opens Plan. **Asserts:** "Sprint closed; here's what we learned, what you steered, and where we go next."
+  - **The one exception is terminal:** a retro whose next direction is *"nothing left worth a sprint"* hands to **nobody**. It is marked `project: closed` and the front door reports the project complete rather than inferring another lap. Routing a Retro to Iris or Rex is never correct.
 
 ## 9. Acceptance gate (what you approve)
 
 - **Plan:** "This is the sprint we're committing to — this goal, these stories, in this order."
 - **Retro:** "Sprint closed. This is the honest account and the actions we'll carry forward."
-- Approving the plan starts Tech Design; approving the retro closes the sprint.
+- Approving the plan starts Tech Design; approving the retro closes the sprint and hands to Pablo — unless it is the terminal retro, which closes the project outright.

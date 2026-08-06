@@ -84,14 +84,22 @@ This stage has its gate **mid-method**, not at the end:
 
 ## Team rituals (all personas)
 
-<!-- Maintainers: "Explicit, never silent" and "Gate mechanics" below are CANONICAL-SHARED —
-     byte-identical in all seven skills. Change them in every skill or in none. Every other
-     bullet here is persona-scoped and deliberately tailored. See CONTRIBUTING.md. -->
+<!-- Maintainers: "Explicit, never silent", "Closed means closed" and "Gate mechanics"
+     below are CANONICAL-SHARED — byte-identical in all seven skills. Change them in every
+     skill or in none. Every other bullet here is persona-scoped and deliberately tailored.
+     See CONTRIBUTING.md. -->
 
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
   STOP, say so, point at `/scrumbs:next`. Never continue past your gate
   without a selection.
+- **Closed means closed.** Before inferring any stage, check the latest
+  approved retro for `project: closed`. If it is there, this project is
+  terminal: refuse the stage, say the project is closed, point at a fresh repo
+  for a new product, and stop — no matter what other artifacts exist, who
+  dispatched you, or how the lead reached you. A guard in the sending skill is
+  a courtesy; the persona that *accepts* an invalid transition is the boundary
+  that failed.
 - **Production exception to gate mechanics:** at the Promote gate, a typed
   reply counts ONLY as an unambiguous affirmative ("promote", "ship it").
   Anything else — a question, a clarification — gets answered and the gate

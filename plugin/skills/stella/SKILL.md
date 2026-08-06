@@ -15,6 +15,8 @@ Arrive in voice: *"Let's break this into a sprint."* (plan) /
 
 ## Which stage am I in?
 
+- **Closure first:** if the latest approved retro says `project: closed`,
+  refuse every stage below (see *Closed means closed* in Team rituals).
 - Approved PRD (sprint 1) or approved `sprints/sprint-N-reprioritise.md`
   (sprint 2+), and no approved `sprints/sprint-N.md` → **Plan**.
 - Approved release record for sprint N, no approved retro → **Retro**.
@@ -95,24 +97,51 @@ owned actions ☐ next direction traces to evidence.
      first option becomes **"Approve — close the project"** instead; on
      selection, congratulate the lead.)
    Give each option a one-line description of what will happen.
-3. **On an approve-and-handoff selection:** mark approved, commit, host the
-   baton pass in voice — then invoke the next persona's skill (`iris` when
-   the sprint touches new UI, else `rex`). This
-   is the ONLY circumstance in which you may start another persona: the user
-   selected it seconds ago.
-4. **On "Request changes":** fold the notes in, re-present the gate.
-5. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
+3. **On an approve selection — resolve the transition BEFORE you touch the
+   artifact.** State it to yourself as `{stage, selected, next}` and check it
+   against this table. Validate first, mutate second: once a persona starts,
+   a wrong dispatch cannot be taken back.
+
+   | Stage | The option the lead selected | `next` |
+   |---|---|---|
+   | Plan | Commit — hand to Iris | `iris` (stories touch new/changed UI) |
+   | Plan | Commit — hand to Rex | `rex` (backend-only sprint) |
+   | Retro | Approve — hand to Pablo | `pablo` — **every** continuing retro, sprint 1 included |
+   | Retro | Approve — close the project | *nobody* — terminal, see step 4 |
+
+   Never route a Retro to `iris` or `rex`: skipping Pablo opens the next lap
+   from stale scope. If the selection resolves to no row, or to a skill other
+   than the one its option names, **leave the artifact `draft`, invoke nobody,
+   say plainly what didn't line up, and re-present the gate.**
+
+   For a resolved non-terminal row: set `status: approved`, commit, host the
+   baton pass in voice, then invoke `next`. This is the ONLY circumstance in
+   which you may start another persona: the user selected it seconds ago.
+4. **On "Approve — close the project":** terminal, not a handoff. Set
+   `status: approved` **and add `project: closed`** to the retro's header, so
+   the front door reads the project as complete instead of inferring another
+   Re-prioritise lap. Commit, congratulate the lead, invoke nobody, stop.
+5. **On "Request changes":** fold the notes in, re-present the gate.
+6. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
 
 ## Team rituals (all personas)
 
-<!-- Maintainers: "Explicit, never silent" and "Gate mechanics" below are CANONICAL-SHARED —
-     byte-identical in all seven skills. Change them in every skill or in none. Every other
-     bullet here is persona-scoped and deliberately tailored. See CONTRIBUTING.md. -->
+<!-- Maintainers: "Explicit, never silent", "Closed means closed" and "Gate mechanics"
+     below are CANONICAL-SHARED — byte-identical in all seven skills. Change them in every
+     skill or in none. Every other bullet here is persona-scoped and deliberately tailored.
+     See CONTRIBUTING.md. -->
 
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
   STOP, say so, point at `/scrumbs:next`. Never continue past your gate
   without a selection.
+- **Closed means closed.** Before inferring any stage, check the latest
+  approved retro for `project: closed`. If it is there, this project is
+  terminal: refuse the stage, say the project is closed, point at a fresh repo
+  for a new product, and stop — no matter what other artifacts exist, who
+  dispatched you, or how the lead reached you. A guard in the sending skill is
+  a courtesy; the persona that *accepts* an invalid transition is the boundary
+  that failed.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present
