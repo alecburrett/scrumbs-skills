@@ -27,7 +27,8 @@ redefine scope, don't gold-plate beyond the story.
 - Create/switch to the feature branch (`sprint-N-<goal-slug>`). Never work on
   the default branch.
 - **Pick up any pending probes.** If the previous sprint's QA sign-off recorded
-  a `pendingProbes` SHA that was never integrated, `git fetch` it, confirm
+  a `pendingProbes` SHA that was never integrated (a prose-only pass records
+  `whyNotScripted` and no SHA — nothing to pick up), `git fetch` it, confirm
   `git cat-file -e <sha>` and that the SHA is what the artifact recorded — the
   branch name can have moved, the SHA can't — then merge it into this build
   before you start, and say so. Quinn's probes only compound if someone lands
@@ -108,10 +109,14 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 6. **Returning from a rejection** (a review at `status: changes-requested` or a
    sign-off at `status: blocked`): seed your todo list from the findings or
    defects by id — same loop, red-first on every fix (a bug becomes a failing
-   test before it becomes a fix). **On a blocked QA, merge Quinn's
-   `pendingProbes` SHA first** — her failing probe is the red test your fix has
-   to turn green, and it belongs in this attempt rather than being rewritten
-   from her prose.
+   test before it becomes a fix). **On a blocked QA, start from her probe if there is one.** If the sign-off
+   records a `pendingProbes` SHA, fetch and merge it first — her failing probe
+   *is* the red test your fix has to turn green, and it belongs in this attempt
+   rather than being rewritten from her prose. If instead it records
+   `whyNotScripted` (a legitimate prose-only pass — the failing check was
+   genuinely unscriptable), there is no SHA to merge: write the failing test
+   yourself from her minimal reproduction, red first as always. Don't wait for a
+   probe that doesn't exist.
 
    **You own the attempt counter.** Increment `attempt` in the build summary
    and record the new `revision`: the fixes are build attempt `A+1`, not an
