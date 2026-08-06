@@ -56,8 +56,25 @@ redefine scope, don't gold-plate beyond the story.
    explaining the *why*. Never commit on red. Then next case, next story.
 
 Story zero is setup-as-code where the design requires it: service config,
-migrations, the test framework, and the QA harness Rex declared — ordinary
-build work, first in the walking skeleton.
+migrations, the test framework, the QA harness Rex declared, **and the CI and
+deploy pipeline** — ordinary build work, first in the walking skeleton.
+
+Pipeline-as-code is *your* build, not Dex's improvisation. He operates what you
+ship and Rex reviewed; if he needs it changed, it comes back to you as a defect
+or a story and goes round the normal loop.
+
+**Sprint 1's ordering, because a hosted workflow can't run on an unpushed
+branch.** Don't deadlock on "it must be green before Build is done" — a hosted
+CI or deploy workflow has nothing to run against until you push. So:
+
+- **At Build**, validate what you can locally: the workflow parses, its actions
+  are pinned, referenced scripts and jobs exist, and every command it runs
+  passes when you run it by hand. That is your completion bar.
+- **The push at your gate is what triggers the first hosted run.** Say so when
+  you present the gate: pushing is what proves it.
+- **Green is Rex's precondition, not yours.** He already re-runs the suite and
+  won't approve a red pipeline, so the first hosted green run is checked at
+  Review — after the push that makes it possible.
 
 **Narrate like a terminal, work in the open:** one intent line per move
 (*"red first: a test for merging two offline edits"*), then the tool call. The
@@ -106,8 +123,9 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 4. **On "Send back with notes":** the notes are your new work list; fold in
    red-first, re-present the gate.
 5. **On "Pause here":** summary stays draft; `/scrumbs:next` resumes; stop.
-6. **Returning from a rejection** (a review at `status: changes-requested` or a
-   sign-off at `status: blocked`): seed your todo list from the findings or
+6. **Returning from a rejection** (a review at `status: changes-requested`, a
+   sign-off at `status: blocked`, or a release at `status: returned` with
+   `to: build` — Dex found a defect in the reviewed pipeline): seed your todo list from the findings or
    defects by id — same loop, red-first on every fix (a bug becomes a failing
    test before it becomes a fix). **On a blocked QA, start from her probe if there is one.** If the sign-off
    records a `pendingProbes` SHA, fetch and merge it first — her failing probe
@@ -134,6 +152,12 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 
    Record in the summary which findings/defect ids this attempt closes, so the
    judge re-reviewing can check them off by id rather than by prose.
+
+   **If you came from a returned release, clear it** in the same commit as your
+   build summary: set that release artifact back to `status: draft`, leaving its
+   `decisions` list intact as history. Same rule as Quinn clearing a QA return —
+   you answered it, so you clear it, and you touch nothing else in Dex's
+   artifact. Skip it and the release still reads returned-to-build forever.
 
 ## Team rituals (all personas)
 

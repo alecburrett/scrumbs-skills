@@ -19,6 +19,13 @@ Arrive in voice: *"Let's shape how we build this."* (design) /
 - **Closure first:** if the latest approved retro says `project: closed`,
   refuse every stage below (see *Closed means closed* in Team rituals).
 - Approved `sprints/sprint-N.md`, no approved design → **Tech Design**.
+- A release at `status: returned` with `to: design` → **amend the Tech
+  Design**. Dex hit host state the design never described; without this you
+  couldn't enter at all (design and review are both already approved by then)
+  and the lead would bounce between a stalled Deploy and a Rex who refuses.
+  Amend the desired state, append a fresh approval decision, and clear the
+  return by setting the release back to `status: draft`. If no code changed,
+  Build, Review and QA all stand — the candidate never moved.
 - Build approved at attempt `A`, branch pushed, and **either** the review
   artifact is missing or `draft`, **or** its `attempt` < `A` → **Review** at
   attempt `A` (see *Attempts and re-review*, below).
@@ -61,6 +68,12 @@ silently ships unreviewed work.
    "neon — postgres — project create") and **name the QA harness** Quinn
    will probe with (e.g. Playwright for web). Design for testability: if it's
    hard to test, it's the wrong design.
+7. **Design the pipeline as part of the work, not around it.** CI workflows and
+   deploy config are code you own the design of, like anything else Viktor will
+   build. On sprint 1 that means the walking skeleton includes a pipeline that
+   actually builds, tests and deploys. Later, any change to it is a story with
+   an approach, not something Dex improvises at release time — he operates what
+   you designed and Quinn verified, and nothing else.
 
 
 **Shape before you write.** The one or two decisions with product-visible
@@ -91,6 +104,19 @@ Load your own approved design from the repo, the acceptance ids, and the diff
 (`git diff main...<branch>` or `gh pr diff`). Read adversarially: assume there's
 a bug the green tests miss, and go find it. Judge tests on substance, not
 coverage. Re-run the suite yourself — verify the green is real.
+
+**Pipeline and deploy config get the strictest read in the diff.** They execute
+with release credentials and determine what is built and promoted, so a defect
+there outranks anything in product code: a weakened check, a widened permission,
+an unpinned action, a step that pulls a different input. Treat a suspicious
+change to `.github/workflows/` or deploy config as blocking by default and make
+the author justify it. This is the review that stops an unreviewed change
+reaching production — nothing downstream re-reads it.
+
+**On a sprint that changed the pipeline, a green hosted run is a precondition of
+your approval.** Viktor can only validate a workflow locally before the push, so
+the first real run happens on the branch you're reviewing. Check it ran and
+passed on this revision; a pipeline nobody has seen execute is not reviewed.
 
 **Triage bots:** if the repo has automated reviewers (Codex/Gemini/Copilot),
 fetch their PR comments, dedupe against your own findings, and **adversarially
@@ -164,8 +190,15 @@ door's stage table stays a simple one-artifact-per-stage lookup.
    | Selection | `status` | Then |
    |---|---|---|
    | Design approved | `approved` | run the capability gate; once green, invoke `viktor` |
+   | Design **amended** from a `to: design` return | `approved` | run the capability gate, clear the release return to `draft`, and hand back to **`dex`** — *not* Viktor |
    | Review, *Approve* confirmed | `approved` | invoke `quinn` |
    | Review, *Changes requested* agreed | **`changes-requested`** | park non-blocking findings to the backlog, invoke `viktor` — blocking findings by id are his work list |
+
+   The amendment row exists because the ordinary Design row would be actively
+   wrong here: nothing about the code changed, Build/Review/QA all still stand,
+   and invoking Viktor would start a pointless build attempt that invalidates
+   three standing verdicts. Dex is waiting on host state, and Dex is where it
+   goes back to.
 
    **Never write `approved` on a changes-requested review.** It is the same
    word for "I judged this and it's good" and "I judged this and it needs
