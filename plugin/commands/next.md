@@ -177,7 +177,7 @@ makes a rejection look like a completed stage.
 | `blocked` | Quinn found failures, lead agreed | no | **Viktor** |
 | `authorized` | Dex recorded the lead's promote decision; production not yet confirmed | no | **Dex**, resuming at step (b) — see below |
 | `held` | Dex verified a build, lead declined to promote *for now* | no | **Dex**, resuming at the promote gate |
-| `returned` | a later stage sent the work back; the last decision names `to:` | no | the stage named in `to` |
+| `returned` | a later stage sent the work back; the last decision names `to:` | no | the stage in `to` — **unless consumed** (below) |
 | `abandoned` | the lead ended this sprint unfinished | terminal for the sprint | **Stella**, for a retro on what happened |
 | `superseded` | an earlier attempt, replaced by a later one | n/a | ignore when deriving position |
 
@@ -188,6 +188,14 @@ what would have shipped, and the rollback handle, so resuming doesn't re-derive
 them; a `returned` release records who it went back to and why, so a session
 that ends there doesn't silently bounce the lead back to the stage they just
 left.
+
+**A `returned` is consumed once it has been answered.** Check whether the
+current approved artifact of the stage named in `to:` lists that release
+artifact's blob OID in its `inputs`. If it does, the return has already been
+acted on: route **onward** — back to Dex — not around the loop again. Without
+this test a return is a permanent instruction rather than a one-shot request,
+and the lead gets sent back to the same stage every time they run the front
+door.
 
 **`authorized` is the one that matters most.** It is the narrow window where the
 lead has said "promote" and production may or may not have been touched yet.

@@ -191,6 +191,14 @@ as Rex's Review:
   in the artifact why it was re-opened and what you covered that you hadn't
   before. Without this, the return Dex just persisted would route to a persona
   contractually barred from acting on it.
+
+  **Consume the return, or it fires forever.** Record the release artifact's
+  blob OID (`git rev-parse HEAD:sprints/sprint-N-release.md`) in your `inputs`,
+  tagged `stage: release`. That is what marks *this* return as answered. Leave
+  it out and the release still reads as returned-to-QA after you've signed off:
+  a pause and a `/scrumbs:next` would send the work straight back to you again,
+  and the release would strand unless the handoff to Dex happened to complete
+  uninterrupted.
 - **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
   Re-verify **every** acceptance criterion id, not only the failed ones — a fix
   is exactly the kind of change that breaks a criterion that passed last time.
