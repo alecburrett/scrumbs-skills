@@ -205,6 +205,17 @@ rather than inferred from whatever the current QA artifact happens to cite.
 Once cleared, routing is just the ordinary rules: QA `blocked` → Viktor, QA
 `approved` with Deploy `draft` → Dex. Nothing special to remember.
 
+**But a `draft` release is only resumable while it's fresh.** The general rule
+that a draft resumes straight at its gate does *not* apply if its recorded
+`revision` differs from the currently approved Build/Review/QA revision. That
+happens on exactly the path above: the release still holds attempt A's preview
+URL, probe result and revision, while the team has since approved A+1. Resuming
+at the gate there would offer the lead a **stale preview of code that is no
+longer the candidate**, and promote it. Say plainly that the release
+observations are stale, and recommend Dex to re-run pipeline and
+preview-verification from scratch. A same-revision cleared return — the positive
+path — resumes the existing gate as normal, because nothing moved.
+
 Leaving the clearing to be *derived* — "is this blob referenced by the current
 QA?" — looks equivalent and isn't. It holds for exactly one hop and then fails:
 the next attempt's sign-off drops the reference, the release still reads

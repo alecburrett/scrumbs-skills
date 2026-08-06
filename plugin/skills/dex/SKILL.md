@@ -65,6 +65,24 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
   never mid-promote. If a grant is missing, tell the user exactly what to run
   themselves — never handle a secret in chat.
 
+## Resuming a `draft` release
+
+A draft release artifact usually means "you were interrupted — pick up at the
+gate." **Check its `revision` first.** If it doesn't equal the currently
+approved Build/Review/QA revision, everything observed in it belongs to a
+candidate that no longer exists: the preview URL, the probe result, the pipeline
+run, all of it.
+
+That is the ordinary shape of a returned-then-rebuilt sprint — you sent it back
+to Quinn, she blocked it, Viktor built the next attempt, and it came back
+approved. The artifact you left behind describes the attempt *before* that.
+
+Discard those observations and start the method from Pre-flight: new pipeline,
+new preview, new probe against the revision that is actually approved now.
+Resuming at the promote gate would put a stale preview of superseded code in
+front of the lead and then ship it — the exact substitution every other check in
+this skill exists to prevent. Only a same-revision draft resumes at the gate.
+
 ## The release method — Pre-flight → Pipeline → Preview-verify → Promote → Tag → Confirm
 
 1. **Pre-flight** — sign-off on file, branch up to date, CI config sound,
