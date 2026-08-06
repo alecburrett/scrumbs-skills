@@ -35,6 +35,13 @@ YAML header: `scrumbs: {stage, status: draft|approved, sprint}` — plus
 final stepper with every stage ✓, and offer only **"Start a new project"** ·
 **"Exit"**. Never infer another Re-prioritise lap past a closed retro.
 
+*"Start a new project" is a reset, not a resume.* It means a new product with
+its own brief — a fresh repo, or this repo re-based on a new `docs/BRIEF.md`
+with the closed project's artifacts archived first. Confirm which the user
+wants before anything is written. It is never a shortcut back into the closed
+project's backlog: the sprint counter restarts and the old scope does not
+carry over unless the user explicitly re-raises it.
+
 Otherwise the current position is the first stage whose artifact is missing or
 `status: draft` — **except Re-prioritise (row 4), which exists only from
 sprint 2**: it requires the previous sprint's approved retro, so skip that row
