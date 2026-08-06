@@ -195,6 +195,11 @@ was. When Quinn writes her verdict she sets the release artifact back to
 entry stays on the record as history — and cites the release blob in her own
 `inputs` for provenance.
 
+The same shape covers `to: build`, which is how Dex returns a release when the
+**reviewed pipeline itself** is defective: it routes to Viktor, and **he**
+clears it when his new build attempt lands. One rule, two destinations — the
+persona who answers a return is the one who clears it.
+
 That single write is what makes the clearing **durable**. It lives on the
 release artifact, so it survives everything that happens afterwards: the block
 routes to Viktor, Viktor builds attempt A+1, Rex reviews it, Quinn writes a
