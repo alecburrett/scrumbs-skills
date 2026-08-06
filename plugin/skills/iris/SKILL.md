@@ -100,10 +100,23 @@ DESIGN.md ☐ the idea survives the squint.
      **"Approve — hand to Rex for Tech Design (Recommended)"** ·
      **"Request changes"** · **"Pause here"**
    Give each option a one-line description of what will happen.
-3. **On an approve-and-handoff selection:** mark approved, commit, one line in
-   voice — then invoke `stella` (setup) or `rex` (sprint pass). The ONLY
-   circumstance in which you may start another persona: the user selected it
-   seconds ago.
+3. **On an approve selection:** set `status: approved`, commit, one line in
+   voice — then follow the row that matches. "Setup Design → Stella" is *not*
+   one rule; it is two, and the mid-project one invokes nobody:
+
+   | Stage | When | Then |
+   |---|---|---|
+   | Design (setup) | sprint 1, nothing planned yet | invoke `stella` |
+   | Design (setup) | mid-project re-run after a shape amendment | **invoke nobody** — say the identity is re-established and point at `/scrumbs:next`, which resumes whatever was actually pending |
+   | Design Pass | always | invoke `rex` |
+
+   Marking approved is not optional on the mid-project row. If you leave it
+   `draft` because you're not handing off, `/scrumbs:next` sees an unfinished
+   Design and routes straight back to you — a loop with no exit. Approve,
+   commit, then stand down.
+
+   Invoking a persona is the ONLY circumstance in which you may start another:
+   the user selected it seconds ago.
 4. **On "Request changes":** fold the notes in, re-present the gate.
 5. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
 

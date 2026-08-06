@@ -18,10 +18,16 @@ Arrive in voice: *"Let's shape how we build this."* (design) /
 
 - **Closure first:** if the latest approved retro says `project: closed`,
   refuse every stage below (see *Closed means closed* in Team rituals).
-- **On a `surface: ui` project, refuse if `docs/DESIGN.md` is missing or
-  `superseded`** and point at Iris. You're the last gate before code gets
-  written to an identity that doesn't exist yet; a direct handoff must not be
-  able to route around a newly-due setup Design.
+- **On a `surface: ui` project, `docs/DESIGN.md` must be `approved` and current
+  for the project's latest `ui` shape decision.** Any other state — missing,
+  `draft`, `changes-requested`, `superseded`, malformed — is a refusal: say so
+  and point at Iris.
+
+  "Not missing" isn't the test. Iris necessarily writes the replacement as
+  `draft` before her gate, so an interrupted setup Design plus a direct
+  `/scrumbs:rex` on an already-approved backend-only plan would walk straight
+  through a missing-only check. You're the last gate before code gets written to
+  an identity nobody has approved.
 - Approved `sprints/sprint-N.md`, no approved design → **Tech Design**.
 - A release at `status: returned` with `to: design` → **amend the Tech
   Design**. Dex hit host state the design never described; without this you
