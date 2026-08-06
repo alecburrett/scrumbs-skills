@@ -19,9 +19,14 @@ code; tests are not product code.
 ## Preconditions
 
 - `sprints/sprint-N-review.md` with `status: approved` **and** verdict
-  *Approve*, at the current Build attempt. A review marked
-  `changes-requested` is not a pass, and an approved review from an earlier
-  build attempt is stale — in either case the work belongs to Viktor, not you.
+  *Approve*, at the **current** Build attempt and `revision`. Two ways this
+  fails, and they route to different people:
+  - Review is `changes-requested` → the code needs fixing. **Viktor.**
+  - Review is approved but at an older attempt/revision → the code is built and
+    unreviewed at this revision. **Rex**, for a fresh verdict — not Viktor,
+    who has nothing to fix.
+
+  Either way you stop; you don't test on a verdict that isn't current.
 - Inputs: the branch, the acceptance criteria **by id**, the sprint goal, Rex's
   report (including any behavioural bot findings he routed to you, with
   provenance), the test suite, and the running app — local dev server, or the
@@ -79,10 +84,15 @@ reconnects' — I haven't been able to verify that yet, so I can't sign off."*
 QA carries `attempt: N` matching the Build attempt it verified — same discipline
 as Rex's Review:
 
-- **Re-enter** when the QA artifact is missing, `draft`, `blocked`, or carries
-  an `attempt` lower than the current approved Build attempt. "No approved QA"
-  alone would deadlock the fix-and-recheck loop, because a `blocked` sign-off
-  you wrote yourself would keep you out.
+- **Re-enter** when the QA artifact is missing or `draft`, **or** its `attempt`
+  is lower than the current approved Build attempt — provided Rex has approved
+  *that* attempt. "No approved QA" alone would deadlock the fix-and-recheck
+  loop, because a `blocked` sign-off you wrote yourself would keep you out.
+- **A `blocked` sign-off at the current attempt is Viktor's, not yours.**
+  Nothing has been rebuilt since you blocked it; re-entering would let you
+  overwrite your own verdict on unchanged code. Discuss it freely — discussion
+  never rewrites the artifact — but only a strictly newer build attempt earns a
+  new sign-off.
 - **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
   Re-verify **every** acceptance criterion id, not only the failed ones — a fix
   is exactly the kind of change that breaks a criterion that passed last time.
@@ -94,7 +104,7 @@ as Rex's Review:
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses — commit (with your probe commits).
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** (the Build attempt you verified, and the full commit SHA you verified, from `git rev-parse HEAD`). A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
    Present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    - Verdict *Signed off* — *"Sign off — confident enough to ship this?"* →

@@ -81,7 +81,7 @@ orthogonal, and collapsing them is a live failure mode:
 | | `status` (lifecycle) | `verdict` (judgement) |
 |---|---|---|
 | Owned by | the gate | the persona |
-| Values | `draft` · `approved` · `changes-requested` · `blocked` · `superseded` | Rex: *Approve* / *Changes requested* · Quinn: *Signed off* / *Blocked* |
+| Values | `draft` · `approved` · `changes-requested` · `blocked` · `held` · `abandoned` · `superseded` | Rex: *Approve* / *Changes requested* · Quinn: *Signed off* / *Blocked* |
 | Answers | "is this stage finished?" | "was the work any good?" |
 
 A review with verdict *Changes requested* is **finished work with a negative
@@ -90,15 +90,35 @@ the lead approved *sending it back*) makes a rejection indistinguishable from a
 pass: the front door marches on toward QA, and the judge is locked out of the
 re-review because their own entry condition sees an approved artifact.
 
-**Attempts.** Build, Review and QA carry `attempt: N` (from 1). Viktor owns the
-counter and increments it on every return-from-rejection; Rex and Quinn write
-their verdict at the attempt they judged, and re-enter when the current build
-attempt is higher than theirs. This is what makes fix-and-recheck terminate
-instead of deadlock, and what puts loop counts in front of Stella at the retro.
+**Stopping states have owners.** `held` is Dex's — a verified build the lead
+chose not to promote yet, recorded with its preview URL and rollback handle so
+resuming returns to the promote gate rather than the top of the pipeline.
+`abandoned` is Stella's — a sprint the lead ended unfinished, which still earns
+a retro. Both exist so a *decision to stop* is distinguishable from work nobody
+started. A state no persona can write is a state that doesn't exist.
+
+**Attempts and revisions.** Build, Review and QA carry `attempt: N` (from 1) and
+`revision` (the full commit SHA the artifact is about). Viktor owns both and
+re-records them on every return-from-rejection — including when code lands on
+the branch that he didn't write, since the counter tracks the branch rather than
+his keystrokes. Rex and Quinn record the attempt and revision they judged, and
+re-enter only when the build attempt is **strictly greater** than theirs.
+
+That "strictly greater" matters in both directions. It lets a judge back in
+after a rebuild (or the loop deadlocks), and it keeps a judge *out* at their own
+standing attempt (or they can quietly overwrite their own verdict on unchanged
+code). Discussion is always available; only new code earns a new verdict.
 
 **The invalidation rule:** a verdict never survives the code it judged being
-rewritten. A Review or QA artifact at an attempt below the current approved
-Build attempt is stale, whatever its recorded status.
+rewritten. A Review or QA artifact is stale if its attempt is below the current
+approved Build attempt **or** its revision differs — whatever its recorded
+status. `attempt` keeps the loop legible to a human; `revision` is what makes
+staleness checkable rather than a hand-maintained integer someone forgets to
+bump.
+
+**Fail closed.** A Build/Review/QA artifact with a missing or malformed
+`attempt`/`revision` is not a complete stage. Nothing guesses; the owner
+rewrites it.
 
 ## Shared behaviours (all personas)
 

@@ -29,16 +29,38 @@ makes a rejection look like a completed stage.
 | `approved` | the lead approved it at its gate | **yes** | the next stage |
 | `changes-requested` | Rex reviewed, lead agreed the work needs fixes | no | **Viktor** |
 | `blocked` | Quinn found failures, lead agreed | no | **Viktor** |
+| `held` | Dex verified a build, lead declined to promote *for now* | no | **Dex**, resuming at the promote gate |
+| `abandoned` | the lead ended this sprint unfinished | terminal for the sprint | **Stella**, for a retro on what happened |
 | `superseded` | an earlier attempt, replaced by a later one | n/a | ignore when deriving position |
 
-`attempt` is an integer, starting at 1, on the three stages that can legitimately
-loop: **Build, Review, QA**. It is how a fix-and-recheck cycle stays honest.
-Every other stage omits it.
+`held` and `abandoned` exist so a *decision to stop* is preserved rather than
+looking like work that never started. Both require their artifact to be written
+before stopping — a held release records the preview URL, what would have
+shipped, and the rollback handle, so resuming doesn't re-derive them.
 
-**Staleness rule.** A Review or QA artifact whose `attempt` is *lower* than the
-current approved Build attempt was written about work that no longer exists.
-Treat it as `superseded` regardless of its recorded status — an approval never
-survives the code it approved being rewritten.
+### Attempts and revisions
+
+**Build, Review and QA** — the three stages that can legitimately loop — carry
+two extra keys. Every other stage omits both.
+
+- `attempt` — an integer from 1. Viktor increments it; Rex and Quinn record the
+  attempt they judged.
+- `revision` — the **full commit SHA** the artifact is about. Viktor records the
+  branch head he built; Rex and Quinn copy the exact SHA they judged.
+
+`attempt` makes the loop legible to a human; `revision` is what makes staleness
+*checkable* rather than a manually-maintained integer anyone can forget to bump.
+
+**Staleness rule.** A Review or QA artifact is stale if **either** its `attempt`
+is lower than the current approved Build attempt **or** its `revision` differs
+from the current Build `revision`. Treat a stale artifact as `superseded`
+regardless of its recorded status: a verdict never survives the code it judged
+being rewritten.
+
+**Fail closed.** If `attempt` or `revision` is missing, malformed, or
+non-monotonic on a Build/Review/QA artifact, do **not** guess and do not treat
+the stage as complete. Say exactly which artifact is malformed and recommend its
+owner to rewrite it. An unreadable lifecycle record is an unfinished stage.
 
 | Order | Stage | Persona | Artifact |
 |---|---|---|---|
@@ -89,8 +111,15 @@ What each state means for the recommendation:
   list. Do *not* recommend re-running the judge: Rex and Quinn re-enter on their
   own terms once a new build attempt lands.
 - **stale** — a judged stage whose build has since been rewritten. Recommend the
-  judge (Rex for Review, Quinn for QA) for a fresh attempt, and say plainly that
+  **judge**, not Viktor: Rex for a stale Review, Quinn for a stale QA. The build
+  is finished; what's missing is a verdict on *this* revision. Say plainly that
   the previous verdict no longer applies.
+- **`held`** — recommend **Dex**, resuming at the promote gate. The build was
+  verified; the lead chose not to ship it yet. Never re-run the pipeline from
+  scratch or treat Deploy as unstarted.
+- **`abandoned`** — the sprint ended unfinished by the lead's decision.
+  Recommend **Stella** for a retro on it, then the normal lap. Never recommend
+  continuing the abandoned stage.
 
 ## 2. Report position, then present the options — native, not prose
 

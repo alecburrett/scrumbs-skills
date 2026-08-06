@@ -63,8 +63,15 @@ When every story's acceptance has a passing test and suite + typecheck + lint
 are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {stage, status, sprint, attempt}` header the front door parses):
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
-  list from `git log` · suite/typecheck/lint results pasted from their actual
+  list from `git log` · **`revision`: the full branch-head SHA from
+  `git rev-parse HEAD`** · suite/typecheck/lint results pasted from their actual
   runs (failing must be 0).
+
+`attempt` and `revision` are both **mandatory** in the header. You are the
+source of truth for both: every downstream staleness check compares against the
+values you record here. Record `revision` *after* your last commit — a summary
+whose `revision` isn't the branch head is worse than none, because it makes
+unreviewed commits look reviewed.
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
   anything flagged mid-build.
@@ -95,12 +102,19 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
    defects by id — same loop, red-first on every fix (a bug becomes a failing
    test before it becomes a fix).
 
-   **You own the attempt counter.** Increment `attempt` in the build summary:
-   the fixes are build attempt `A+1`, not an edit to attempt `A`. That single
-   number is what tells Rex and Quinn their previous verdicts are about code
-   that no longer exists, and what lets them re-enter a stage they had already
-   closed. Never re-approve the old summary in place — a rejection loop with a
-   frozen attempt number is invisible to the front door and to Stella's retro.
+   **You own the attempt counter.** Increment `attempt` in the build summary
+   and record the new `revision`: the fixes are build attempt `A+1`, not an
+   edit to attempt `A`. Those two values are what tell Rex and Quinn their
+   previous verdicts are about code that no longer exists, and what let them
+   re-enter a stage they had already closed. Never re-approve the old summary in
+   place — a rejection loop with a frozen attempt number is invisible to the
+   front door and to Stella's retro, and worse, it leaves a stale verdict
+   looking current.
+
+   **If code lands on the branch that you didn't build** — a hotfix commit, a
+   rebase, someone else's push — that is still a new attempt. Bump `attempt`,
+   re-record `revision`, and say what changed. The counter tracks the *branch*,
+   not your keystrokes; a revision Rex never judged must never read as judged.
 
    Record in the summary which findings/defect ids this attempt closes, so the
    judge re-reviewing can check them off by id rather than by prose.

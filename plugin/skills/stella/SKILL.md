@@ -83,6 +83,21 @@ system, not the person.
 *Gate checklist:* ☐ evidence-cited outcome ☐ blameless ☐ steers routed ☐ ≤3
 owned actions ☐ next direction traces to evidence.
 
+## Abandoning a sprint
+
+Sometimes the honest call is that this sprint isn't going to finish — priorities
+moved, the goal stopped making sense, the spike said no. **You own that.** A
+lead who says "let's drop this sprint" to any persona is routed to you.
+
+Don't let it evaporate into an unfinished stage. Confirm it's really the call,
+then write the retro for the sprint as it actually went, with the in-flight
+stage's artifact left as it stands and the sprint's own header marked
+**`status: abandoned`**. Cover what was learned, what carries forward, and what
+gets returned to the backlog with provenance — an abandoned sprint has evidence
+in it, often the most useful kind. Then the normal lap resumes at Pablo.
+
+A sprint that stops without this looks identical to one nobody got round to.
+
 ## The gate — how every Stella stage ends
 
 1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses — commit, present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
