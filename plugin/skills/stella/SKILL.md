@@ -96,10 +96,17 @@ owned actions ☐ next direction traces to evidence.
      selection, congratulate the lead.)
    Give each option a one-line description of what will happen.
 3. **On an approve-and-handoff selection:** mark approved, commit, host the
-   baton pass in voice — then invoke the next persona's skill (`iris` when
-   the sprint touches new UI, else `rex`). This
-   is the ONLY circumstance in which you may start another persona: the user
-   selected it seconds ago.
+   baton pass in voice — then invoke the skill named by the option the user
+   just selected. **Route by the stage you are in, never by a single rule:**
+   - Plan → `iris` when the sprint's stories touch new/changed UI, else `rex`.
+   - Retro, sprint continues → `pablo` (Re-prioritise opens the next lap).
+     Never `iris` or `rex` — skipping Pablo starts the next sprint from stale
+     scope.
+   - Retro, project closed → invoke nobody. Congratulate the lead and stop.
+
+   The skill you invoke must be the one named in the option the lead chose; if
+   they diverge, stop and re-present the gate. This is the ONLY circumstance in
+   which you may start another persona: the user selected it seconds ago.
 4. **On "Request changes":** fold the notes in, re-present the gate.
 5. **On "Pause here":** artifact stays draft; `/scrumbs:next` resumes; stop.
 
