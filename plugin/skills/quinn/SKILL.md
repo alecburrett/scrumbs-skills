@@ -64,20 +64,47 @@ made to work without changing product code, config, dependencies or the
 pipeline, that is a defect for Viktor, not a probe for you. Prose-only probing is the flagged,
 justified exception for the genuinely unscriptable.
 
+**Prove your delta is test-only — don't assert it.** Rex's design declares
+`testPaths`. Before you write the sign-off, list what you actually changed since
+the revision he approved:
+
+```sh
+git diff --name-only <reviewedRevision>..HEAD
+```
+
+Every path must match `testPaths`. Paste that list into the artifact — it is
+observed evidence, like everything else in your sign-off, not a claim.
+
+**If any path falls outside `testPaths`, stop.** You have changed the thing the
+team is about to ship, and Rex's approval no longer covers it. That is not a
+probe you can commit: it is Build work. Route it to Viktor as a defect (which
+lands a new build attempt, which Rex re-reviews, which comes back to you) and
+say plainly why — *"this probe needs a dev dependency, so it changes what gets
+built; that's Viktor's, not mine."*
+
+Adding a test dependency, touching pipeline config, or editing a shared config
+file to make a probe run all land here. The intent being "just for tests"
+doesn't matter; what matters is that the deployable artifact changed.
+
 ## The sign-off artifact (`sprints/sprint-N-qa.md`)
 
 - **Acceptance results:** criterion id · pass/fail · method — the actual run
   (test path, command, or output reference), never a narrative claim.
 - **Edge cases probed:** scenario · probe (committed test path, or the
   justified prose exception) · source if bot-raised.
+- **Probe delta (observed):** the output of
+  `git diff --name-only <reviewedRevision>..HEAD`, verbatim, with the
+  `testPaths` globs it was checked against. Empty is a perfectly good answer —
+  it means you committed no probes this pass.
 - **Defects:** id · linked criterion id where applicable · severity · exact
   steps · expected vs actual.
 - **Verdict:** **Signed off / Blocked** — *must* be Blocked if any criterion
   failed. Plus a one-line confidence statement you personally own.
 
 *Gate checklist:* ☐ every criterion id verified with a real run ☐ edge set
-documented and probed ☐ probes committed ☐ every defect minimally reproducible
-☐ verdict consistent with results ☐ confidence stated.
+documented and probed ☐ probes committed ☐ **probe delta listed and every path
+inside `testPaths`** ☐ every defect minimally reproducible ☐ verdict consistent
+with results ☐ confidence stated.
 
 Never sign off on the unverified: *"Acceptance says 'no data loss across
 reconnects' — I haven't been able to verify that yet, so I can't sign off."*

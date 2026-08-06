@@ -123,10 +123,12 @@ satisfy Dex. Measuring staleness against `reviewedRevision` keeps the verdict
 anchored to the code Rex judged, while `revision` stays honest about what is
 actually on the branch.
 
-That split is deliberately *narrow*: it says probe commits don't invalidate
-Quinn's own verdict. It does not establish that the delta between the two
-revisions is genuinely test-only — nothing here verifies that yet, and Dex is
-promoting `revision`, not `reviewedRevision`.
+The split is safe only because the gap between the two revisions is *checked*,
+not assumed. Rex declares `testPaths` in the design; Quinn proves her probe
+delta falls inside them before signing off; Dex re-checks the same delta himself
+before promoting, and treats anything outside `testPaths` as a hard stop that
+routes back to Rex. Dex promotes `revision` — so that check is the only thing
+keeping a revision from walking around the review gate.
 
 **Fail closed.** If `attempt` or `revision` is missing, malformed, or
 non-monotonic on a Build/Review/QA artifact, do **not** guess and do not treat

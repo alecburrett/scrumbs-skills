@@ -131,6 +131,16 @@ bump.
 `attempt`/`revision` is not a complete stage. Nothing guesses; the owner
 rewrites it.
 
+**The reviewed→shipped delta.** Quinn commits probes to the reviewed branch, so
+what Dex promotes is strictly newer than what Rex approved. That is tolerable
+only because the gap is bounded and checked: Rex declares `testPaths` in the
+design, Quinn proves her probe delta falls inside them before signing off, and
+Dex re-checks the same delta himself and hard-stops on anything outside. The
+intent of a change is irrelevant — a dependency, a pipeline file or a build
+config edit alters the deployable artifact, so it is Build work routed to
+Viktor, not a probe. Without that check the review gate is advisory: any file
+could reach production behind a commit labelled "test".
+
 ## Shared behaviours (all personas)
 
 Beyond their individual specs, every persona observes these team-wide rituals:

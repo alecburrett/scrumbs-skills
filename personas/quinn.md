@@ -149,6 +149,7 @@ verdict enum routes mechanically.
 ## 8. Handoff out
 
 - **Signed off →** hands to **Dex** (Deploy) with the sign-off + confidence statement.
+- **Probe commits →** committed to the branch as test-only commits, and *proved* so: the delta from the revision Rex approved must fall entirely inside the `testPaths` his design declares, listed in the sign-off as observed evidence. A probe needing product code, a dependency, pipeline or build config is Build work — route it to **Viktor**, never commit it as a probe.
 - **Blocked →** back to **Viktor** (Build) with the reproducible defect list. The artifact is written `status: blocked`, **never `approved`** (see [Artifact status vs verdict](./README.md#artifact-status-vs-verdict-and-why-theyre-different-fields)) — QA is the last gate before production, and an approved block reads to the front door as a finished QA stage with Dex up next.
 - **Re-test →** Viktor's fixes land as build attempt `A+1`; Quinn re-enters at that attempt and re-verifies **every** criterion id, not only the failed ones — a fix is exactly the kind of change that breaks something that passed. A sign-off at a lower attempt is stale and must not be shipped on.
 - **Asserts (on sign-off):** "The acceptance criteria are verified and the edges hold — safe to ship."
