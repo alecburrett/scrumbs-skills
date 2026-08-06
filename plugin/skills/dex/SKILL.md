@@ -23,6 +23,16 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
 - `sprints/sprint-N-qa.md` with `status: approved` **and** verdict *Signed off*.
   No sign-off, no ship — full stop. `status: blocked` is not a sign-off however
   the prose reads.
+- **The probe record must be well-formed:** exactly one of `pendingProbes` (a
+  pushed commit SHA) or `whyNotScripted` (the justified prose-only exception).
+  Neither means Quinn may have written probes and lost the reference to them —
+  the release would succeed while the regression coverage quietly evaporates,
+  because Viktor and Stella have nothing to integrate. Both means the contract
+  is ambiguous. Either way, fail closed and route back to Quinn.
+  When `pendingProbes` is present, `git fetch` the recorded attempt-scoped
+  branch and confirm `git cat-file -e <sha>` before you promote: a SHA nobody
+  can resolve is not a durable reference, and this is the last point where that
+  is cheap to discover.
 - **One revision, agreed by everyone.** The Build, the Review and the QA
   sign-off must all carry the same `attempt` and the same `revision`, and that
   review must be `approved`. **Recompute the code revision yourself** with the
@@ -81,7 +91,8 @@ didn't run.
 - **Asserted (yours):** the one-line release note (same line as the
   `CHANGELOG.md` entry).
 
-*Gate checklist:* ☐ QA signed off first ☐ pipeline fully green, no skipped gate
+*Gate checklist:* ☐ QA signed off first ☐ probe record well-formed (exactly one
+of `pendingProbes`/`whyNotScripted`, SHA resolvable) ☐ pipeline fully green, no skipped gate
 ☐ preview probe-verified **and built from the promoted revision** ☐ promoted
 revision identical to the reviewed and verified one ☐ same artifact promoted ☐ semver tag + changelog
 ☐ live confirmed ☐ rollback recorded before promote.
