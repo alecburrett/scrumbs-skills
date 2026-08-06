@@ -336,19 +336,98 @@ non-monotonic on a Build/Review/QA artifact, do **not** guess and do not treat
 the stage as complete. Say exactly which artifact is malformed and recommend its
 owner to rewrite it. An unreadable lifecycle record is an unfinished stage.
 
-| Order | Stage | Persona | Artifact |
+| Order | Stage | Persona | Artifact | Applies when |
+|---|---|---|---|---|
+| 1 | Requirements | Pablo | `docs/BRIEF.md` | always |
+| 2 | PRD | Pablo | `docs/PRD.md` (+ `docs/BACKLOG.md`, the living backlog) | always |
+| 3 | Design | Iris | `docs/DESIGN.md` (living design spec) | `surface: ui` only |
+| 4 | Re-prioritise *(sprint 2+)* | Pablo | `sprints/sprint-N-reprioritise.md` | always |
+| 5 | Plan | Stella | `sprints/sprint-N.md` | always |
+| ◇ | Design Pass | Iris | `sprints/sprint-N-design-pass.md` | `surface: ui` **and** the sprint touches UI |
+| 6 | Tech Design | Rex | `sprints/sprint-N-design.md` | always |
+| 7 | Build | Viktor | feature branch + `sprints/sprint-N-build.md` | always |
+| 8 | Review | Rex | `sprints/sprint-N-review.md` | **always — never skipped** |
+| 9 | QA | Quinn | `sprints/sprint-N-qa.md` | **always — never skipped** |
+| 10 | Deploy | Dex | `CHANGELOG.md` entry + git tag + `sprints/sprint-N-release.md` | always |
+| 11 | Retro | Stella | `sprints/sprint-N-retro.md` | always |
+
+### Project shape, and sprint kind
+
+Scrumbs is not only for greenfield web products, and forcing a CLI to produce a
+visual identity — or a one-line bug fix to produce a PRD — is how a process
+earns the contempt it gets. Two small facts make the chain fit the work, and
+they are deliberately orthogonal.
+
+**Project shape** — decided once, recorded in `docs/BRIEF.md`'s header:
+
+```yaml
+shape:
+  surface: ui | headless    # does a human look at this?
+  start: greenfield | brownfield
+```
+
+- `surface: headless` — a CLI, a library, an API, an infrastructure repo.
+  **Iris has no stage.** Not "a quick one" — none. Her Design and Design Pass
+  rows simply don't exist for this project, and the stepper omits them.
+- `start: brownfield` — the code already exists. Pablo *documents* the product
+  rather than eliciting it from nothing, and the PRD covers the change at hand,
+  not a retrospective spec of everything already shipped.
+
+**Sprint kind** — decided per lap, recorded in `sprints/sprint-N.md`'s header as
+`kind: feature | defect | hotfix`:
+
+| kind | Plan | Tech Design | Assurance |
 |---|---|---|---|
-| 1 | Requirements | Pablo | `docs/BRIEF.md` |
-| 2 | PRD | Pablo | `docs/PRD.md` (+ `docs/BACKLOG.md`, the living backlog) |
-| 3 | Design | Iris | `docs/DESIGN.md` (living design spec) |
-| 4 | Re-prioritise *(sprint 2+)* | Pablo | `sprints/sprint-N-reprioritise.md` |
-| 5 | Plan | Stella | `sprints/sprint-N.md` |
-| 6 | Tech Design | Rex | `sprints/sprint-N-design.md` |
-| 7 | Build | Viktor | feature branch + `sprints/sprint-N-build.md` |
-| 8 | Review | Rex | `sprints/sprint-N-review.md` |
-| 9 | QA | Quinn | `sprints/sprint-N-qa.md` |
-| 10 | Deploy | Dex | `CHANGELOG.md` entry + git tag + `sprints/sprint-N-release.md` |
-| 11 | Retro | Stella | `sprints/sprint-N-retro.md` |
+| `feature` | the full method | the full method | Review · QA · Deploy |
+| `defect` | one story: the repro, the fix | often a paragraph | Review · QA · Deploy |
+| `hotfix` | one story, minutes not hours | the smallest honest one: cause, fix, test | Review · QA · Deploy |
+
+**Every stage still runs.** `kind` changes how *long* an artifact is, never
+whether it exists. That is deliberate: a hotfix's Tech Design might be three
+lines, but it is written, gated and approved *before* code changes, so there is
+an approved record of what Viktor was authorized to touch. Collapsing it into
+the build summary would put the authorization after the work, which is no
+authorization at all.
+
+**And the assurance stages never compress.** A hotfix is rushed, unrehearsed and
+going straight to production — Review, QA and Deploy are exactly what it needs
+most. Speed comes out of brevity, never out of skipped checks. If anyone reads
+`hotfix` as "skip QA", the answer is no.
+
+A `hotfix` also carries an obligation: it ends with a backlog entry for the
+proper fix and a retro, because "we shipped it fast" is a thing to learn from.
+
+**Validate `kind` before you route on it.** Exactly one of `feature`, `defect`,
+`hotfix`. Anything else — `urgent`, a typo, a value someone invented — is
+**malformed, fail closed**: different personas would otherwise silently pick
+different planning depths. A schema-2 plan written before `kind` existed and
+carrying none is **legacy**: treat it as `feature`, say that you defaulted it,
+and let Stella set it properly on her next run.
+
+**Shape can change, and there's a route for it.** A library grows a dashboard;
+a UI project spins out a CLI. Pablo amends `shape` on the brief at a gate,
+appending a decision like any other — history is not rewritten, and previously
+approved artifacts stay approved, because they were right when they were made.
+
+Going `headless` → `ui` makes the setup **Design** stage newly due: it slots in
+before the next Design Pass or Tech Design, so Iris establishes the identity
+before anything is built to it. It does not retroactively invalidate shipped
+sprints. If an old `docs/DESIGN.md` survives from an earlier `ui` era, Pablo
+marks it `superseded` as part of that amendment — otherwise it stays approved,
+this scan walks past it, and the "newly due" Design silently never happens.
+Going `ui` → `headless` retires Iris's stages from that point on and leaves
+`docs/DESIGN.md` in place as history.
+
+A mixed repo — a UI app plus a CLI in one monorepo — is `surface: ui`. The
+question is whether a human ever looks at any of it, and Iris's Design Pass is
+already per-sprint and conditional on the stories, so backend-only laps skip her
+anyway.
+
+**If the shape is missing** (an older project, or a repo that never ran the
+first-run card), don't guess and don't force the full chain. Say the shape isn't
+recorded, infer a sensible default from the repo — no UI framework and no
+`docs/DESIGN.md` suggests `headless`; existing source suggests `brownfield` —
+and ask Pablo to confirm it on his next run.
 
 **Check for project closure first.** If the latest approved retro carries
 `project: closed` in its header, the project is complete: say so, show the
@@ -448,9 +527,22 @@ Introduce the team in three lines:
 > Rex (tech design) → Viktor (build) → Rex (review) → Quinn (QA) →
 > Dex (deploy) → Stella (retro).
 
+Adjust that line to the repo you're actually in — if there's no UI in sight,
+don't promise Iris.
+
 Then the option card: *"Ready?"* → **"Start with Pablo — tell him your idea
 (Recommended)"** · **"How does this work?"** (explain the gate model, re-ask) ·
 **"Not yet — exit"**.
+
+**Pablo settles the shape in conversation, not you** — you never write. But look
+first, and hand him what you can see: existing source means `brownfield`, and no
+UI framework anywhere means the `headless` question is worth asking early rather
+than after a visual identity has been drafted for a CLI.
+
+If the repo already has code and no Scrumbs artifacts, say so plainly. That is a
+brownfield start, not a blank slate, and the first thing Pablo should do is
+understand what's already there rather than interview the lead about a product
+that exists.
 
 If the directory is not a git repository, say so and suggest `git init` first —
 Scrumbs artifacts live in the repo.

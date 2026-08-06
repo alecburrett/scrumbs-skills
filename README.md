@@ -69,6 +69,22 @@ required reviewers, and Scrumbs sits happily behind them.
 
 ---
 
+## It bends to what you're building
+
+A CLI doesn't need a visual identity, and a one-line bug fix doesn't need a PRD.
+Two facts shape the run: whether there's a **screen** (a headless project drops
+Iris's stages entirely, rather than getting a token version of them) and whether
+there's **already code** (brownfield means Pablo documents what exists instead
+of interviewing you about it). Then each sprint declares its own kind — an
+ordinary feature, a defect, or a hotfix where the plan and the technical
+approach are a few lines each rather than a morning's work.
+
+What never scales down: **every stage still runs**. A hotfix's plan might be one
+story and its design three lines, but both are still written and still approved
+*before* the code changes — so there's a record of what was authorised — and
+review, QA and deploy are untouched. A rushed change going straight to
+production is exactly when you want them.
+
 ## What actually happens
 
 You talk to Pablo about your idea. He asks one question at a time, pushes
