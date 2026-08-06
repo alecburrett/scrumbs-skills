@@ -57,11 +57,19 @@ lifecycle artifacts:
 
 ```sh
 git log -1 --format=%H -- ':(top)' \
-  ':(top,exclude)sprints/sprint-*.md' \
+  ':(top,exclude)sprints/' \
   ':(top,exclude)docs/BRIEF.md'   ':(top,exclude)docs/PRD.md' \
   ':(top,exclude)docs/DESIGN.md'  ':(top,exclude)docs/BACKLOG.md' \
   ':(top,exclude)CHANGELOG.md'
 ```
+
+**`sprints/` is reserved for Scrumbs.** Everything in it is lifecycle paperwork,
+which is why it can be excluded wholesale. `docs/` is *not* reserved — projects
+keep real, shipped content there — so only Scrumbs' four named files are
+excluded and everything else under `docs/` counts as product. If a repo already
+uses `sprints/` for product content, say so at first run and ask the lead to
+move it: a product file living in the reserved directory would silently stop
+advancing the revision, and every persona would agree on the same stale answer.
 
 Every persona that records or checks `revision` runs exactly that command, so
 they are always comparing the same thing. Committing an artifact, approving it,

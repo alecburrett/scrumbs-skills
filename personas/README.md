@@ -101,9 +101,10 @@ started. A state no persona can write is a state that doesn't exist.
 
 **Attempts and revisions.** Build, Review and QA carry `attempt: N` (from 1) and
 `revision` — the **code revision**, meaning the last commit touching anything
-outside Scrumbs' own artifact files (the `sprints/sprint-*.md` set, `docs/BRIEF.md`,
-`PRD.md`, `DESIGN.md`, `BACKLOG.md`, and `CHANGELOG.md`) — not the branch head,
-and not whole directories, since a repo may ship real content under `docs/`. That distinction is load-bearing: artifacts are themselves
+outside Scrumbs' own artifacts — the reserved `sprints/` directory plus the four
+named files `docs/BRIEF.md`, `PRD.md`, `DESIGN.md`, `BACKLOG.md` and
+`CHANGELOG.md`. Not the branch head; and `docs/` is deliberately *not* excluded
+wholesale, because projects ship real content there. That distinction is load-bearing: artifacts are themselves
 committed, so a branch-head SHA would make every verdict stale against its own
 paperwork the instant it was written. `/scrumbs:next` carries the one command
 every persona runs. Viktor owns both and
