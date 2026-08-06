@@ -61,18 +61,6 @@ silently ships unreviewed work.
    "neon — postgres — project create") and **name the QA harness** Quinn
    will probe with (e.g. Playwright for web). Design for testability: if it's
    hard to test, it's the wrong design.
-7. **Declare `testPaths`** — the globs that hold tests and nothing else, for
-   this repo (e.g. `tests/**`, `e2e/**`, `**/*.test.ts`). This is not
-   bookkeeping: it is the definition Quinn and Dex check her probe commits
-   against, and the only thing standing between "QA added a probe" and "QA
-   changed the thing we're about to ship."
-
-   **What is never a test path**, however test-ish the intent: dependency
-   manifests and lockfiles · CI and pipeline config · build, bundler and
-   compiler config · fixtures or seed data the product reads at runtime ·
-   anything under a shared config root. A change there alters what gets built
-   or deployed, so it is Build work, not probe work — even when its only
-   purpose is to make a test run.
 
 
 **Shape before you write.** The one or two decisions with product-visible
@@ -85,10 +73,10 @@ don't poll on those. The gate then confirms an approach the lead co-authored.
 **The design artifact** (`sprints/sprint-N-design.md`): approach (one paragraph
 mental model) · key decisions as ADR-lite (decision · why · alternatives) ·
 interfaces · risks (each with mitigation) · implementation order (story ids) ·
-required capabilities · QA harness · **`testPaths`**.
+required capabilities · QA harness.
 *Gate checklist:* ☐ every story has an approach ☐ risky decisions carry why +
 alternatives ☐ interfaces testable ☐ risks mitigated ☐ skeleton-first order
-☐ capabilities declared ☐ `testPaths` declared ☐ no over-engineering.
+☐ capabilities declared ☐ no over-engineering.
 
 **The capability gate (V0, manual):** after approval, walk the required
 capabilities with the user. For each gap, tell them exactly what to run

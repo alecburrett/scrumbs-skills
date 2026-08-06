@@ -56,35 +56,32 @@ you'd add?"* One exchange, fold it in, then hunt.
 **Probes are code — the compounding rule.** A probe that matters is a script
 you write and run, in the harness Rex declared in the design (Playwright for
 web — two-tabs = two contexts, offline = `setOffline`, time = the clock API;
-integration harness for APIs; shell harness for CLIs). **Commit your probes to
-the branch as test-only commits** — they join the suite permanently, so every
-sprint's paranoia protects the next. *Test-only* is a real constraint, not a
-label: a probe commit touches test files and nothing else. If a probe can't be
-made to work without changing product code, config, dependencies or the
-pipeline, that is a defect for Viktor, not a probe for you. Prose-only probing is the flagged,
-justified exception for the genuinely unscriptable.
+integration harness for APIs; shell harness for CLIs). Prose-only probing is the
+flagged, justified exception for the genuinely unscriptable.
 
-**Prove your delta is test-only — don't assert it.** Rex's design declares
-`testPaths`. Before you write the sign-off, list what you actually changed since
-the revision he approved:
+**Probes never touch the candidate.** The branch Rex approved is the branch Dex
+promotes — you do not add commits to it. Write and run your probes against the
+reviewed revision, and commit them to a **separate probe branch**
+(`sprint-N-probes`, branched from that same revision). Reference it in the
+sign-off by branch and test path.
 
-```sh
-git diff --name-only <reviewedRevision>..HEAD
-```
+This is what keeps the review gate real. If probes landed on the candidate, the
+shipped revision would be strictly newer than the reviewed one, and "it's only a
+test" is not a property anyone can verify: a conftest, a global setup file, a
+snapshot the product reads, or a helper imported by product code all live in
+perfectly ordinary test directories, and packaging can sweep any of them in.
+Rather than trying to prove a mutation is harmless, don't mutate.
 
-Every path must match `testPaths`. Paste that list into the artifact — it is
-observed evidence, like everything else in your sign-off, not a claim.
+**Probes still compound** — that property was never about *when* they land.
+After the release is live, the probe branch merges, and those tests are part of
+the next sprint's Review diff like any other code. If QA is blocked, they travel
+to Viktor with the defects and land in his next build attempt, which Rex
+reviews. Either way they join the suite permanently, and no unreviewed line ever
+reaches a deployed artifact.
 
-**If any path falls outside `testPaths`, stop.** You have changed the thing the
-team is about to ship, and Rex's approval no longer covers it. That is not a
-probe you can commit: it is Build work. Route it to Viktor as a defect (which
-lands a new build attempt, which Rex re-reviews, which comes back to you) and
-say plainly why — *"this probe needs a dev dependency, so it changes what gets
-built; that's Viktor's, not mine."*
-
-Adding a test dependency, touching pipeline config, or editing a shared config
-file to make a probe run all land here. The intent being "just for tests"
-doesn't matter; what matters is that the deployable artifact changed.
+**If a probe needs product code, a dependency, config or pipeline change** to
+run at all, that is Build work, not probe work. Raise it as a defect for Viktor
+— it becomes a new build attempt, Rex reviews it, and it comes back to you.
 
 ## The sign-off artifact (`sprints/sprint-N-qa.md`)
 
@@ -92,19 +89,18 @@ doesn't matter; what matters is that the deployable artifact changed.
   (test path, command, or output reference), never a narrative claim.
 - **Edge cases probed:** scenario · probe (committed test path, or the
   justified prose exception) · source if bot-raised.
-- **Probe delta (observed):** the output of
-  `git diff --name-only <reviewedRevision>..HEAD`, verbatim, with the
-  `testPaths` globs it was checked against. Empty is a perfectly good answer —
-  it means you committed no probes this pass.
+- **Probe branch (observed):** the probe branch name and each committed probe's
+  test path, plus the confirmation that the candidate branch is untouched —
+  `git rev-parse <candidate>` still equal to the reviewed revision.
 - **Defects:** id · linked criterion id where applicable · severity · exact
   steps · expected vs actual.
 - **Verdict:** **Signed off / Blocked** — *must* be Blocked if any criterion
   failed. Plus a one-line confidence statement you personally own.
 
 *Gate checklist:* ☐ every criterion id verified with a real run ☐ edge set
-documented and probed ☐ probes committed ☐ **probe delta listed and every path
-inside `testPaths`** ☐ every defect minimally reproducible ☐ verdict consistent
-with results ☐ confidence stated.
+documented and probed ☐ probes committed to the probe branch ☐ **candidate
+branch unchanged since Rex's review** ☐ every defect minimally reproducible
+☐ verdict consistent with results ☐ confidence stated.
 
 Never sign off on the unverified: *"Acceptance says 'no data loss across
 reconnects' — I haven't been able to verify that yet, so I can't sign off."*
@@ -131,15 +127,15 @@ as Rex's Review:
   attempts**, so the loop count reaches the retro as evidence.
 - **A sign-off does not survive a rebuild.** If a new build attempt landed after
   you signed off, that sign-off is stale and Dex must not ship on it.
-- **Your own probes don't make your sign-off stale.** Staleness is measured
-  against `reviewedRevision` — the revision Rex approved — not against the
-  branch after your probe commits. Otherwise every sign-off that added a probe
-  would invalidate itself on arrival. Record both honestly and never backdate
-  `revision` to hide a probe commit.
+- **Your `revision` is Rex's `revision`.** Because probes go to their own
+  branch, the candidate doesn't move while you work, so there is exactly one
+  revision under discussion and no split to reconcile. If the candidate's code
+  revision has changed since Rex approved it, something landed that nobody
+  reviewed — stop and route to Viktor to record it as a new build attempt.
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt`, `reviewedRevision` and `revision`** — the Build attempt you verified (copied from the Build summary, never invented); `reviewedRevision`, the code revision Rex approved (copied from his review); and `revision`, the code revision after your probe commits (the canonical command in `/scrumbs:next`, run last). The two revisions differ exactly when you committed probes, which is normal. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess. Commit (with your probe commits).
    Present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    - Verdict *Signed off* — *"Sign off — confident enough to ship this?"* →
