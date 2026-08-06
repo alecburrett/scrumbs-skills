@@ -116,8 +116,15 @@ same bypass as editing the workflow, wearing a different hat.
 
 ## Resuming a `draft` release
 
-A draft release artifact usually means "you were interrupted — pick up at the
-gate." **Check its `revision` first.** If it doesn't equal the currently
+A draft release artifact usually means "you were interrupted — pick up where you
+left off." **Check what evidence it actually holds before assuming that's the
+promote gate.** Resuming there needs a complete pipeline result, a verified
+preview with its probe output and source commit, and a rollback handle. Missing
+any of it — as after a `to: design` return, which happens at Pre-flight before
+any preview exists — you resume from **Pre-flight** and work forward. Never
+present a promote gate you can't populate.
+
+**Then check its `revision`.** If it doesn't equal the currently
 approved Build/Review/QA revision, everything observed in it belongs to a
 candidate that no longer exists: the preview URL, the probe result, the pipeline
 run, all of it.

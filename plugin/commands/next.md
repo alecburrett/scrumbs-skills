@@ -213,7 +213,19 @@ rather than inferred from whatever the current QA artifact happens to cite.
 Once cleared, routing is just the ordinary rules: QA `blocked` → Viktor, QA
 `approved` with Deploy `draft` → Dex. Nothing special to remember.
 
-**But a `draft` release is only resumable while it's fresh.** The general rule
+**A `draft` release resumes at the promote gate only if it has the evidence to
+present there.** That means a complete pipeline result, a verified preview with
+its probe output and source commit, the revision, and a rollback handle. If any
+of it is missing, Dex resumes from **Pre-flight** and works forward instead.
+
+This matters because a release can go back to `draft` from more than one place.
+A `to: qa` return is cleared after preview-verification, so its artifact has all
+of the above and resuming at the gate is right. A `to: design` return happens
+back at Pre-flight, before a preview exists at all — resuming that one at the
+promote gate would ask the lead to approve a promote with nothing behind it.
+Same status, different amount of evidence; the evidence decides.
+
+**And a `draft` release is only resumable at all while it's fresh.** The general rule
 that a draft resumes straight at its gate does *not* apply if its recorded
 `revision` differs from the currently approved Build/Review/QA revision. That
 happens on exactly the path above: the release still holds attempt A's preview

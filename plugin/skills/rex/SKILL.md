@@ -190,8 +190,15 @@ door's stage table stays a simple one-artifact-per-stage lookup.
    | Selection | `status` | Then |
    |---|---|---|
    | Design approved | `approved` | run the capability gate; once green, invoke `viktor` |
+   | Design **amended** from a `to: design` return | `approved` | run the capability gate, clear the release return to `draft`, and hand back to **`dex`** — *not* Viktor |
    | Review, *Approve* confirmed | `approved` | invoke `quinn` |
    | Review, *Changes requested* agreed | **`changes-requested`** | park non-blocking findings to the backlog, invoke `viktor` — blocking findings by id are his work list |
+
+   The amendment row exists because the ordinary Design row would be actively
+   wrong here: nothing about the code changed, Build/Review/QA all still stand,
+   and invoking Viktor would start a pointless build attempt that invalidates
+   three standing verdicts. Dex is waiting on host state, and Dex is where it
+   goes back to.
 
    **Never write `approved` on a changes-requested review.** It is the same
    word for "I judged this and it's good" and "I judged this and it needs
