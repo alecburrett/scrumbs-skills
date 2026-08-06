@@ -72,6 +72,54 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 - **The exit:** a retro whose "next direction" is *"nothing left worth a sprint"* →
   the project is complete.
 
+## What a gate decision records, and what it's worth
+
+A status is a claim; the artifact's `decisions` list is the record behind it.
+**Every** lead-selected transition appends one — approvals, but equally
+`changes-requested`, `blocked`, `held` and abandonment, since those change
+routing or end a sprint just as consequentially. Each entry holds `type`, `at`,
+`by`, the gate `question` asked verbatim and the `answer` chosen verbatim.
+
+**It is a list, and append-only, for a concrete reason.** A sprint plan gets
+approved, and may later be abandoned. With a single decision field you would have
+to destroy the approval record to write the abandonment, or record the
+abandonment nowhere. Both are lies of a kind. The current `status` corresponds to
+the last entry; the earlier ones stay.
+
+`inputs` names what the stage consumed by path **and blob OID** — paths alone
+can't identify content overwritten on every attempt. Validation asks only that
+the blob still *resolves*, not that it equals the file today: living documents
+are supposed to move (`docs/DESIGN.md` grows with each design pass, and Iris
+consumes it and then edits it in the same breath), so requiring equality would
+paint valid work as a broken chain. A difference is reported as "written against
+an earlier version," not treated as an error.
+
+Artifacts predating this contract are **legacy** — a third state, not malformed.
+Personas check `schema` *before* validating decisions: a legacy `approved` routes
+as approved, is flagged as *unverified record*, and is upgraded lazily by its
+owning persona on that persona's next natural run. No migration script, no
+separate owner, nothing half-migrated to resume from. Artifacts whose owner never
+runs again — a shipped release record, a closed project's retro — stay legacy
+permanently, and that is the right answer: stamping today's date on a decision
+made months ago would be worse evidence than admitting the record predates the
+contract.
+
+**The honest limit, stated precisely.** This does *not* detect a skipped gate.
+Anyone who can commit can write a complete, self-consistent entry for a gate that
+never happened, and it passes every check: `by` is a `git config` value the
+writer picks, `at` is a string in YAML. They record who wrote it down and what
+they claimed — nothing more.
+
+What it does catch is narrower and still worth the cost: **malformed or missing
+records**, **broken chains** (an input blob that no longer resolves), and
+**staleness**. Mistakes and drift, which is most of what actually goes wrong —
+not a determined forger, which no arrangement of Markdown files could stop. Git
+history corroborates when it survives, but squash merges collapse it and rebases
+rewrite it, so the list in the artifact is the record, not the log.
+
+Enforcement lives in branch protection and required reviewers. Scrumbs sits
+behind those and never claims to replace them.
+
 ## Artifact status vs verdict (and why they're different fields)
 
 Every artifact header carries `status` — where it sits in its **lifecycle**.

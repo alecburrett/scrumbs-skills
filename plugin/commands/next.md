@@ -13,8 +13,154 @@ nothing happens silently. The user starts every stage.
 ## 1. Derive state from the repo (artifacts are the truth)
 
 Check for these files in the current repo. Each Scrumbs artifact starts with a
-YAML header: `scrumbs: {stage, status, sprint, attempt}` — plus `project: closed`
-on a terminal retro (see closure, below).
+YAML header: `scrumbs: {schema, stage, status, sprint, attempt}` — plus
+`project: closed` on a terminal retro (see closure, below).
+
+### What every gate decision has to carry
+
+A `status` value on its own is just a word someone typed. **Every lead-selected
+transition** — not only approvals, but `changes-requested`, `blocked`, `held`
+and abandonment too, since each changes routing or ends a sprint — appends a
+record of the gate that produced it:
+
+```yaml
+scrumbs:
+  schema: 2                          # mandatory on every artifact
+  stage: plan
+  sprint: 3
+  status: abandoned
+  decisions:                         # append-only, oldest first
+    - type: approved
+      at: 2026-08-01T09:14:02Z       # self-asserted by whoever recorded it
+      by: Alec Burrett               # the RECORDER's git identity, self-asserted
+      question: "Is this the sprint we're committing to?"
+      answer: "Commit — hand to Rex for Tech Design"
+    - type: abandoned
+      at: 2026-08-06T14:22:31Z
+      by: Alec Burrett
+      question: "Drop this sprint?"
+      answer: "Yes — write the retro on what we learned"
+  inputs:
+    - stage: prd
+      path: docs/PRD.md
+      blob: 4e9a77c…                 # git rev-parse HEAD:docs/PRD.md, as consumed
+```
+
+**`decisions` is a list, and append-only.** One artifact can legitimately carry
+several: a sprint plan is approved, and later abandoned. A single `decision`
+field would force you to destroy the approval record to write the abandonment,
+or to record the abandonment nowhere. Never rewrite or remove an earlier entry —
+the current `status` corresponds to the **last** one.
+
+`question` and `answer` are the pair that does work. A bare status is set by
+accident or by autopilot; naming the exact question asked and the exact option
+chosen means an invented decision has to invent a specific human choice — one
+the lead can read back later and say *"I never chose that."*
+
+`inputs` records **blob OIDs, not just paths** (`git rev-parse HEAD:<path>` at
+the moment you consume it). A path alone is worthless here: artifact files are
+overwritten in place on every attempt, so "I consumed `sprint-3-build.md`"
+doesn't say *which* content. Record `revision` separately where the stage has
+one — it is the *code* revision and excludes `sprints/`, so it can never
+identify paperwork.
+
+**Checking a decision, before you trust it:**
+
+1. `schema` is recognised (see legacy, below).
+2. `decisions` is present and non-empty for any status other than `draft`, and
+   its last entry is the one that status requires:
+
+   | `status` | required last decision `type` |
+   |---|---|
+   | `approved` · `authorized` | `approved` |
+   | `changes-requested` | `changes-requested` |
+   | `blocked` | `blocked` |
+   | `held` | `held` |
+   | `returned` | `returned` (with `to:`) |
+   | `abandoned` | `abandoned` |
+
+   Missing, partial, or not matching → **malformed, fail closed**, and say so.
+
+   Note the one many-to-one row. `authorized` and `approved` both rest on the
+   *same* `approved` decision, because the lead authorized the promote exactly
+   once: `authorized` is that decision recorded before production is touched,
+   and `approved` is the same decision after the result is confirmed. Requiring a
+   distinct decision type for each would mean inventing a second lead answer
+   nobody gave — and requiring literal equality would make every interrupted
+   promotion malformed, stranding the crash-resume path this state exists for.
+3. It is committed. A decision living only in the working tree hasn't happened.
+4. Every `inputs` blob still **resolves** (`git cat-file -e <blob>`). That proves
+   the exact content consumed is still in history.
+5. For Build/Review/QA, `attempt` and `revision` pass the staleness rule.
+
+**A consumed blob is not required to match the file as it stands now.** Living
+documents are *supposed* to move: `docs/DESIGN.md` grows with every design pass,
+`docs/BACKLOG.md` with every parked item — and Iris's design pass consumes
+`DESIGN.md` and then edits it in the same breath. Requiring equality would make
+that valid work look like a broken chain. When the current file differs from the
+consumed blob, **say so and carry on**: it means "this was written against an
+earlier version," which is information the lead may want, not an error.
+
+### Legacy artifacts (`schema` absent or `1`)
+
+Artifacts written before this contract have no `decisions` list. They are
+**legacy — a third state, neither valid-with-record nor malformed.** Treat a
+legacy `approved` as approved for routing: it is almost certainly a real
+approval from before the record existed, and blocking on it would strand every
+existing project for no safety gain.
+
+Do two things instead. **Name them** in the status board, marked as
+*unverified record*, so nobody mistakes them for audited. And leave the upgrade
+to the persona that owns each artifact: on its next natural run, that persona
+offers the lead a one-line re-confirmation and writes a proper `schema: 2`
+record from their answer. Migration therefore happens lazily, in dependency
+order, and finishes on its own — there is no migration script, no separate
+owner, and no half-migrated state to resume from.
+
+Some artifacts will simply never be upgraded, because their owning persona has
+no reason to run again — a shipped sprint's release record, a closed project's
+retro. **That is fine and final.** They stay legacy, stay flagged, and stay
+trusted for routing. A one-off upgrade of settled history would be pure
+ceremony: it would record today's date against a decision made months ago, which
+is worse evidence than admitting the record predates the contract.
+
+**Never backfill a `decisions` entry the lead did not actually give you**, and
+never date one earlier than the moment it was recorded. Inventing the record
+would fabricate exactly the evidence this design exists to protect.
+
+### What this does and does not guarantee
+
+Be exact about this, because a slightly-too-strong claim here is worse than none.
+
+**It does not detect a skipped gate.** Anyone who can commit can write a
+complete, internally consistent `decision` block for a gate that never happened,
+and it will pass every check above. `by` is a `git config` value the writer
+chooses; `at` is a self-asserted string in YAML. Neither proves who answered or
+when — they record *who wrote it down and what they claimed*, and that is all.
+
+**What it does detect** is narrower and still worth having:
+
+- **Malformed and missing records.** A status with no decision behind it, or a
+  partial one, stops the next persona instead of being inherited.
+- **Broken chains.** `inputs` blob OIDs catch a stage built on paperwork that
+  has since been edited or replaced — the accidental case that actually happens.
+- **Staleness.** Attempt and revision catch a verdict about code that has moved.
+
+So: this catches **mistakes, drift and staleness**, which is most of what goes
+wrong. It does not catch a determined forger, and no arrangement of Markdown
+files could. There is no ledger outside the repo, no signing key, no server
+holding state the repo can't reach — the repo *is* the state, which is what makes
+a run resumable and inspectable, and is precisely why it is forgeable.
+
+**On git history as corroboration.** Committing each decision separately means
+`git log --follow <artifact>` usually shows who recorded what and when — useful,
+but not a guarantee: squash merges collapse those commits, and amend or rebase
+rewrites their identity and timestamps. Treat history as corroboration when it
+survives, never as proof. The record that matters is the block in the artifact.
+
+If you need enforcement rather than evidence, it lives where enforcement can
+actually live — branch protection, required reviewers, a CI check over these
+headers. Scrumbs is happy to sit behind those; it cannot replace them.
 
 ### The status vocabulary (canonical — skills use these exact words)
 
@@ -29,14 +175,60 @@ makes a rejection look like a completed stage.
 | `approved` | the lead approved it at its gate | **yes** | the next stage |
 | `changes-requested` | Rex reviewed, lead agreed the work needs fixes | no | **Viktor** |
 | `blocked` | Quinn found failures, lead agreed | no | **Viktor** |
+| `authorized` | Dex recorded the lead's promote decision; production not yet confirmed | no | **Dex**, resuming at step (b) — see below |
 | `held` | Dex verified a build, lead declined to promote *for now* | no | **Dex**, resuming at the promote gate |
+| `returned` | a later stage sent the work back; the last decision names `to:` | no | the stage in `to` — **unless consumed** (below) |
 | `abandoned` | the lead ended this sprint unfinished | terminal for the sprint | **Stella**, for a retro on what happened |
 | `superseded` | an earlier attempt, replaced by a later one | n/a | ignore when deriving position |
 
-`held` and `abandoned` exist so a *decision to stop* is preserved rather than
-looking like work that never started. Both require their artifact to be written
-before stopping — a held release records the preview URL, what would have
-shipped, and the rollback handle, so resuming doesn't re-derive them.
+`held`, `returned` and `abandoned` exist so a *decision to stop or turn back* is
+preserved rather than looking like work that never started. Each requires its
+artifact to be written before stopping — a held release records the preview URL,
+what would have shipped, and the rollback handle, so resuming doesn't re-derive
+them; a `returned` release records who it went back to and why, so a session
+that ends there doesn't silently bounce the lead back to the stage they just
+left.
+
+**A `returned` is cleared by the persona who answers it**, whatever the answer
+was. When Quinn writes her verdict she sets the release artifact back to
+`status: draft` — leaving its `decisions` list untouched, so the `returned`
+entry stays on the record as history — and cites the release blob in her own
+`inputs` for provenance.
+
+That single write is what makes the clearing **durable**. It lives on the
+release artifact, so it survives everything that happens afterwards: the block
+routes to Viktor, Viktor builds attempt A+1, Rex reviews it, Quinn writes a
+fresh sign-off that has no reason to mention the old release blob — and the
+return still does not come back to life, because it was cleared at the source
+rather than inferred from whatever the current QA artifact happens to cite.
+
+Once cleared, routing is just the ordinary rules: QA `blocked` → Viktor, QA
+`approved` with Deploy `draft` → Dex. Nothing special to remember.
+
+**But a `draft` release is only resumable while it's fresh.** The general rule
+that a draft resumes straight at its gate does *not* apply if its recorded
+`revision` differs from the currently approved Build/Review/QA revision. That
+happens on exactly the path above: the release still holds attempt A's preview
+URL, probe result and revision, while the team has since approved A+1. Resuming
+at the gate there would offer the lead a **stale preview of code that is no
+longer the candidate**, and promote it. Say plainly that the release
+observations are stale, and recommend Dex to re-run pipeline and
+preview-verification from scratch. A same-revision cleared return — the positive
+path — resumes the existing gate as normal, because nothing moved.
+
+Leaving the clearing to be *derived* — "is this blob referenced by the current
+QA?" — looks equivalent and isn't. It holds for exactly one hop and then fails:
+the next attempt's sign-off drops the reference, the release still reads
+`returned`, the front door routes to Quinn, and her exception only accepts a
+return at the *current* build attempt — which this one no longer is. Stranded,
+with no way forward.
+
+**`authorized` is the one that matters most.** It is the narrow window where the
+lead has said "promote" and production may or may not have been touched yet.
+Being a non-draft status, it is subject to the full decision check: its last
+entry must be the `approved` promote decision, complete. That is deliberate —
+resuming into production off an artifact that merely *looks* half-written is the
+one mistake in this whole lifecycle that cannot be undone.
 
 ### Attempts and revisions
 

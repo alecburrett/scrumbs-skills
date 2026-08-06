@@ -18,6 +18,9 @@ code; tests are not product code.
 
 ## Preconditions
 
+- Either a fresh QA is due (below), **or** Dex returned the release to you —
+  `sprints/sprint-N-release.md` at `status: returned`, last decision `to: qa`.
+  The return is its own mandate; you re-test at the same attempt.
 - `sprints/sprint-N-review.md` with `status: approved` **and** verdict
   *Approve*, at the **current** Build attempt and `revision`. Two ways this
   fails, and they route to different people:
@@ -178,6 +181,31 @@ as Rex's Review:
   overwrite your own verdict on unchanged code. Discuss it freely — discussion
   never rewrites the artifact — but only a strictly newer build attempt earns a
   new sign-off.
+- **The one exception: Dex sent it back.** If the release artifact is
+  `status: returned` with a last decision naming `to: qa`, at the current Build
+  attempt, you re-enter — even though nothing was rebuilt. That is the point:
+  the lead looked at a verified preview and asked for more QA on *this* code,
+  which is a decision on the record, not an attempt to overwrite your own
+  verdict. Write the fresh sign-off at the **same** attempt and revision,
+  **append** to the existing `decisions` list rather than replacing it, and say
+  in the artifact why it was re-opened and what you covered that you hadn't
+  before. Without this, the return Dex just persisted would route to a persona
+  contractually barred from acting on it.
+
+  **Clear the return when you answer it, or it fires forever.** In the same
+  commit as your verdict — signed off *or* blocked, it makes no difference —
+  set the release artifact back to `status: draft`, and cite its blob OID
+  (`git rev-parse HEAD:sprints/sprint-N-release.md`) in your `inputs` as
+  `stage: release`.
+
+  Leave its `decisions` list exactly as it is. You are not re-opening Dex's
+  decision — that `returned` entry is history and stays — you are clearing the
+  routing flag you just answered, which is yours to clear because you answered
+  it. Touch nothing else in his artifact.
+
+  Skip this and the release still reads returned-to-QA after you've written your
+  verdict: `/scrumbs:next` sends the work straight back to you, and if you
+  blocked it, your own current-attempt guard then refuses to let you back in.
 - **Returning after Viktor fixes:** write a fresh sign-off at the new attempt.
   Re-verify **every** acceptance criterion id, not only the failed ones — a fix
   is exactly the kind of change that breaks a criterion that passed last time.
@@ -194,7 +222,7 @@ as Rex's Review:
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess.
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {schema: 2, stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess.
 
    **Commit the artifact and nothing else.** You are on the candidate now; your
    probes are already committed and pushed on their own branch. Check what you
@@ -231,10 +259,10 @@ as Rex's Review:
 
 ## Team rituals (all personas)
 
-<!-- Maintainers: "Explicit, never silent", "Closed means closed" and "Gate mechanics"
-     below are CANONICAL-SHARED — byte-identical in all seven skills. Change them in every
-     skill or in none. Every other bullet here is persona-scoped and deliberately tailored.
-     See CONTRIBUTING.md. -->
+<!-- Maintainers: "Explicit, never silent", "Closed means closed", "Record the gate" and
+     "Gate mechanics" below are CANONICAL-SHARED — byte-identical in all seven skills. Change
+     them in every skill or in none. Every other bullet here is persona-scoped and
+     deliberately tailored. See CONTRIBUTING.md. -->
 
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
@@ -247,6 +275,23 @@ as Rex's Review:
   dispatched you, or how the lead reached you. A guard in the sending skill is
   a courtesy; the persona that *accepts* an invalid transition is the boundary
   that failed.
+- **Record the gate, not just the outcome.** Never write a status alone. Every
+  status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
+  `returned`, abandonment — **appends** an entry to the artifact's `decisions`
+  list: `type`, `at`, `by`, the gate `question` you asked verbatim, and the
+  `answer` they chose verbatim. Never rewrite an earlier entry; one artifact can
+  be approved and later abandoned, and both belong on the record. Add `inputs`
+  naming what the stage consumed by path **and blob OID** (paths alone don't
+  identify content overwritten each attempt), and `schema: 2`. Commit it.
+  **Check schema first when reading an upstream artifact.** No `schema`, or
+  `schema: 1`, means *legacy*, not malformed: trust its status, say once that
+  its record predates this contract, and carry on — refusing it would strand
+  every project that started before the record existed. Only at `schema: 2` does
+  a non-draft status with no matching last entry mean malformed; then you stop
+  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a one-line re-confirmation and write a proper record from their answer. None of
+  this proves who really answered; it makes a missing or broken record visible,
+  which is a different and more modest thing.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present

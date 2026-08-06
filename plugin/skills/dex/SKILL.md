@@ -65,6 +65,24 @@ yours: `.github/workflows/` and deploy config are yours to author and improve.
   never mid-promote. If a grant is missing, tell the user exactly what to run
   themselves — never handle a secret in chat.
 
+## Resuming a `draft` release
+
+A draft release artifact usually means "you were interrupted — pick up at the
+gate." **Check its `revision` first.** If it doesn't equal the currently
+approved Build/Review/QA revision, everything observed in it belongs to a
+candidate that no longer exists: the preview URL, the probe result, the pipeline
+run, all of it.
+
+That is the ordinary shape of a returned-then-rebuilt sprint — you sent it back
+to Quinn, she blocked it, Viktor built the next attempt, and it came back
+approved. The artifact you left behind describes the attempt *before* that.
+
+Discard those observations and start the method from Pre-flight: new pipeline,
+new preview, new probe against the revision that is actually approved now.
+Resuming at the promote gate would put a stale preview of superseded code in
+front of the lead and then ship it — the exact substitution every other check in
+this skill exists to prevent. Only a same-revision draft resumes at the gate.
+
 ## The release method — Pre-flight → Pipeline → Preview-verify → Promote → Tag → Confirm
 
 1. **Pre-flight** — sign-off on file, branch up to date, CI config sound,
@@ -118,14 +136,48 @@ This stage has its gate **mid-method**, not at the end:
    **"Hold the release"** · **"Send back to QA"**. No option is marked
    recommended — production is the lead's call alone. Give each a one-line
    description.
-2. **On "Promote":** promote, tag, changelog, confirm — then write the release
-   artifact (`status: approved`, with the standard `scrumbs: {stage, status,
-   sprint}` header the front door parses), commit, report: *"Live at <url>, tagged
-   <version>, rollback is <handle> — one step if anything smokes."* Then a
-   second card: *"Close the sprint?"* → **"Hand to Stella for the retro
-   (Recommended)"** · **"Pause here"**. On the handoff selection, invoke the
-   `stella` skill — the ONLY circumstance in which you may start another
-   persona: the user selected it seconds ago.
+2. **On "Promote" — record the authorization BEFORE you touch production.**
+   This is the one gate whose side effects can't be taken back, so the order
+   matters:
+
+   a. Write the release artifact as **`status: authorized`** carrying the
+      `decisions` entry (the promote question and the lead's exact answer), the
+      `revision` being promoted, the deploy target, **and the immutable
+      identity of the thing you are about to promote** — the verified preview's
+      deployment id, plus an idempotency key if the host supports one. **Commit
+      it now.**
+
+      The identity is the part that makes a crash recoverable, so it cannot
+      wait until afterwards. If the promote succeeds and the session dies before
+      the next commit, a resume holds an exact id it can ask the host about —
+      *"did this one land?"* — instead of guessing from a revision the host may
+      not index. Recording any of this afterwards leaves Deploy looking like it
+      never started, with no way to tell "not promoted" from "promoted, record
+      lost": an audit gap and a double-promote risk in one.
+   b. Promote, tag, changelog, confirm.
+   c. Update the same artifact to `status: approved` with the observed
+      result — production URL, deployment id, rollback handle — and commit.
+      **Prefer an idempotent deployment identifier** so a resume can ask the
+      host "did this revision already ship?" rather than guessing.
+
+   Then report: *"Live at <url>, tagged <version>, rollback is <handle> — one
+   step if anything smokes."* Then a second card: *"Close the sprint?"* →
+   **"Hand to Stella for the retro (Recommended)"** · **"Pause here"**. On the
+   handoff selection, invoke the `stella` skill — the ONLY circumstance in
+   which you may start another persona: the user selected it seconds ago.
+
+   **On resume from an `authorized` release artifact:** production may or may
+   not have been touched. Before anything else, **validate the authorization
+   itself** — the last `decisions` entry must be the complete `approved` promote
+   decision, with the lead's verbatim answer. If it is missing, partial, or says
+   anything else, this is not an authorization: stop and re-present the promote
+   gate. A deployment id alone is not permission, and an incomplete artifact
+   must never be enough to touch production.
+
+   Only then query the host for the exact deployment id recorded in step (a),
+   and promote only if it genuinely didn't land. If the artifact has no id (it
+   predates this rule, or the crash beat the first commit), say so plainly and
+   ask the lead to confirm the live state before you touch anything.
 3. **On "Hold":** the lead verified a build and chose not to ship it *yet* —
    preserve that decision instead of discarding it. Write the release artifact
    as **`status: held`** with everything already established: the verified
@@ -142,15 +194,22 @@ This stage has its gate **mid-method**, not at the end:
    moved, the hold is void — route to Viktor as a new build attempt. Skipping
    the pipeline on resume is fine when nothing changed; skipping the integrity
    check is how a stale hold ships unreviewed code.
-4. **On "Send back to QA":** ask what's needed, route to `quinn` only if the
-   user selects it, stop.
+4. **On "Send back to QA":** write the release artifact as
+   **`status: returned`** with a `decisions` entry naming `to: qa` and the
+   lead's verbatim answer, and commit it *before* you invoke anyone. Then ask
+   what's needed and route to `quinn` only if the user selects it.
+
+   Persisting it is the point: a send-back changes routing, so if the session
+   ends here with nothing written, the repo still shows an approved QA and an
+   unfinished Deploy, `/scrumbs:next` sends the lead straight back to you, and
+   the decision they just made has evaporated.
 
 ## Team rituals (all personas)
 
-<!-- Maintainers: "Explicit, never silent", "Closed means closed" and "Gate mechanics"
-     below are CANONICAL-SHARED — byte-identical in all seven skills. Change them in every
-     skill or in none. Every other bullet here is persona-scoped and deliberately tailored.
-     See CONTRIBUTING.md. -->
+<!-- Maintainers: "Explicit, never silent", "Closed means closed", "Record the gate" and
+     "Gate mechanics" below are CANONICAL-SHARED — byte-identical in all seven skills. Change
+     them in every skill or in none. Every other bullet here is persona-scoped and
+     deliberately tailored. See CONTRIBUTING.md. -->
 
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
@@ -163,6 +222,23 @@ This stage has its gate **mid-method**, not at the end:
   dispatched you, or how the lead reached you. A guard in the sending skill is
   a courtesy; the persona that *accepts* an invalid transition is the boundary
   that failed.
+- **Record the gate, not just the outcome.** Never write a status alone. Every
+  status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
+  `returned`, abandonment — **appends** an entry to the artifact's `decisions`
+  list: `type`, `at`, `by`, the gate `question` you asked verbatim, and the
+  `answer` they chose verbatim. Never rewrite an earlier entry; one artifact can
+  be approved and later abandoned, and both belong on the record. Add `inputs`
+  naming what the stage consumed by path **and blob OID** (paths alone don't
+  identify content overwritten each attempt), and `schema: 2`. Commit it.
+  **Check schema first when reading an upstream artifact.** No `schema`, or
+  `schema: 1`, means *legacy*, not malformed: trust its status, say once that
+  its record predates this contract, and carry on — refusing it would strand
+  every project that started before the record existed. Only at `schema: 2` does
+  a non-draft status with no matching last entry mean malformed; then you stop
+  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a one-line re-confirmation and write a proper record from their answer. None of
+  this proves who really answered; it makes a missing or broken record visible,
+  which is a different and more modest thing.
 - **Production exception to gate mechanics:** at the Promote gate, a typed
   reply counts ONLY as an unambiguous affirmative ("promote", "ship it").
   Anything else — a question, a clarification — gets answered and the gate

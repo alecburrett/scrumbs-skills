@@ -55,6 +55,18 @@ they produced, and what happens next.
 Ask the team to "just do the whole thing" and they'll politely decline.
 That's the point.
 
+Every decision is recorded where it happened: the question you were asked, the
+option you chose, when, and under whose git identity — committed alongside the
+work. The next persona reads that record and stops if it's missing or broken,
+instead of quietly building on it.
+
+**It's a paper trail, not a lock.** These are Markdown files on your branch;
+anyone who can commit can write a convincing record for a gate that never
+happened. What the trail catches is the ordinary stuff — a stale approval, a
+stage built on a document that changed underneath it, a record nobody filled in.
+Not a determined forger. If you need enforcement, that's branch protection and
+required reviewers, and Scrumbs sits happily behind them.
+
 ---
 
 ## What actually happens

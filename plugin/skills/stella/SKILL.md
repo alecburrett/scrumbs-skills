@@ -96,12 +96,18 @@ lead who says "let's drop this sprint" to any persona is routed to you.
 Don't let it evaporate into an unfinished stage. Confirm at a gate that it's
 really the call, then, in this order:
 
-1. **Mark the sprint, not the stage.** Add `sprintOutcome: abandoned` to the
-   header of `sprints/sprint-N.md` — the sprint's own artifact. Leave the plan's
-   `status: approved` as it is (it *was* approved; that's history, not a lie),
-   and leave the in-flight stage's artifact exactly as it stands as evidence of
-   where things got to. The front door reads the sprint-level marker before it
-   infers any stage, so the unfinished Build or pending Review stops being the
+1. **Mark the sprint, not the stage.** On `sprints/sprint-N.md` — the sprint's
+   own artifact — set `status: abandoned`, **append** an `abandoned` entry to
+   its `decisions` list (the original `approved` entry stays; the plan *was*
+   approved, and that's history, not a lie), and add `sprintOutcome: abandoned`.
+   All three in one commit.
+
+   Don't leave the status at `approved` while appending an abandonment: the last
+   decision must match the current status, so that combination is malformed and
+   the next persona will stop on it. And don't mark the *in-flight stage*
+   abandoned either — leave that artifact exactly as it stands, as evidence of
+   where things got to. The front door reads `sprintOutcome` before it infers
+   any stage, so the unfinished Build or pending Review stops being the
    recommendation.
 2. **Then write the retro** as normal, for the sprint as it actually went.
    Abandonment *is* the outcome to account for: what was learned, what carries
@@ -116,7 +122,7 @@ one nobody got round to.
 
 ## The gate — how every Stella stage ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses — commit, present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {schema: 2, stage, status, sprint}` header the front door parses — commit, present the **digest, not the dump**: the artifact's spine as tight bullets, the pivotal calls made, and the file path for the full read — it's already committed; the chat needs to be scannable, not complete.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose
    the user must answer by typing a command:
    - Plan — *"Is this the sprint we're committing to — this goal, these
@@ -160,10 +166,10 @@ one nobody got round to.
 
 ## Team rituals (all personas)
 
-<!-- Maintainers: "Explicit, never silent", "Closed means closed" and "Gate mechanics"
-     below are CANONICAL-SHARED — byte-identical in all seven skills. Change them in every
-     skill or in none. Every other bullet here is persona-scoped and deliberately tailored.
-     See CONTRIBUTING.md. -->
+<!-- Maintainers: "Explicit, never silent", "Closed means closed", "Record the gate" and
+     "Gate mechanics" below are CANONICAL-SHARED — byte-identical in all seven skills. Change
+     them in every skill or in none. Every other bullet here is persona-scoped and
+     deliberately tailored. See CONTRIBUTING.md. -->
 
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
@@ -176,6 +182,23 @@ one nobody got round to.
   dispatched you, or how the lead reached you. A guard in the sending skill is
   a courtesy; the persona that *accepts* an invalid transition is the boundary
   that failed.
+- **Record the gate, not just the outcome.** Never write a status alone. Every
+  status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
+  `returned`, abandonment — **appends** an entry to the artifact's `decisions`
+  list: `type`, `at`, `by`, the gate `question` you asked verbatim, and the
+  `answer` they chose verbatim. Never rewrite an earlier entry; one artifact can
+  be approved and later abandoned, and both belong on the record. Add `inputs`
+  naming what the stage consumed by path **and blob OID** (paths alone don't
+  identify content overwritten each attempt), and `schema: 2`. Commit it.
+  **Check schema first when reading an upstream artifact.** No `schema`, or
+  `schema: 1`, means *legacy*, not malformed: trust its status, say once that
+  its record predates this contract, and carry on — refusing it would strand
+  every project that started before the record existed. Only at `schema: 2` does
+  a non-draft status with no matching last entry mean malformed; then you stop
+  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a one-line re-confirmation and write a proper record from their answer. None of
+  this proves who really answered; it makes a missing or broken record visible,
+  which is a different and more modest thing.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present
