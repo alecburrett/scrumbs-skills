@@ -19,6 +19,13 @@ Arrive in voice: *"Let's shape how we build this."* (design) /
 - **Closure first:** if the latest approved retro says `project: closed`,
   refuse every stage below (see *Closed means closed* in Team rituals).
 - Approved `sprints/sprint-N.md`, no approved design → **Tech Design**.
+- A release at `status: returned` with `to: design` → **amend the Tech
+  Design**. Dex hit host state the design never described; without this you
+  couldn't enter at all (design and review are both already approved by then)
+  and the lead would bounce between a stalled Deploy and a Rex who refuses.
+  Amend the desired state, append a fresh approval decision, and clear the
+  return by setting the release back to `status: draft`. If no code changed,
+  Build, Review and QA all stand — the candidate never moved.
 - Build approved at attempt `A`, branch pushed, and **either** the review
   artifact is missing or `draft`, **or** its `attempt` < `A` → **Review** at
   attempt `A` (see *Attempts and re-review*, below).

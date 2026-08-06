@@ -94,12 +94,25 @@ a diff:
   circle while a dead credential blocks the release.
 
 For host state: the **desired** state belongs in Rex's design (he already
-declares required capabilities); you apply it and record **before → after** in
-the release artifact, so the change is visible even though it never touched the
-repo. Secret *values* and grants stay in the capability gate — the lead runs
-those commands themselves, and nothing sensitive enters the transcript. If host
-state needs to change and the design never described it, that is a design gap:
-say so and route it to Rex rather than quietly reconfiguring production.
+declares required capabilities); you apply **only what the design describes**,
+and record **before → after** in the release artifact so the change is visible
+even though it never touched the repo.
+
+**Secrets and grants are never yours** — not to create, rotate, or repair.
+Credential values, OAuth grants and integration connections go through the
+capability gate, where the lead runs the commands themselves and nothing
+sensitive enters the transcript. An expired grant at Pre-flight is a
+capability-gate problem: tell the lead exactly what to run, and wait. You apply
+non-secret settings, and nothing else.
+
+**If host state needs to change and the design never described it**, that is a
+design gap, and it has a route. Ask the gate, then write the release artifact
+as `status: returned` with `to: design` and what is missing, commit, and hand to
+**Rex**. He amends the design's desired state, takes a fresh approval for it,
+and clears the return; you then resume from Pre-flight. If no code changed,
+nothing needs rebuilding — the candidate is untouched, so Build, Review and QA
+stand. Never quietly reconfigure production to get a release out; that is the
+same bypass as editing the workflow, wearing a different hat.
 
 ## Resuming a `draft` release
 
@@ -128,20 +141,30 @@ this skill exists to prevent. Only a same-revision draft resumes at the gate.
    git status --porcelain            # must be empty
    ```
 
-   Empty status, no untracked files, nothing staged. Then deploy from the
-   reviewed commit itself, not from your working directory:
+   Empty status, no untracked files, nothing staged. Then run the pipeline and
+   the deploy from the reviewed commit — in a **separate worktree**, never by
+   detaching the branch you're standing on:
 
    ```sh
-   git checkout --detach <revision>  # the approved revision, verbatim
+   git worktree add --detach ../.scrumbs-release <revision>
+   # run pipeline + deploy in there; remove it when the release is done
    ```
 
-   This is not ceremony. The code-revision check uses `git log`, so it only sees
-   **committed** changes — an uncommitted or untracked edit to a workflow or
-   deploy script is completely invisible to it, and a local build or deploy
-   command run from your workspace would happily consume that edit while Build,
-   Review, QA and the recomputed revision all still agree with each other. A
-   clean tree plus a detached checkout is what makes "the pipeline is the
-   reviewed one" a fact rather than an assumption.
+   Two jobs, two places, and they must not be the same place. Execution happens
+   at the reviewed `revision`; **every release artifact commit, the changelog
+   and the tag stay on the feature branch**, where `/scrumbs:next` and the rest
+   of the team can see them. Detaching in place would put your authorization and
+   result commits on a revision that deliberately predates the Build, Review and
+   QA paperwork — unreachable from the branch, so a promote could succeed while
+   its record sat orphaned.
+
+   The clean-tree check is not ceremony either. The code-revision check uses
+   `git log`, so it only sees **committed** changes — an uncommitted or
+   untracked edit to a workflow or deploy script is invisible to it, and a local
+   deploy command run from a dirty workspace would consume that edit while
+   Build, Review, QA and the recomputed revision all still agree. Clean tree plus
+   an isolated worktree is what makes "the pipeline is the reviewed one" a fact
+   rather than an assumption.
 
    Verify, never repair: if the tree isn't clean, say what's dirty and stop.
 2. **Pipeline** — build · test · typecheck, all run for real. Any red stops
@@ -156,12 +179,23 @@ this skill exists to prevent. Only a same-revision draft resumes at the gate.
      missing env var at the host. No repository edit can fix it; see
      *Repository vs host* below.
 
-   For a repository defect: stop the release and **persist the return** before
-   you invoke anyone. Write the release artifact as **`status: returned`** with
-   a `decisions` entry naming `to: build` and what is broken, and commit it.
-   Then present the handoff to **Viktor** at a gate. Without that commit the
-   repo still shows an approved QA and an unfinished Deploy, `/scrumbs:next`
-   sends the lead straight back to you, and the defect you found evaporates.
+   For a repository defect: stop, show what's broken, and **ask the gate
+   first** — *"The pipeline is failing on `<step>`. Send it back to Viktor?"* →
+   **"Send to Viktor with the defect (Recommended)"** · **"Discuss it first"** ·
+   **"Pause here"**.
+
+   *Then*, on the send selection, write the release artifact as
+   **`status: returned`** with a `decisions` entry carrying that exact question
+   and their exact answer, `to: build`, and what is broken — commit it, and only
+   then invoke Viktor.
+
+   The order matters both ways. Committing first would mean writing a
+   `decisions` entry for a question nobody had been asked, which is either a
+   malformed record the front door rejects or a fabricated one — the precise
+   thing the decision contract exists to prevent. Not committing at all would
+   leave the repo showing an approved QA and an unfinished Deploy, so
+   `/scrumbs:next` sends the lead straight back to you and the defect
+   evaporates.
 
    Viktor's fix lands as a new build attempt; Rex re-reviews, Quinn re-verifies,
    and you resume from Pre-flight. A non-blocking improvement is parked to
