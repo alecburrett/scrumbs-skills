@@ -194,7 +194,7 @@ as Rex's Review:
 
 ## The gate — how QA ends
 
-1. Write the artifact as `status: draft` — with the standard `scrumbs: {stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess.
+1. Write the artifact as `status: draft` — with the standard `scrumbs: {schema: 2, stage, status, sprint}` header the front door parses, **plus the mandatory `attempt` and `revision`** — the Build attempt you verified and the code revision you verified, both copied from the artifacts Rex and Viktor already wrote and both re-checked against the canonical command in `/scrumbs:next`. Your `revision` must equal the reviewed one; if it doesn't, the candidate moved under you and this is not a sign-off you can write. A sign-off missing either is malformed, and the front door will refuse to advance past it rather than guess.
 
    **Commit the artifact and nothing else.** You are on the candidate now; your
    probes are already committed and pushed on their own branch. Check what you
@@ -249,14 +249,16 @@ as Rex's Review:
   that failed.
 - **Record the gate, not just the outcome.** Never write a status alone. Every
   status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
-  abandonment — gets a `decision` block written with it: `at`, `by`, the gate
-  `question` you asked verbatim, and the `answer` they chose verbatim, plus
-  `inputs` naming what this stage consumed by path **and blob OID** (paths alone
-  don't identify content that gets overwritten each attempt). Commit it. And
-  check the same block on any upstream artifact before trusting it: a bare
-  status with no record behind it is malformed — stop, don't inherit it. The
-  block proves nothing about who really answered; it makes a missing or broken
-  record visible, which is a different and more modest thing.
+  abandonment — **appends** an entry to the artifact's `decisions` list: `type`,
+  `at`, `by`, the gate `question` you asked verbatim, and the `answer` they
+  chose verbatim. Never rewrite an earlier entry; one artifact can be approved
+  and later abandoned, and both belong on the record. Add `inputs` naming what
+  the stage consumed by path **and blob OID** (paths alone don't identify
+  content that gets overwritten each attempt), and `schema: 2`. Commit it. Check
+  the same on any upstream artifact before trusting it: a non-draft status with
+  no matching last entry is malformed — stop, don't inherit it. None of this
+  proves who really answered; it makes a missing or broken record visible, which
+  is a different and more modest thing.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present

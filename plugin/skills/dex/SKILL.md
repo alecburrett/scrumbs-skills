@@ -122,15 +122,20 @@ This stage has its gate **mid-method**, not at the end:
    This is the one gate whose side effects can't be taken back, so the order
    matters:
 
-   a. Write the release artifact as **`status: draft`** carrying the full
-      `decision` block (the promote question and the lead's exact answer), the
-      `revision` being promoted, and the deploy target. **Commit it now.** If
-      the promote then fails, or the session dies mid-flight, the repo still
-      says *"authorized to ship this revision, not yet confirmed live"* — which
-      a resume can act on. Recording it afterwards means a promote that
-      succeeds but whose commit doesn't leaves Deploy looking like it never
-      started, and nothing can tell "not promoted" from "promoted, record
-      lost" — an audit gap and a double-promote risk in one.
+   a. Write the release artifact as **`status: draft`** carrying the
+      `decisions` entry (the promote question and the lead's exact answer), the
+      `revision` being promoted, the deploy target, **and the immutable
+      identity of the thing you are about to promote** — the verified preview's
+      deployment id, plus an idempotency key if the host supports one. **Commit
+      it now.**
+
+      The identity is the part that makes a crash recoverable, so it cannot
+      wait until afterwards. If the promote succeeds and the session dies before
+      the next commit, a resume holds an exact id it can ask the host about —
+      *"did this one land?"* — instead of guessing from a revision the host may
+      not index. Recording any of this afterwards leaves Deploy looking like it
+      never started, with no way to tell "not promoted" from "promoted, record
+      lost": an audit gap and a double-promote risk in one.
    b. Promote, tag, changelog, confirm.
    c. Update the same artifact to `status: approved` with the observed
       result — production URL, deployment id, rollback handle — and commit.
@@ -144,9 +149,11 @@ This stage has its gate **mid-method**, not at the end:
    which you may start another persona: the user selected it seconds ago.
 
    **On resume from a `draft` release artifact:** production may or may not
-   have been touched. Do not re-promote blind — query the host for the
-   recorded deployment identifier or revision first, and only promote if it
-   genuinely didn't land.
+   have been touched. Do not re-promote blind — query the host for the exact
+   deployment id recorded in step (a), and promote only if it genuinely didn't
+   land. If the artifact has no id (it predates this rule, or the crash beat
+   the first commit), say so plainly and ask the lead to confirm the live state
+   before you touch anything.
 3. **On "Hold":** the lead verified a build and chose not to ship it *yet* —
    preserve that decision instead of discarding it. Write the release artifact
    as **`status: held`** with everything already established: the verified
@@ -186,14 +193,16 @@ This stage has its gate **mid-method**, not at the end:
   that failed.
 - **Record the gate, not just the outcome.** Never write a status alone. Every
   status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
-  abandonment — gets a `decision` block written with it: `at`, `by`, the gate
-  `question` you asked verbatim, and the `answer` they chose verbatim, plus
-  `inputs` naming what this stage consumed by path **and blob OID** (paths alone
-  don't identify content that gets overwritten each attempt). Commit it. And
-  check the same block on any upstream artifact before trusting it: a bare
-  status with no record behind it is malformed — stop, don't inherit it. The
-  block proves nothing about who really answered; it makes a missing or broken
-  record visible, which is a different and more modest thing.
+  abandonment — **appends** an entry to the artifact's `decisions` list: `type`,
+  `at`, `by`, the gate `question` you asked verbatim, and the `answer` they
+  chose verbatim. Never rewrite an earlier entry; one artifact can be approved
+  and later abandoned, and both belong on the record. Add `inputs` naming what
+  the stage consumed by path **and blob OID** (paths alone don't identify
+  content that gets overwritten each attempt), and `schema: 2`. Commit it. Check
+  the same on any upstream artifact before trusting it: a non-draft status with
+  no matching last entry is malformed — stop, don't inherit it. None of this
+  proves who really answered; it makes a missing or broken record visible, which
+  is a different and more modest thing.
 - **Production exception to gate mechanics:** at the Promote gate, a typed
   reply counts ONLY as an unambiguous affirmative ("promote", "ship it").
   Anything else — a question, a clarification — gets answered and the gate

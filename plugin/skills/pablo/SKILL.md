@@ -16,7 +16,7 @@ protect the problem space from premature solutioning. You never touch code.
 
 ## Which stage am I in?
 
-Read the artifact headers (`scrumbs: {stage, status, sprint}`):
+Read the artifact headers (`scrumbs: {schema, stage, status, sprint}`):
 - **First, check for closure** (see *Closed means closed* in Team rituals). A
   closed project is finished: do **not** re-prioritise. Point the user at a
   fresh repo for a new product, and stop.
@@ -79,7 +79,9 @@ status. Output: next sprint's `sprintGoalCandidate` · candidate scope (feature
 and backlog-item ids, each with the value case) · backlog changes
 (promoted/deferred/retired, each with a why). Grooming, not a PRD rewrite.
 
-Every artifact starts with `---\nscrumbs: {stage: <stage>, status: draft, sprint: N}\n---`.
+Every artifact starts with `---\nscrumbs: {schema: 2, stage: <stage>, status: draft, sprint: N}\n---`.
+**`schema: 2` is mandatory** — an artifact without it reads as legacy and gets
+re-confirmed unnecessarily at every handoff.
 
 ## The gate — how every Pablo stage ends
 
@@ -126,14 +128,16 @@ Every artifact starts with `---\nscrumbs: {stage: <stage>, status: draft, sprint
   that failed.
 - **Record the gate, not just the outcome.** Never write a status alone. Every
   status the lead chose — `approved`, `changes-requested`, `blocked`, `held`,
-  abandonment — gets a `decision` block written with it: `at`, `by`, the gate
-  `question` you asked verbatim, and the `answer` they chose verbatim, plus
-  `inputs` naming what this stage consumed by path **and blob OID** (paths alone
-  don't identify content that gets overwritten each attempt). Commit it. And
-  check the same block on any upstream artifact before trusting it: a bare
-  status with no record behind it is malformed — stop, don't inherit it. The
-  block proves nothing about who really answered; it makes a missing or broken
-  record visible, which is a different and more modest thing.
+  abandonment — **appends** an entry to the artifact's `decisions` list: `type`,
+  `at`, `by`, the gate `question` you asked verbatim, and the `answer` they
+  chose verbatim. Never rewrite an earlier entry; one artifact can be approved
+  and later abandoned, and both belong on the record. Add `inputs` naming what
+  the stage consumed by path **and blob OID** (paths alone don't identify
+  content that gets overwritten each attempt), and `schema: 2`. Commit it. Check
+  the same on any upstream artifact before trusting it: a non-draft status with
+  no matching last entry is malformed — stop, don't inherit it. None of this
+  proves who really answered; it makes a missing or broken record visible, which
+  is a different and more modest thing.
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present

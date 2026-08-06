@@ -20,63 +20,88 @@ YAML header: `scrumbs: {schema, stage, status, sprint, attempt}` — plus
 
 A `status` value on its own is just a word someone typed. **Every lead-selected
 transition** — not only approvals, but `changes-requested`, `blocked`, `held`
-and abandonment too, since each of them changes routing or ends a sprint —
-carries the record of the gate that produced it:
+and abandonment too, since each changes routing or ends a sprint — appends a
+record of the gate that produced it:
 
 ```yaml
 scrumbs:
-  schema: 2
-  stage: review
+  schema: 2                          # mandatory on every artifact
+  stage: plan
   sprint: 3
-  attempt: 2
-  status: changes-requested
-  revision: 9f2c1ab…                # the code revision (see below)
-  decision:
-    at: 2026-08-06T14:22:31Z        # self-asserted by whoever recorded it
-    by: Alec Burrett                # the RECORDER's git identity, self-asserted
-    question: "Approve — ready for QA?"          # what was asked, verbatim
-    answer: "Agree — send to Viktor"             # what was chosen, verbatim
-  inputs:                            # exactly what this stage consumed
-    - stage: build
-      path: sprints/sprint-3-build.md
-      blob: 4e9a77c…                 # git rev-parse <commit>:<path>
-      attempt: 2
-      revision: 9f2c1ab…
+  status: abandoned
+  decisions:                         # append-only, oldest first
+    - type: approved
+      at: 2026-08-01T09:14:02Z       # self-asserted by whoever recorded it
+      by: Alec Burrett               # the RECORDER's git identity, self-asserted
+      question: "Is this the sprint we're committing to?"
+      answer: "Commit — hand to Rex for Tech Design"
+    - type: abandoned
+      at: 2026-08-06T14:22:31Z
+      by: Alec Burrett
+      question: "Drop this sprint?"
+      answer: "Yes — write the retro on what we learned"
+  inputs:
+    - stage: prd
+      path: docs/PRD.md
+      blob: 4e9a77c…                 # git rev-parse HEAD:docs/PRD.md, as consumed
 ```
+
+**`decisions` is a list, and append-only.** One artifact can legitimately carry
+several: a sprint plan is approved, and later abandoned. A single `decision`
+field would force you to destroy the approval record to write the abandonment,
+or to record the abandonment nowhere. Never rewrite or remove an earlier entry —
+the current `status` corresponds to the **last** one.
 
 `question` and `answer` are the pair that does work. A bare status is set by
 accident or by autopilot; naming the exact question asked and the exact option
 chosen means an invented decision has to invent a specific human choice — one
 the lead can read back later and say *"I never chose that."*
 
-`inputs` uses **blob OIDs, not just paths**. A path alone is worthless here:
-artifact files are overwritten in place on every attempt, so "I consumed
-`sprint-3-build.md`" doesn't say *which* content. `git rev-parse <commit>:<path>`
-names the exact bytes. Record `revision` separately — it is the *code* revision
-and deliberately excludes `sprints/`, so it can never identify paperwork.
+`inputs` records **blob OIDs, not just paths** (`git rev-parse HEAD:<path>` at
+the moment you consume it). A path alone is worthless here: artifact files are
+overwritten in place on every attempt, so "I consumed `sprint-3-build.md`"
+doesn't say *which* content. Record `revision` separately where the stage has
+one — it is the *code* revision and excludes `sprints/`, so it can never
+identify paperwork.
 
 **Checking a decision, before you trust it:**
 
 1. `schema` is recognised (see legacy, below).
-2. The `decision` block is present and complete for any status other than
-   `draft`. Missing or partial → **malformed, fail closed**, and say so.
+2. `decisions` is present and non-empty for any status other than `draft`, and
+   its last entry matches the current status. Missing, partial, or contradicting
+   → **malformed, fail closed**, and say so.
 3. It is committed. A decision living only in the working tree hasn't happened.
-4. Every `inputs` blob still resolves and matches the artifact it names
-   (`git rev-parse <commit>:<path>`). A mismatch means the thing you're building
-   on was edited after it was consumed.
+4. Every `inputs` blob still **resolves** (`git cat-file -e <blob>`). That proves
+   the exact content consumed is still in history.
 5. For Build/Review/QA, `attempt` and `revision` pass the staleness rule.
+
+**A consumed blob is not required to match the file as it stands now.** Living
+documents are *supposed* to move: `docs/DESIGN.md` grows with every design pass,
+`docs/BACKLOG.md` with every parked item — and Iris's design pass consumes
+`DESIGN.md` and then edits it in the same breath. Requiring equality would make
+that valid work look like a broken chain. When the current file differs from the
+consumed blob, **say so and carry on**: it means "this was written against an
+earlier version," which is information the lead may want, not an error.
 
 ### Legacy artifacts (`schema` absent or `1`)
 
-Artifacts written before this contract have no `decision` block. They are
-**legacy, not malformed** — the distinction matters, because treating them as
-malformed strands every existing project, and silently backfilling a block would
-fabricate exactly the evidence this design exists to protect.
+Artifacts written before this contract have no `decisions` list. They are
+**legacy — a third state, neither valid-with-record nor malformed.** Treat a
+legacy `approved` as approved for routing: it is almost certainly a real
+approval from before the record existed, and blocking on it would strand every
+existing project for no safety gain.
 
-Report them as legacy, name them, and offer the lead a **re-confirmation pass**:
-they re-affirm each one and a fresh record is written with today's date and an
-`answer` of their own choosing. Never write a `decision` block the lead did not
-actually give you, and never date one earlier than the moment it was recorded.
+Do two things instead. **Name them** in the status board, marked as
+*unverified record*, so nobody mistakes them for audited. And leave the upgrade
+to the persona that owns each artifact: on its next natural run, that persona
+offers the lead a one-line re-confirmation and writes a proper `schema: 2`
+record from their answer. Migration therefore happens lazily, in dependency
+order, and finishes on its own — there is no migration script, no separate
+owner, and no half-migrated state to resume from.
+
+**Never backfill a `decisions` entry the lead did not actually give you**, and
+never date one earlier than the moment it was recorded. Inventing the record
+would fabricate exactly the evidence this design exists to protect.
 
 ### What this does and does not guarantee
 

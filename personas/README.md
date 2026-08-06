@@ -74,30 +74,43 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 
 ## What a gate decision records, and what it's worth
 
-A status is a claim; the `decision` block is the record behind it. **Every**
-lead-selected transition carries one — approvals, but equally
+A status is a claim; the artifact's `decisions` list is the record behind it.
+**Every** lead-selected transition appends one — approvals, but equally
 `changes-requested`, `blocked`, `held` and abandonment, since those change
-routing or end a sprint just as consequentially. It holds `at`, `by`, the gate
-`question` asked verbatim and the `answer` chosen verbatim, alongside `inputs`
-naming what the stage consumed by path **and blob OID**. Paths alone can't
-identify content that is overwritten on every attempt.
+routing or end a sprint just as consequentially. Each entry holds `type`, `at`,
+`by`, the gate `question` asked verbatim and the `answer` chosen verbatim.
 
-A persona reading an upstream artifact checks that block and **fails closed on a
-bare status** rather than inheriting it.
+**It is a list, and append-only, for a concrete reason.** A sprint plan gets
+approved, and may later be abandoned. With a single decision field you would have
+to destroy the approval record to write the abandonment, or record the
+abandonment nowhere. Both are lies of a kind. The current `status` corresponds to
+the last entry; the earlier ones stay.
+
+`inputs` names what the stage consumed by path **and blob OID** — paths alone
+can't identify content overwritten on every attempt. Validation asks only that
+the blob still *resolves*, not that it equals the file today: living documents
+are supposed to move (`docs/DESIGN.md` grows with each design pass, and Iris
+consumes it and then edits it in the same breath), so requiring equality would
+paint valid work as a broken chain. A difference is reported as "written against
+an earlier version," not treated as an error.
+
+Artifacts predating this contract are **legacy** — a third state, not malformed.
+A legacy `approved` routes as approved, is flagged as *unverified record*, and is
+upgraded lazily by its owning persona on that persona's next natural run. No
+migration script, no separate owner, nothing half-migrated to resume from.
 
 **The honest limit, stated precisely.** This does *not* detect a skipped gate.
-Anyone who can commit can write a complete, self-consistent block for a gate
-that never happened, and it passes every check: `by` is a `git config` value the
+Anyone who can commit can write a complete, self-consistent entry for a gate that
+never happened, and it passes every check: `by` is a `git config` value the
 writer picks, `at` is a string in YAML. They record who wrote it down and what
 they claimed — nothing more.
 
 What it does catch is narrower and still worth the cost: **malformed or missing
-records**, **broken chains** (an input whose blob no longer matches, i.e. built
-on paperwork since edited), and **staleness**. Mistakes and drift, in other
-words, which is most of what actually goes wrong — not a determined forger,
-which no arrangement of Markdown files could stop. Git history corroborates when
-it survives, but squash merges collapse it and rebases rewrite it, so the block
-in the artifact is the record, not the log.
+records**, **broken chains** (an input blob that no longer resolves), and
+**staleness**. Mistakes and drift, which is most of what actually goes wrong —
+not a determined forger, which no arrangement of Markdown files could stop. Git
+history corroborates when it survives, but squash merges collapse it and rebases
+rewrite it, so the list in the artifact is the record, not the log.
 
 Enforcement lives in branch protection and required reviewers. Scrumbs sits
 behind those and never claims to replace them.
