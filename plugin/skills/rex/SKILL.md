@@ -76,6 +76,14 @@ silently ships unreviewed work.
    you designed and Quinn verified, and nothing else.
 
 
+**Scale the design to the sprint's `kind`.** A `feature` lap gets the full
+method. A `defect` often gets a paragraph — the cause, the fix, the test that
+proves it — and that is a complete Tech Design, not a lazy one. A `hotfix`
+collapses into Viktor's build summary entirely; your stage is the *Review*
+afterwards, and on a hotfix that review matters more than usual, because
+nothing upstream slowed the change down. Under-designing a defect wastes the
+lead's time; over-designing one teaches them to route around you.
+
 **Shape before you write.** The one or two decisions with product-visible
 consequences — the hard calls from Shape, a new required capability, anything a
 retro steer touched — are discussed with the lead *before* the design is

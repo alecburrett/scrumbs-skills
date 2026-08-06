@@ -47,6 +47,29 @@ Pablo (Requirements + PRD), Iris (Design + the per-sprint Design Pass),
 Stella (Plan + Retro), Rex (Tech Design + Review).
 The **doers own one each**: Viktor (Build), Quinn (QA), Dex (Deploy).
 
+## Project shape and sprint kind
+
+The lifecycle is not one fixed chain. Two orthogonal facts bend it to the work,
+and keeping them orthogonal is the point — five enumerated "modes" would
+multiply into combinations nobody maintains.
+
+**Project shape**, decided once and recorded on the brief:
+`shape: {surface: ui|headless, start: greenfield|brownfield}`. `headless` (a
+CLI, library, API, infrastructure repo) removes **Iris's stages entirely** —
+not a lighter version of them. `brownfield` changes Pablo's job from elicitation
+to documentation: the product already exists, and interviewing the lead about
+who it's for reads as ceremony.
+
+**Sprint kind**, decided per lap on the plan: `kind: feature | defect | hotfix`.
+It scales the *planning*: a defect gets a one-story plan and possibly a
+one-paragraph tech design; a hotfix collapses both into the build summary.
+
+**The invariant that makes this safe:** kind scales planning, never assurance.
+Review, QA and Deploy run in every mode, and a hotfix — rushed, unrehearsed,
+going straight to production — is precisely where they earn their keep. A mode
+that skipped them would defeat the tool. A hotfix additionally owes a backlog
+entry for the proper fix and a retro.
+
 ## The multi-sprint cycle
 
 The lifecycle has two layers: a one-time **setup**, then a repeating **sprint loop**.

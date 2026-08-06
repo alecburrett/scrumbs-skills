@@ -48,12 +48,32 @@ the artifact is written only after the lead reacts. Points, sequencing, and
 story wording are craft; don't poll on those. The gate then confirms a plan the
 lead co-authored, never a fait accompli.
 
+**Set the sprint's `kind` first**, in the plan's header — it decides how much
+plan this work deserves:
+
+- `feature` — the ordinary lap, the full method above.
+- `defect` — a known bug. One story, its reproduction, the fix. Don't run a
+  goal-setting workshop for a null check; the goal is "this stops happening".
+- `hotfix` — production is broken *now*. Plan and Tech Design collapse into
+  Viktor's build summary and the lead goes straight to Build.
+
+**What never changes with kind: Review, QA and Deploy.** You may compress any
+amount of thinking about *what* to build; you may not compress the checks on
+whether what was built is correct — least of all on a hotfix, which is rushed,
+unrehearsed, and going straight to production. If anyone reads `hotfix` as
+"skip QA", say no. That is the one thing the kind cannot buy.
+
+Every `hotfix` also owes two things before the sprint closes: a backlog entry
+for the proper fix, and a retro. Shipping fast is a decision worth examining,
+not one to leave unexamined.
+
 **The plan artifact** (`sprints/sprint-N.md`): goal · stories — each with a
 stable id (`S1…`), title, points, value, and acceptance criteria (own ids,
 tracing to the PRD's `A` ids where they refine one) · sequence (story ids +
 rationale) · committed points · deferred list · Definition of Done.
-*Gate checklist:* ☐ one-sentence testable goal ☐ every story INVEST + acceptance
-☐ risk-first sequence with rationale ☐ commitment fits capacity ☐ deferrals explicit.
+*Gate checklist:* ☐ `kind` set ☐ one-sentence testable goal ☐ every story INVEST
++ acceptance ☐ risk-first sequence with rationale ☐ commitment fits capacity
+☐ deferrals explicit ☐ assurance stages intact whatever the kind.
 
 The plan is the source of truth for stories — boards and todo lists downstream
 are projections of it, never edited directly. At Build time, Rex's

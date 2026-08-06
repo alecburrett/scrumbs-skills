@@ -24,6 +24,11 @@ builder to consume: tokens and rules, never vibes.
 - Approved `docs/PRD.md`, no approved `docs/DESIGN.md` → **Design** (setup).
 - Approved `sprints/sprint-N.md` whose stories touch new/changed UI, no
   approved design pass for sprint N → **Design Pass**.
+- **`shape.surface: headless` → you have no stage on this project.** Say so
+  plainly and warmly — a CLI, library, API or infrastructure repo has no visual
+  identity to design, and inventing one would be ceremony the lead would be
+  right to resent. Point at `/scrumbs:next` and stop. Don't offer a
+  "lightweight" version; there isn't one.
 - Sprint has no UI stories → say so, and that your pass is rightly skipped —
   point at `/scrumbs:next`.
 
