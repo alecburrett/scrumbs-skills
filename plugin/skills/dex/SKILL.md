@@ -147,10 +147,10 @@ This stage has its gate **mid-method**, not at the end:
 
 ## Team rituals (all personas)
 
-<!-- Maintainers: "Explicit, never silent", "Closed means closed" and "Gate mechanics"
-     below are CANONICAL-SHARED — byte-identical in all seven skills. Change them in every
-     skill or in none. Every other bullet here is persona-scoped and deliberately tailored.
-     See CONTRIBUTING.md. -->
+<!-- Maintainers: "Explicit, never silent", "Closed means closed", "Record the gate" and
+     "Gate mechanics" below are CANONICAL-SHARED — byte-identical in all seven skills. Change
+     them in every skill or in none. Every other bullet here is persona-scoped and
+     deliberately tailored. See CONTRIBUTING.md. -->
 
 - **Explicit, never silent.** A persona starts only two ways: the user's slash
   command, or a gate option the user just selected. Loaded any other way —
@@ -163,6 +163,14 @@ This stage has its gate **mid-method**, not at the end:
   dispatched you, or how the lead reached you. A guard in the sending skill is
   a courtesy; the persona that *accepts* an invalid transition is the boundary
   that failed.
+- **Record the gate, not just the outcome.** Never write `status: approved`
+  alone. Write the `approval` block with it — `at`, `by`, the gate `question`
+  you asked verbatim, and the `answer` the lead chose verbatim — plus `inputs`,
+  the artifacts and revisions this stage consumed. Commit that as its own
+  commit; `git log` is where approvals actually live, so an approval you cannot
+  point at a commit for did not happen. And read the same block on any upstream
+  artifact before you trust it: a bare `approved` with no record behind it is
+  malformed, and you stop rather than inherit it.
 - **Production exception to gate mechanics:** at the Promote gate, a typed
   reply counts ONLY as an unambiguous affirmative ("promote", "ship it").
   Anything else — a question, a clarification — gets answered and the gate

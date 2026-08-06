@@ -16,6 +16,73 @@ Check for these files in the current repo. Each Scrumbs artifact starts with a
 YAML header: `scrumbs: {stage, status, sprint, attempt}` — plus `project: closed`
 on a terminal retro (see closure, below).
 
+### What an approval has to carry
+
+`status: approved` on its own is just a word someone typed. An approved artifact
+must also carry the record of the gate that produced it:
+
+```yaml
+scrumbs:
+  stage: review
+  sprint: 3
+  attempt: 2
+  status: approved
+  revision: 9f2c1ab…
+  approval:
+    at: 2026-08-06T14:22:31Z        # when the lead answered
+    by: Alec Burrett                # the repo's git identity at that moment
+    question: "Approve — ready for QA?"          # what you asked, verbatim
+    answer: "Confirm — hand to Quinn"            # what they chose, verbatim
+  inputs:                            # what this stage consumed
+    - sprints/sprint-3-design.md
+    - sprints/sprint-3-build.md@9f2c1ab…
+```
+
+`question` and `answer` are the load-bearing pair. A bare boolean is trivial to
+set by accident or by autopilot; naming the exact question asked and the exact
+option chosen means a fabricated approval has to invent a specific human
+decision, and the lead can read it back later and say *"I never chose that."*
+
+`inputs` records what the stage actually consumed, so the chain is checkable:
+a Review that claims to have judged a build attempt whose revision doesn't
+appear in its inputs is not a Review of that build.
+
+**Verifying an approval, before you trust it:**
+
+1. The `approval` block is present and complete. A `status: approved` with no
+   approval block, or a partial one, is **malformed — fail closed** and say so.
+   Do not treat it as approved because the word is there.
+2. It is **committed**. An approval that exists only in the working tree hasn't
+   happened yet; `git log` is where approvals live.
+3. `inputs` line up with the artifacts they name, at the revisions they name.
+4. For Build/Review/QA, `attempt` and `revision` pass the staleness rule.
+
+### What this does and does not guarantee
+
+Be straight about this, because the alternative is a false sense of safety.
+
+Every Scrumbs artifact is a file on the same writable branch as the code. Anyone
+who can commit can write `status: approved`, invent an approval block, and push
+it. **Scrumbs cannot prevent that, and does not claim to.** There is no
+append-only ledger, no signing key, no server holding state the repo can't
+reach — the repo *is* the state, which is what makes a run resumable and
+inspectable, and is also exactly why it is forgeable.
+
+What the record does buy is real, and worth having:
+
+- **A skipped gate leaves a hole.** No approval block, or one that contradicts
+  the git history, is visible to anyone who looks — including the next persona,
+  which fails closed rather than proceeding.
+- **An audit trail with names and times.** `git log --follow <artifact>` shows
+  who recorded each approval and when. Forging one means committing under an
+  identity, at a timestamp, alongside a specific claimed human answer.
+- **Detection, not prevention.** The honest framing: gates are a discipline this
+  repo makes *legible*, not an access control it enforces.
+
+If you need enforcement rather than evidence, that lives where enforcement can
+actually live — branch protection, required reviewers, a CI check on the
+artifact headers. Scrumbs is happy to sit behind those; it cannot replace them.
+
 ### The status vocabulary (canonical — skills use these exact words)
 
 `status` records **where the artifact sits in its lifecycle**. It is *not* the

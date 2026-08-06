@@ -32,15 +32,19 @@ behaves badly more often than you'd think.
 
 ### The shared bullets
 
-Every skill ends with a `## Team rituals (all personas)` section. Three of those
-bullets — **"Explicit, never silent"**, **"Closed means closed"** and
-**"Gate mechanics"** — are byte-identical across all seven skills on purpose.
-Change them in every skill or in none; a partial edit is a silent divergence
-nobody notices for months.
+Every skill ends with a `## Team rituals (all personas)` section. Four of those
+bullets — **"Explicit, never silent"**, **"Closed means closed"**,
+**"Record the gate"** and **"Gate mechanics"** — are byte-identical across all
+seven skills on purpose. Change them in every skill or in none; a partial edit is
+a silent divergence nobody notices for months.
 
-"Closed means closed" is shared for a specific reason: a terminal project has to
-be refused by *every* persona that can be reached directly, not just by the one
-that closed it. An invariant enforced only at the sender isn't enforced.
+The two newer ones are shared for the same structural reason. "Closed means
+closed": a terminal project has to be refused by *every* persona reachable
+directly, not just the one that closed it. "Record the gate": an approval
+written by one persona is *read* by another, so both halves of that contract —
+writing the record, and refusing a bare `approved` without one — have to hold
+everywhere or they hold nowhere. An invariant enforced only at the sender isn't
+enforced.
 
 Every other bullet in that section is deliberately tailored per persona.
 Viktor's "shape before you write" is rewritten because his summary is
@@ -58,7 +62,13 @@ These are the product, not implementation details:
 3. **No persona re-opens another's decision.** They bounce it back to its
    owner. Rex doesn't re-scope the PRD; Quinn doesn't re-review the code.
 4. **Artifacts are plain Markdown in the user's repo.** The repo is the
-   state, which is what makes a run resumable and inspectable.
+   state, which is what makes a run resumable and inspectable — and, being
+   ordinary files on a writable branch, forgeable. Say so. Every approval
+   carries its gate record (question, answer, who, when) and is committed, so a
+   skipped gate leaves a hole someone can find; that is **detection, not
+   prevention**, and a PR must not describe it as more. Enforcement belongs to
+   branch protection and required reviewers, which Scrumbs is happy to sit
+   behind and must never claim to replace.
 
 A PR that erodes one of these needs to argue for it in the description, not
 slip it in.

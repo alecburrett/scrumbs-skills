@@ -72,6 +72,28 @@ The lifecycle has two layers: a one-time **setup**, then a repeating **sprint lo
 - **The exit:** a retro whose "next direction" is *"nothing left worth a sprint"* →
   the project is complete.
 
+## What an approval records, and what it's worth
+
+`status: approved` is a claim; the `approval` block is the evidence for it. Every
+approved artifact carries `at`, `by`, the gate `question` asked verbatim and the
+`answer` the lead chose verbatim, plus `inputs` — the artifacts and revisions the
+stage consumed — and is committed, because `git log` is where approvals actually
+live. A persona reading an upstream artifact verifies that block and **fails
+closed on a bare `approved`** rather than inheriting it.
+
+The question/answer pair is the part that does work. A boolean is set by accident
+or autopilot; naming the exact option chosen means a fabricated approval has to
+invent a specific human decision the lead can later read back and deny.
+
+**The honest limit.** Artifacts are files on the same writable branch as the
+code. Anyone who can commit can write an approval, and no amount of schema fixes
+that: there is no ledger outside the repo, no signing key, no server holding
+state — the repo *is* the state, which is what makes runs resumable and
+inspectable, and precisely why they are forgeable. What the record buys is that
+a skipped gate is *visible*: absent or contradicting the history, and the next
+persona stops. Detection, not prevention. Enforcement lives in branch protection
+and required reviewers; Scrumbs sits behind those and does not replace them.
+
 ## Artifact status vs verdict (and why they're different fields)
 
 Every artifact header carries `status` — where it sits in its **lifecycle**.
