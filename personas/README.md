@@ -221,6 +221,34 @@ sit in ordinary test directories; renames report only their destination; and
 packaging can sweep in anything. Proving a mutation is harmless is much harder
 than not mutating.
 
+## What role separation actually provides
+
+The specs describe seven personas with narrow remits and hard handoffs. It is
+worth being precise about what that buys, because the obvious reading is wrong.
+
+**It buys:** a different set of questions at each stage, asked in a fixed order,
+with a written record and a human gate. Scope that a single generalist would
+quietly drop has to be dropped out loud, by name, in a file. On a small project
+that is most of the value.
+
+**It does not buy independence.** In the plugin, the personas are skills loaded
+into one Claude Code conversation. Rex reviewing code designed earlier in that
+same conversation is not a second opinion — the reasoning that produced the
+design is still in context, and confirmation is the path of least resistance.
+Quinn's "fresh adversarial pass" is fresh in framing, not in memory. Calling
+these seven agents, or implying prompt-role separation delivers auditor
+independence, overstates the design.
+
+**Where it matters, there is a real mechanism.** Review and QA are the two
+stages whose entire value is catching what the previous stage missed, so both
+offer a handoff into a **new session**. The repo is the state, so a fresh
+session resumes with the branch, the design and the acceptance criteria — and
+none of the reasoning that produced them. Both artifacts record
+`context: fresh | continued`, and a `continued` verdict says so in its own text.
+
+That is the honest arrangement: genuine isolation available at the two points it
+changes the answer, and an explicit admission on the record when it wasn't used.
+
 ## Shared behaviours (all personas)
 
 Beyond their individual specs, every persona observes these team-wide rituals:

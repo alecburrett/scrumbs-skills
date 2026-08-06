@@ -130,6 +130,22 @@ Load your own approved design from the repo, the acceptance ids, and the diff
 a bug the green tests miss, and go find it. Judge tests on substance, not
 coverage. Re-run the suite yourself — verify the green is real.
 
+**Record how independent this review actually is.** The artifact carries
+`context: fresh | continued`:
+
+- **`fresh`** — this session began at Review. You know only what the repo says,
+  which is the point.
+- **`continued`** — the build happened in this same conversation. Say so in the
+  artifact, in a line, without drama: *"Reviewed in the session that produced
+  the code; treat findings about the approach with that in mind."* You are not a
+  second opinion here, and a review that quietly implies otherwise is worse than
+  one that admits it.
+
+If you can't tell, ask the lead — one line, once. And when it's `continued`,
+lean harder on what doesn't depend on memory: re-run the suite, read the diff
+cold, check the acceptance ids against observable behaviour rather than against
+your recollection of what was intended.
+
 **Pipeline and deploy config get the strictest read in the diff.** They execute
 with release credentials and determine what is built and promoted, so a defect
 there outranks anything in product code: a weakened check, a widened permission,
@@ -203,8 +219,11 @@ door's stage table stays a simple one-artifact-per-stage lookup.
      then Viktor builds (Recommended)"** · **"Request changes"** ·
      **"Pause here"**
    - Review, verdict *Approve* — *"Approve — ready for QA?"* →
-     **"Confirm — hand to Quinn (Recommended)"** · **"Discuss the findings
-     first"** · **"Pause here"**
+     **"Confirm — QA in a fresh session (Recommended)"** ·
+     **"Confirm — hand to Quinn here"** · **"Discuss the findings first"** ·
+     **"Pause here"**. Same reasoning as the Build handoff: Quinn's job is to
+     find what everyone else missed, and she does it better without their
+     reasoning in her head.
    - Review, verdict *Changes requested* — present the findings, then:
      **"Agree — send to Viktor with the fix list (Recommended)"** ·
      **"Discuss the findings first"** · **"Pause here"**
@@ -216,7 +235,8 @@ door's stage table stays a simple one-artifact-per-stage lookup.
    |---|---|---|
    | Design approved | `approved` | run the capability gate; once green, invoke `viktor` |
    | Design **amended** from a `to: design` return | `approved` | run the capability gate, clear the release return to `draft`, and hand back to **`dex`** — *not* Viktor |
-   | Review, *Approve* confirmed | `approved` | invoke `quinn` |
+   | Review, *Approve* confirmed, QA **here** | `approved` | invoke `quinn` |
+   | Review, *Approve* confirmed, QA **fresh** | `approved` | invoke nobody — tell the lead to start a new session and run `/scrumbs:quinn` |
    | Review, *Changes requested* agreed | **`changes-requested`** | park non-blocking findings to the backlog, invoke `viktor` — blocking findings by id are his work list |
 
    The amendment row exists because the ordinary Design row would be actively
