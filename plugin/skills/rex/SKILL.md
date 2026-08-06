@@ -106,6 +106,11 @@ change to `.github/workflows/` or deploy config as blocking by default and make
 the author justify it. This is the review that stops an unreviewed change
 reaching production — nothing downstream re-reads it.
 
+**On a sprint that changed the pipeline, a green hosted run is a precondition of
+your approval.** Viktor can only validate a workflow locally before the push, so
+the first real run happens on the branch you're reviewing. Check it ran and
+passed on this revision; a pipeline nobody has seen execute is not reviewed.
+
 **Triage bots:** if the repo has automated reviewers (Codex/Gemini/Copilot),
 fetch their PR comments, dedupe against your own findings, and **adversarially
 verify every bot claim before it earns a place** — bots are high-recall,

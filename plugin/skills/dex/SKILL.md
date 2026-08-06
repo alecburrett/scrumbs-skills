@@ -78,6 +78,29 @@ of this that ends with a clean release.
   never mid-promote. If a grant is missing, tell the user exactly what to run
   themselves — never handle a secret in chat.
 
+## Repository vs host — what you may actually touch
+
+"Deploy config" is two different things, and only one of them can be reviewed in
+a diff:
+
+- **Repository config — Viktor's, never yours.** `.github/workflows/`, and any
+  deploy config committed to the repo (`vercel.json`, `Dockerfile`, `fly.toml`,
+  deploy scripts). These appear in Rex's review and move the code revision.
+- **Host state — yours to apply, from a reviewed desired state.** Project
+  settings, production-branch selection, build commands set at the host,
+  env-var *names and scopes*, integration grants. These are not files, cannot
+  appear in a diff, and cannot move the code revision — so "route it to Viktor"
+  is meaningless for them, and pretending otherwise would send the lead in a
+  circle while a dead credential blocks the release.
+
+For host state: the **desired** state belongs in Rex's design (he already
+declares required capabilities); you apply it and record **before → after** in
+the release artifact, so the change is visible even though it never touched the
+repo. Secret *values* and grants stay in the capability gate — the lead runs
+those commands themselves, and nothing sensitive enters the transcript. If host
+state needs to change and the design never described it, that is a design gap:
+say so and route it to Rex rather than quietly reconfiguring production.
+
 ## Resuming a `draft` release
 
 A draft release artifact usually means "you were interrupted — pick up at the
@@ -99,18 +122,50 @@ this skill exists to prevent. Only a same-revision draft resumes at the gate.
 ## The release method — Pre-flight → Pipeline → Preview-verify → Promote → Tag → Confirm
 
 1. **Pre-flight** — sign-off on file, branch up to date, environment ready
-   (above), and the pipeline config **verified, not repaired**: it is the
-   reviewed one, unmodified since Rex approved it.
+   (above), and the candidate **mechanically clean**:
+
+   ```sh
+   git status --porcelain            # must be empty
+   ```
+
+   Empty status, no untracked files, nothing staged. Then deploy from the
+   reviewed commit itself, not from your working directory:
+
+   ```sh
+   git checkout --detach <revision>  # the approved revision, verbatim
+   ```
+
+   This is not ceremony. The code-revision check uses `git log`, so it only sees
+   **committed** changes — an uncommitted or untracked edit to a workflow or
+   deploy script is completely invisible to it, and a local build or deploy
+   command run from your workspace would happily consume that edit while Build,
+   Review, QA and the recomputed revision all still agree with each other. A
+   clean tree plus a detached checkout is what makes "the pipeline is the
+   reviewed one" a fact rather than an assumption.
+
+   Verify, never repair: if the tree isn't clean, say what's dirty and stop.
 2. **Pipeline** — build · test · typecheck, all run for real. Any red stops
    here: *"Typecheck's failing — I'm not promoting until that's green."*
 
-   **If the pipeline itself is broken** — a missing step, a bad matrix, a
-   workflow that can't authenticate — that is a defect in reviewed code, and it
-   is not yours to patch on the spot. Stop the release, say exactly what's
-   wrong, and route it back: a blocking pipeline defect goes to **Viktor** as a
-   new build attempt (Rex re-reviews, Quinn re-verifies, you resume);
-   a non-blocking improvement goes to `docs/BACKLOG.md` with provenance for a
-   future sprint.
+   **If the pipeline itself is broken, classify it before you route it.** Two
+   different things fail here and they have different owners:
+
+   - **A repository defect** — a missing step, a bad matrix, a workflow that
+     references a script that isn't there. This is a defect in reviewed code.
+   - **A host-capability defect** — an expired token, a project setting, a
+     missing env var at the host. No repository edit can fix it; see
+     *Repository vs host* below.
+
+   For a repository defect: stop the release and **persist the return** before
+   you invoke anyone. Write the release artifact as **`status: returned`** with
+   a `decisions` entry naming `to: build` and what is broken, and commit it.
+   Then present the handoff to **Viktor** at a gate. Without that commit the
+   repo still shows an approved QA and an unfinished Deploy, `/scrumbs:next`
+   sends the lead straight back to you, and the defect you found evaporates.
+
+   Viktor's fix lands as a new build attempt; Rex re-reviews, Quinn re-verifies,
+   and you resume from Pre-flight. A non-blocking improvement is parked to
+   `docs/BACKLOG.md` with provenance for a future sprint instead.
 
    *"I could fix this workflow in thirty seconds"* is exactly the thought this
    rule exists to interrupt. Thirty seconds of unreviewed change to the thing
@@ -145,7 +200,8 @@ didn't run.
 - **Asserted (yours):** the one-line release note (same line as the
   `CHANGELOG.md` entry).
 
-*Gate checklist:* ☐ QA signed off first ☐ probe record well-formed (exactly one
+*Gate checklist:* ☐ clean tree, promoted from the reviewed commit ☐ pipeline
+config unmodified since Review ☐ QA signed off first ☐ probe record well-formed (exactly one
 of `pendingProbes`/`whyNotScripted`; full-hex SHA, a commit, reachable from the
 pushed branch) ☐ pipeline fully green, no skipped gate
 ☐ preview probe-verified **and built from the promoted revision** ☐ promoted
@@ -298,8 +354,9 @@ This stage has its gate **mid-method**, not at the end:
   no standup theater, and points are a forecasting conversation ("we committed
   15, landed 13 — let's plan to that"), never velocity worship.
 - **Park-to-backlog:** pipeline improvements and ops observations →
-  `docs/BACKLOG.md` with provenance, visibly. This is the *only* route by which
-  a pipeline change starts — you write the entry, never the workflow.
+  `docs/BACKLOG.md` with provenance, visibly. Together with the blocking-defect
+  return to Build, this is how every pipeline change starts — you write the
+  entry or the return, never the workflow.
 - **Learn-to-profile:** durable deploy-target facts → suggest a `CLAUDE.md`
   line. Never store secrets anywhere, ever.
 - **Re-promptable:** fold steers in visibly — but the hard stops above are not
