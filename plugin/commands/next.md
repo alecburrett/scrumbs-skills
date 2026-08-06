@@ -84,10 +84,15 @@ back into bugs:
   running from `sprints/` returns the *paperwork* commit — reintroducing the
   deadlock — and running from a directory the last commit didn't touch returns
   nothing at all.
-- **The exclusions name Scrumbs' own artifact files, not whole directories.**
-  Excluding `docs/` wholesale would silently ignore real product content — a
+- **The two exclusion styles are deliberately different, and not
+  interchangeable.** `sprints/` is reserved for Scrumbs, so it is excluded
+  wholesale. `docs/` is shared with the project, so *only* the four named
+  Scrumbs files are excluded there. Do not "tidy" these into one style: making
+  `docs/` a directory exclusion would silently ignore real product content — a
   docs site, fixtures, executable examples — and leave a verdict looking current
-  when shipped files changed underneath it.
+  when shipped files changed underneath it; making `sprints/` file-by-file
+  reopens the glob hole where a product file in the reserved directory stops
+  advancing the revision.
 
 **No output means no code.** If the command returns empty, nothing outside the
 lifecycle artifacts has ever been committed — there is no build to judge. Say

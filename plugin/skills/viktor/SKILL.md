@@ -64,10 +64,12 @@ are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
   list from `git log` · **`revision`: the code revision** — run the canonical
-  command in `/scrumbs:next` verbatim (it is anchored at the repo root with
-  `:(top)` and excludes Scrumbs' artifact files by name; both details matter,
-  so don't retype it from memory). Empty output means no product code is
-  committed yet — stop, don't record an empty revision.
+  command in `/scrumbs:next` verbatim. Every part of it is load-bearing: the
+  `:(top)` anchoring, the wholesale exclusion of the reserved `sprints/`
+  directory, and the file-by-file exclusion under the *non*-reserved `docs/`.
+  Don't retype it from memory and don't normalise the two exclusion styles into
+  one. Empty output means no product code is committed yet — stop, don't record
+  an empty revision.
   · suite/typecheck/lint results pasted from their actual runs (failing must be 0).
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
