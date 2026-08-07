@@ -220,9 +220,10 @@ const CHECKS = {
       const seen = new Set();
       // Standalone `status: x`, plus status inside every header form. Case is
       // significant: the front door matches the canonical lowercase words.
-      for (const m of text.matchAll(/`status:\s*([A-Za-z-]+)`/g)) seen.add(m[1]);
-      for (const h of scrumbsHeaders(text))
-        for (const m of h.matchAll(/\bstatus:\s*([A-Za-z-]+)/g)) seen.add(m[1]);
+      // Optional quotes: `status: "Draft"` is ordinary YAML and must not slip past.
+      const STATUS = /\bstatus:\s*["']?([A-Za-z-]+)["']?/g;
+      for (const m of text.matchAll(/`status:\s*["']?([A-Za-z-]+)["']?`/g)) seen.add(m[1]);
+      for (const h of scrumbsHeaders(text)) for (const m of h.matchAll(STATUS)) seen.add(m[1]);
       for (const s of seen)
         if (!known.has(s))
           f.push(
@@ -313,19 +314,28 @@ const CHECKS = {
       const quarantined = new Array(lines.length).fill(false);
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].trim() !== MARKER) continue;
+        quarantined[i] = true; // the marker sits in the quote's own paragraph
         let j = i + 1;
         while (j < lines.length && lines[j].trim() === "") j++;
         while (j < lines.length && lines[j].trimStart().startsWith(">")) quarantined[j++] = true;
       }
-      lines.forEach((line, i) => {
-        const haystack = plain(line).toLowerCase();
+      // Search whole paragraphs, not physical lines: reflowing prose must not be
+      // able to hide a phrase by wrapping between its words.
+      let i = 0;
+      while (i < lines.length) {
+        if (lines[i].trim() === "") { i++; continue; }
+        const start = i;
+        while (i < lines.length && lines[i].trim() !== "") i++;
+        const block = lines.slice(start, i);
+        if (block.every((_, k) => quarantined[start + k])) continue;
+        const haystack = plain(block.join(" ")).replace(/\s+/g, " ").toLowerCase();
         for (const phrase of ABSENT_MACHINERY)
-          if (haystack.includes(phrase.toLowerCase()) && !quarantined[i])
+          if (haystack.includes(phrase.toLowerCase()))
             f.push(
-              `${path}:${i + 1}: "${phrase}" outside a hosted-port note ` +
+              `${path}:${start + 1}: "${phrase}" outside a hosted-port note ` +
                 `(mark the blockquote with ${MARKER} if it genuinely is one)`,
             );
-      });
+      }
     }
     return f;
   },
@@ -553,6 +563,20 @@ const MUTATIONS = [
     name: "a bold multiword handoff names no persona",
     category: "handoffs",
     apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke **Vicktor agent**")),
+  },
+  {
+    name: "a quoted status bypasses casing validation",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
+      "status: draft, sprint: N",
+      'status: "Draft", sprint: N',
+    )),
+  },
+  {
+    name: "a banned phrase is split across a line wrap",
+    category: "absent-machinery",
+    apply: (r) => (r["personas/stella.md"] +=
+      "\nStella reads the Sprint\nLedger before writing the retro.\n"),
   },
   {
     name: "absent machinery hides behind bold formatting",
