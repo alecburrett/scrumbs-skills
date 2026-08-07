@@ -164,6 +164,25 @@ function splitRow(line) {
 
 const normHeader = (h) => h.replace(/[`*_]/g, "").trim().toLowerCase();
 
+/**
+ * Find a table by the columns it declares, not by prose. Looking for a phrase
+ * anywhere in the file matches a sentence that merely mentions it — a real false
+ * rejection, since the sentence then gets parsed as a header with no delimiter.
+ * Returns the header line index, or -1 / -2 for none / ambiguous.
+ */
+function findTable(lines, ...requiredCols) {
+  const hits = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].includes("|")) continue;
+    const header = splitRow(lines[i]).map(normHeader);
+    if (!requiredCols.every((c) => header.includes(c))) continue;
+    const sep = lines[i + 1] === undefined ? [] : splitRow(lines[i + 1]);
+    if (sep.length !== header.length || !sep.every((c) => /^:?-{3,}:?$/.test(c.trim()))) continue;
+    hits.push(i);
+  }
+  return hits.length === 1 ? hits[0] : hits.length === 0 ? -1 : -2;
+}
+
 function parseTable(lines, headerIdx) {
   const header = splitRow(lines[headerIdx]);
   const errors = [];
@@ -289,8 +308,9 @@ const CHECKS = {
     const sec = section(repo["plugin/commands/next.md"], heading);
     if (sec === null) return [`next.md: no "${heading}" section — status table moved or renamed`];
     const secLines = sec.split("\n");
-    const hi = secLines.findIndex((l) => l.includes("|") && /status/i.test(l));
+    const hi = findTable(secLines, "status");
     if (hi === -1) return ["next.md: status vocabulary table not found"];
+    if (hi === -2) return ["next.md: more than one candidate status vocabulary table"];
     const { rows, col, errors } = parseTable(secLines, hi);
     if (errors.length) return errors.map((e) => `next.md: status vocabulary ${e}`);
     const sc = col("status");
@@ -366,8 +386,9 @@ const CHECKS = {
     );
     if (vocab === null) return ["next.md: status vocabulary section not found"];
     const vLines = vocab.split("\n");
-    const vhi = vLines.findIndex((l) => l.includes("|") && /status/i.test(l));
+    const vhi = findTable(vLines, "status");
     if (vhi === -1) return ["next.md: status vocabulary table not found"];
+    if (vhi === -2) return ["next.md: more than one candidate status vocabulary table"];
     const v = parseTable(vLines, vhi);
     if (v.errors.length) return v.errors.map((e) => `next.md: status vocabulary ${e}`);
     const vsc = v.col("status");
@@ -381,8 +402,9 @@ const CHECKS = {
     if (statuses.size < 5) return ["next.md: parsed too few statuses — vocabulary shape changed"];
 
     const lines = next.split("\n");
-    const head = lines.findIndex((l) => l.includes("required last decision"));
+    const head = findTable(lines, "status", "required last decision type");
     if (head === -1) return ["next.md: status→decision mapping table not found"];
+    if (head === -2) return ["next.md: more than one candidate status→decision mapping table"];
     const m = parseTable(lines, head);
     if (m.errors.length) return m.errors.map((e) => `next.md: status→decision mapping ${e}`);
     const msc = m.col("status");
@@ -1006,6 +1028,14 @@ const MUST_STAY_GREEN = [
     apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
+    )),
+  },
+  {
+    name: "prose that mentions the mapping table's header phrase",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `status` | required last decision `type` |",
+      "   The required last decision type is documented below.\n\n   | `status` | required last decision `type` |",
     )),
   },
   {
