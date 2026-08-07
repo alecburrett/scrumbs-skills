@@ -92,8 +92,20 @@ an explicit test, visibly.
 
 ## The build summary — run it, paste it, don't narrate it
 
-When every story's acceptance has a passing test and suite + typecheck + lint
-are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {schema: 2, stage, status, sprint, attempt}` header the front door parses):
+**Create it at the start of Build, not the end.** Write
+`sprints/sprint-N-build.md` as `status: draft` (standard
+`scrumbs: {schema: 2, stage, status, sprint, attempt}` header) with every story
+listed `not-started` before you write a line of code, and update the states as
+stories land — and *always* before you pause or stop.
+
+If it were only created once everything is green, the `partial` and
+`not-started` states below could never exist: an interrupted or abandoned sprint
+would end with no file at all, your todo list would vanish with the session, and
+Stella would have nothing to build carry-forward from — which is precisely the
+case the record exists for. The all-green condition governs *approving and
+pushing* it, not creating it.
+
+Contents:
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
   list from `git log` · **`revision`: the code revision** — run the canonical
@@ -137,8 +149,9 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
    already believes the design is a weaker reviewer. A fresh session starts from
    the repo alone — the branch, the design, the acceptance criteria — which is
    what "independent review" actually means here. It costs the lead one command.
-3. **On either push selection:** mark the summary approved and commit it
-   *first*, **then** push (and `gh pr create` if the repo uses PRs) — so the PR
+3. **On either push selection** — only reachable once every story's acceptance
+   has a passing test and suite + typecheck + lint are green: mark the summary
+   approved and commit it *first*, **then** push (and `gh pr create` if the repo uses PRs) — so the PR
    Rex reviews contains the approved summary, not a stale draft with the
    approval commit stranded locally. Then:
 
@@ -150,7 +163,10 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
      seconds ago.
 4. **On "Send back with notes":** the notes are your new work list; fold in
    red-first, re-present the gate.
-5. **On "Pause here":** summary stays draft; `/scrumbs:next` resumes; stop.
+5. **On "Pause here":** update the per-story states first, then leave the
+   summary `draft` and commit it; `/scrumbs:next` resumes; stop. Pausing without
+   that update is how a half-finished sprint becomes unreadable to everyone
+   downstream.
 6. **Returning from a rejection** (a review at `status: changes-requested`, a
    sign-off at `status: blocked`, or a release at `status: returned` with
    `to: build` — Dex found a defect in the reviewed pipeline): seed your todo list from the findings or
