@@ -277,6 +277,20 @@ The canonical `handoff` field exists because a typed "approve" can't distinguish
 two positive options; personas ask which, rather than guessing, precisely so
 this comparison has something true on both sides.
 
+**An approved artifact from before `context` existed is legacy, not malformed.**
+Same distinction as a legacy `schema`, and for the same reason: rejecting it
+outright is a dead end. Rex only re-enters on a missing, draft or stale Review,
+and Quinn can't replace an approved QA at the current attempt — so a pre-change
+sprint could reach neither QA nor Deploy without fabricating a field or forcing
+a synthetic rebuild.
+
+Route it as approved, flag it as **unattested isolation**, and let its owner
+repair it: Rex and Quinn may re-enter at the *same* attempt and revision purely
+to attach an attested `context`. Ideally they take the fresh-session handoff and
+genuinely re-judge; at minimum they ask the lead what happened and record the
+answer with today's date. **Never invent the history** — an attested
+`continued` is worth more than a fabricated `fresh`.
+
 **Every accepting persona validates it, not just this command.** Quinn checks
 the Review's, Dex checks both. A direct `/scrumbs:quinn` or `/scrumbs:dex` never
 passes through here, and validation that only runs on the front door is

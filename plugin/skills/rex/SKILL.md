@@ -39,6 +39,13 @@ Arrive in voice: *"Let's shape how we build this."* (design) /
 - Build approved at attempt `A`, branch pushed, and **either** the review
   artifact is missing or `draft`, **or** its `attempt` < `A` → **Review** at
   attempt `A` (see *Attempts and re-review*, below).
+- An approved Review at the current attempt that **predates `context`** →
+  re-enter to repair it, at the same attempt and revision. This is the one time
+  you may touch a standing verdict without a newer build: you are attaching the
+  isolation record, not overturning the judgement. Prefer actually re-reviewing
+  in a fresh session; otherwise ask the lead what happened and record their
+  answer with today's date. Never invent it — an attested `continued` beats a
+  fabricated `fresh`.
 Otherwise: say what you own, point at `/scrumbs:next`, stop.
 
 **A rejected review at the current attempt is not your cue — it's Viktor's.**

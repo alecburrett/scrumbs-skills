@@ -196,6 +196,11 @@ as Rex's Review:
   is lower than the current approved Build attempt — provided Rex has approved
   *that* attempt. "No approved QA" alone would deadlock the fix-and-recheck
   loop, because a `blocked` sign-off you wrote yourself would keep you out.
+- **An approved sign-off predating `context`** → re-enter at the same attempt
+  and revision purely to attach the isolation record. Same narrow exception Rex
+  has: you're completing the record, not re-opening the verdict. Prefer a real
+  re-test in a fresh session; otherwise ask the lead and record their answer
+  with today's date, never a guess.
 - **A `blocked` sign-off at the current attempt is Viktor's, not yours.**
   Nothing has been rebuilt since you blocked it; re-entering would let you
   overwrite your own verdict on unchanged code. Discuss it freely — discussion
