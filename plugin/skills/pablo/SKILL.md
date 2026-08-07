@@ -123,6 +123,12 @@ one-line description of what follows. On confirmation, update `shape` on the
 brief, **append** that exact question and answer to its `decisions` list, cite
 the previous brief blob in `inputs` as provenance, and commit.
 
+**The appended entry is `type: approved`** — the brief's status stays
+`approved`, and the last decision must match the status or the brief is
+malformed and every persona that reads it stops. Don't invent a
+`type: shape-change`; what makes this entry legible is its `question` and
+`answer`, which say in the lead's own words exactly what was approved.
+
 Then say what actually changes, and do the one thing that makes it real:
 
 - **`headless` → `ui`:** Iris's setup Design becomes due before anything is
@@ -201,8 +207,10 @@ re-confirmed unnecessarily at every handoff.
   `schema: 1`, means *legacy*, not malformed: trust its status, say once that
   its record predates this contract, and carry on — refusing it would strand
   every project that started before the record existed. Only at `schema: 2` does
-  a non-draft status with no matching last entry mean malformed; then you stop
-  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a status with no matching last entry mean malformed; then you stop rather than
+  inherit it — **except `draft` and `superseded`, which are exempt from both
+  needing a record and matching one**, since neither is an outcome the lead
+  chose and a superseded artifact keeps whatever history it already had. And when a legacy artifact is **yours**, offer the lead
   a one-line re-confirmation and write a proper record from their answer. None of
   this proves who really answered; it makes a missing or broken record visible,
   which is a different and more modest thing.

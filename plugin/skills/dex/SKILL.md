@@ -113,8 +113,11 @@ non-secret settings, and nothing else.
 
 **If host state needs to change and the design never described it**, that is a
 design gap, and it has a route. Ask the gate, then write the release artifact
-as `status: returned` with `to: design` and what is missing, commit, and hand to
-**Rex**. He amends the design's desired state, takes a fresh approval for it,
+as `status: returned`, **appending a `decisions` entry whose `type` is
+`returned` and which carries `to: design`** alongside the lead's verbatim
+question and answer — the `to` belongs *in that entry*, not loose at artifact
+level, or the front door reads the last decision as not matching the status
+and rejects it. Say what is missing, commit, and hand to **Rex**. He amends the design's desired state, takes a fresh approval for it,
 and clears the return; you then resume from Pre-flight. If no code changed,
 nothing needs rebuilding — the candidate is untouched, so Build, Review and QA
 stand. Never quietly reconfigure production to get a release out; that is the
@@ -363,8 +366,10 @@ This stage has its gate **mid-method**, not at the end:
   `schema: 1`, means *legacy*, not malformed: trust its status, say once that
   its record predates this contract, and carry on — refusing it would strand
   every project that started before the record existed. Only at `schema: 2` does
-  a non-draft status with no matching last entry mean malformed; then you stop
-  rather than inherit it. And when a legacy artifact is **yours**, offer the lead
+  a status with no matching last entry mean malformed; then you stop rather than
+  inherit it — **except `draft` and `superseded`, which are exempt from both
+  needing a record and matching one**, since neither is an outcome the lead
+  chose and a superseded artifact keeps whatever history it already had. And when a legacy artifact is **yours**, offer the lead
   a one-line re-confirmation and write a proper record from their answer. None of
   this proves who really answered; it makes a missing or broken record visible,
   which is a different and more modest thing.

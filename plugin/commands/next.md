@@ -67,8 +67,8 @@ identify paperwork.
 **Checking a decision, before you trust it:**
 
 1. `schema` is recognised (see legacy, below).
-2. `decisions` is present and non-empty for any status other than `draft`, and
-   its last entry is the one that status requires:
+2. `decisions` is present and non-empty for any status other than `draft` **or
+   `superseded`**, and its last entry is the one that status requires:
 
    | `status` | required last decision `type` |
    |---|---|
@@ -78,8 +78,22 @@ identify paperwork.
    | `held` | `held` |
    | `returned` | `returned` (with `to:`) |
    | `abandoned` | `abandoned` |
+   | `superseded` | *(exempt — see below)* |
 
    Missing, partial, or not matching → **malformed, fail closed**, and say so.
+
+   **`draft` and `superseded` are exempt from both halves** — presence *and*
+   last-type matching — and for the same reason: neither is something the lead
+   chose. `draft` is work in progress; `superseded` is a *derived* state, an
+   artifact replaced by a later attempt or retired by a shape change. Nobody
+   attends a gate to supersede something.
+
+   Both halves matter. A superseded artifact that was previously approved still
+   carries an `approved` last entry, which would fail type-matching; and an
+   interrupted draft that is later superseded may carry no decisions at all,
+   which would fail presence. Either check alone would reject perfectly ordinary
+   artifacts. Its existing history stays exactly as it is — still true, just no
+   longer current.
 
    Note the one many-to-one row. `authorized` and `approved` both rest on the
    *same* `approved` decision, because the lead authorized the promote exactly
