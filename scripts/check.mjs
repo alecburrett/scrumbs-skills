@@ -596,7 +596,10 @@ const CHECKS = {
         // searching only for the exact `/scrumbs:` prefix means a one-character
         // namespace typo is invisible, which is the failure this check claims to
         // catch. Unrelated commands like /plugin are ignored by distance.
-        const TOKEN = /\/([A-Za-z][A-Za-z0-9_-]*)(?::([^\s`*\[\]()<>"']+))?/g;
+        // Typographic punctuation ends a token too — this repo is full of em dashes
+        // and smart quotes, and "/scrumbs:next”" is not a command called `next”`.
+        const TOKEN =
+          /\/([A-Za-z][A-Za-z0-9_-]*)(?::([^\s`*\[\]()<>"'\u2018\u2019\u201c\u201d\u2013\u2014\u2026\u00ab\u00bb]+))?/g;
         for (const m of line.matchAll(TOKEN)) {
           // Skip only when this really is part of a longer path or URL —
           // github.com/alecburrett/scrumbs-skills, or ~/.claude/commands/…
@@ -1398,6 +1401,16 @@ const MUST_STAY_GREEN = [
     name: "the repo URL, which contains the plugin name",
     category: "documented-commands",
     apply: (r) => (r["README.md"] += "\nSee https://github.com/alecburrett/scrumbs-skills for more.\n"),
+  },
+  {
+    name: "a command inside smart quotes",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nThey said \u201cstart with /scrumbs:next\u201d and that was that.\n"),
+  },
+  {
+    name: "a command followed by an em dash",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nRun /scrumbs:next \u2014 it tells you where you are.\n"),
   },
   {
     name: "a command wrapped in backticks",
