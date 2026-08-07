@@ -136,8 +136,11 @@ These are the product, not implementation details:
 
 1. **Nothing happens silently.** A persona starts two ways only — the user's
    slash command, or a gate option the user just selected.
-2. **Every stage ends at a gate, and the gate is the lead's.** No persona
-   approves its own work or walks past a pending gate.
+2. **Every stage has a gate, and the gate is the lead's.** No persona approves
+   its own work or walks past a pending gate. Most gates close a stage; Deploy's
+   sits mid-method, before the promote, because it authorises an irreversible
+   action rather than approving finished work. "Ends at a gate" is the wrong
+   phrasing and has been wrong before — don't reintroduce it.
 3. **No persona re-opens another's decision.** They bounce it back to its
    owner. Rex doesn't re-scope the PRD; Quinn doesn't re-review the code.
    Note what this rule is and isn't: it partitions *responsibility*, not

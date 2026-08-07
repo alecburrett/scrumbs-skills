@@ -89,11 +89,16 @@ still reads perfectly on its own.
 
 ## The one rule
 
-**Every stage ends at a gate, and the gate is yours.**
+**Every stage has a gate, and the gate is yours.**
 
 Nobody hands off to anybody until you approve. No persona starts itself. Ask the
 team to "just do the whole thing" and they'll politely decline — that's the
 point.
+
+Most gates sit at the end of a stage, approving work you can already read.
+Deploy's sits in the *middle*, right before the promote — because there the
+gate authorises something irreversible rather than blessing something finished.
+You see the preview, the probe result, and the rollback handle first.
 
 Each gate is a question with your options, and the answer goes into the artifact
 next to the work:
