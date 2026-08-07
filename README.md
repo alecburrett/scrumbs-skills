@@ -7,9 +7,10 @@ drop the requirement you'd have argued about, skip the test that was awkward to
 write, and hand you a review it did on its own work in the same breath.
 
 Scrumbs is seven personas with narrow remits and hard handoffs. One works at a
-time. Each stops and asks you before anything moves. The awkward parts stop being
-skippable, because a different teammate owns each one and none of them will do
-another's job.
+time. Each stops and asks you before anything moves. Nobody skips the awkward
+part quietly, because a different teammate owns each one and none of them will
+do another's job — and when one *is* skipped, it leaves a hole in your repo
+you can see.
 
 ```
 /scrumbs
@@ -62,13 +63,24 @@ actually learned.
 Every stage leaves a real file in your repo:
 
 ```
-docs/BRIEF.md          what we're building, and what we're not
-docs/PRD.md            the spec, with numbered acceptance criteria
-docs/DESIGN.md         the visual identity
-docs/BACKLOG.md        everything we parked, with provenance
-sprints/sprint-1.md    the plan · design · build · review · QA · retro
-CHANGELOG.md           what shipped
+docs/BRIEF.md                    what we're building, and what we're not
+docs/PRD.md                      the spec, with numbered acceptance criteria
+docs/DESIGN.md                   the visual identity            (UI projects)
+docs/BACKLOG.md                  everything we parked, with provenance
+
+sprints/sprint-1.md              the plan
+sprints/sprint-1-design.md       the technical approach
+sprints/sprint-1-build.md        what got built, story by story
+sprints/sprint-1-review.md       the verdict, with findings by id
+sprints/sprint-1-qa.md           the sign-off, with defects by id
+sprints/sprint-1-release.md      what shipped, and the rollback handle
+sprints/sprint-1-retro.md        what we learned
+
+CHANGELOG.md                     what shipped
 ```
+
+<sub>Plus `sprint-N-design-pass.md` on UI sprints, and `sprint-N-reprioritise.md`
+from sprint 2 onward.</sub>
 
 Your repo is the source of truth. Delete the plugin tomorrow and every artifact
 still reads perfectly on its own.
@@ -92,13 +104,18 @@ decisions:
     at: 2026-08-07T14:22:31Z
     by: Alec Burrett
     question: "Approve — ready for QA?"
-    answer: "Confirm — hand to Quinn"
+    answer: "Confirm — QA in a fresh session"
+    handoff: fresh
 ```
 
-The next persona reads that record before it starts. If it's missing, or points
-at a build that has since changed, it **stops** instead of quietly building on
-it. That's what makes a run resumable weeks later, and a retro citable rather
-than remembered.
+The next persona reads that record before it starts. If it's missing or
+malformed, or if it approves a build that has since been rebuilt, it **stops**
+rather than quietly building on it. Inputs are recorded by content hash too, so
+a stage tells you which version of a document it actually consumed — surfaced
+when it has since changed, not blocked.
+
+That's what makes a run resumable weeks later, and a retro citable rather than
+remembered.
 
 ---
 
@@ -110,23 +127,34 @@ the reviewer still has the reasoning that produced the code sitting in context.
 So both offer a handoff into a **fresh session**. Your repo is the state, so a
 new session picks up exactly where the last one stopped: the branch, the design,
 the acceptance criteria — and none of the argument that got you there. Take it
-and Rex reads your code cold. The artifact records which you chose, so a review
-that wasn't independent doesn't get to look like one.
+and Rex reads your code cold.
+
+The artifact records which you chose, and the next stage cross-checks it against
+the handoff. That's an attestation, not a proof — nothing here can verify a
+session was really fresh — but it means a review done in the same room has to
+say so on the record.
 
 ---
 
 ## It fits the work
 
-A CLI doesn't need a visual identity, and a one-line bug fix doesn't need a PRD.
+A CLI doesn't need a visual identity, and a one-line bug fix doesn't need a
+morning of planning.
 
 - **No screen?** Iris's stages don't exist for that project — not a token version
   of them.
-- **Existing codebase?** Pablo documents what's there instead of interviewing you
-  about a product you already shipped.
+- **Existing codebase?** Pablo documents what's there and scopes the spec to the
+  change at hand, instead of interviewing you about a product you already
+  shipped.
 - **Just a defect, or a hotfix?** The plan and the technical approach shrink to a
   few lines each.
 
-What never shrinks: **review, QA and deploy.** A hotfix still gets a written,
+Being straight about the floor: **every project starts with a brief and a spec**,
+even a small one — that's where the acceptance criteria come from, and
+everything downstream is checked against them. What shrinks is how long they
+take, not whether they exist.
+
+And **review, QA and deploy never shrink at all.** A hotfix still gets a written,
 approved plan before the code changes and every check after it. A rushed change
 going straight to production is exactly when you want them.
 
@@ -164,9 +192,9 @@ answer, and a paper trail in your own repo that outlives the plugin.
   took it.
 - **The paper trail is evidence, not a lock.** These are files on your branch;
   anyone who can commit can write a convincing record for a gate that never
-  happened. What it reliably catches is the ordinary stuff — a stale approval, a
-  stage built on a document that changed underneath it, a record nobody filled
-  in. Not a determined forger.
+  happened. What it reliably catches is the ordinary stuff — a verdict about code
+  that has since been rebuilt, a record nobody filled in, a chain that doesn't
+  line up. Not a determined forger.
 - **Enforcement lives where enforcement works**: branch protection, required
   reviewers, CI. Scrumbs sits happily behind them and never claims to replace
   them.
@@ -190,8 +218,11 @@ specs they're compiled from live in [`personas/`](./personas/).
 
 Yes please — it's Markdown, so the barrier is low. Start with
 [CONTRIBUTING.md](./CONTRIBUTING.md): the spec/skill split, the four rules that
-are the product rather than implementation details, and `scripts/check.mjs`,
-which fails the build when the seven skills drift out of sync.
+are the product rather than implementation details, and `scripts/check.mjs` —
+which fails the build when the shared rituals stop being byte-identical, or a
+skill names a status or a handoff that doesn't exist. It compares files to each
+other; it can't run a stage, so a rule that's consistently wrong everywhere
+still passes.
 
 ## Licence
 
