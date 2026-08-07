@@ -49,10 +49,10 @@ nobody noticed by reading:
 | **shared-bullets** | a canonical bullet edited in one skill and left alone in the other six — the drift that let the retro hand off to the wrong persona |
 | **shared-bullets-declared** | a bullet that has *become* byte-identical everywhere without being declared canonical, so the next edit desyncs it silently |
 | **maintainer-comment** | the comment naming a different set than `CANONICAL_BULLETS` — in either direction |
-| **status-decision-mapping** | a status the vocabulary defines that the status→decision table doesn't actually map — whether the row is missing, empty, a placeholder, or names the status only on the right-hand side. An artifact written with it would be rejected by its own validator |
+| **status-decision-mapping** | a status the vocabulary defines that the status→decision table doesn't actually *map* — a row that is missing, empty, a placeholder (`` `tbd` ``, `TBD`), prose, a negated exemption, or names the status only on the right. An artifact written with it would be rejected by its own validator |
 | **status-vocabulary** | a skill writing a status the front door can't route — backticked, bare, quoted, in a flow or multiline header, or drifting only in casing — *and* the status table being renamed or reformatted out from under the parser |
 | **handoffs** | a handoff that resolves to nobody. The written form is `` invoke `persona` `` — a code span or bold run after `invoke` must name a real persona, and a Capitalised bare word (`invoke Vicktor`) fails as the wrong form. Ordinary lowercase prose like "never invoke the deployment tool" is left alone |
-| **header-schema** | a header template without a `schema` key, including lookalikes like `schemaVersion` |
+| **header-schema** | a header template without a `schema` **key** — lookalikes like `schemaVersion`, and mentions in a comment or a value, don't count |
 | **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide, in any casing. Allowed only inside a blockquote preceded by the literal marker `<!-- hosted-port-note -->` — prose can't spoof a marker — and judged per line, so one quoted mention can't shelter a live requirement further down the file |
 | **packaging** | a missing persona in either direction, frontmatter disagreeing with its directory, invalid manifest JSON |
 
@@ -72,6 +72,20 @@ Be clear-eyed about this, or the green tick starts doing work it hasn't earned:
   backtick, a reflowed paragraph, a half-synced bullet. It is not an adversarial
   control, and it isn't trying to be: anyone editing these files can defeat it
   if they set out to.
+
+### On the shape of these checks
+
+A recurring failure while building them: **treating a mention as satisfaction of
+a requirement.** Searching a row for a backticked word, or a header body for
+"schema", finds the word in a comment, a placeholder, a value, or the wrong
+column — and reports conformance. Every one of those was a real false negative
+here.
+
+So the parsers read *structure*: Markdown tables are split by column with the
+columns located by header name (outer pipes optional, `\|` escapes honoured), and
+header keys are extracted as keys rather than matched as text. If you extend a
+check, extend it that way — and add both a mutation and, where the change could
+plausibly reject valid Markdown, a `MUST_STAY_GREEN` case.
 
 ### Adding a check
 
