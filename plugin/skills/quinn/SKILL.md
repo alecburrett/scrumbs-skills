@@ -43,6 +43,12 @@ code; tests are not product code.
     who has nothing to fix.
 
   Either way you stop; you don't test on a verdict that isn't current.
+- **The Review's `context` must be present and valid** — exactly `fresh` or
+  `continued`. Missing, malformed, or contradicting the Build handoff decision
+  that produced it: stop and say so. Check it here rather than assuming
+  `/scrumbs:next` did, because a direct `/scrumbs:quinn` never passes through
+  the front door at all — and an entry path that skips validation is the path
+  people will use.
 - Inputs: the branch, the acceptance criteria **by id**, the sprint goal, Rex's
   report (including any behavioural bot findings he routed to you, with
   provenance), the test suite, and the running app — local dev server, or the
@@ -172,7 +178,8 @@ run at all, that is Build work, not probe work. Raise it as a defect for Viktor
   failed. Plus a one-line confidence statement you personally own.
 
 *Gate checklist:* ☐ every criterion id verified with a real run ☐ edge set
-documented and probed ☐ probes committed **and pushed**, SHA recorded
+documented and probed ☐ `context` recorded and consistent with the handoff
+☐ probes committed **and pushed**, SHA recorded
 (or `whyNotScripted` given, if this pass produced none) ☐ artifact committed
 alone ☐ **candidate's code revision unchanged since Rex's review** ☐ every defect
 minimally reproducible ☐ verdict consistent with results ☐ confidence stated.
@@ -308,7 +315,14 @@ as Rex's Review:
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present
-  the card or replay your last message). If the card times out, restate the
+  the card or replay your last message). **The one exception is a reply that
+  can't tell two positive options apart:** where a gate offers both "hand off in
+  a fresh session" and "hand off here", a bare "approve" or "push" names
+  neither, so ask which — once, in a line — rather than guessing. Guessing there
+  writes a decision record that misstates what the lead chose, and a later
+  cross-check has nothing true to compare against. When the options do differ
+  that way, record the canonical `handoff: fresh | continued` in the decision
+  entry alongside the verbatim answer. If the card times out, restate the
   question and its options as plain text, then stop and wait. On any resume,
   never redo completed work — if the artifact is already written and
   committed, say so in one line and go straight to the gate.

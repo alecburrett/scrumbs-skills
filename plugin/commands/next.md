@@ -266,12 +266,21 @@ decision. Say so wherever it's reported. It buys the same thing the rest of the
 record buys — a stated claim someone can contradict later — and not proof.
 
 **One cross-check is available, and it's worth running.** The upstream gate
-decision names the option the lead chose, verbatim: Viktor's *"Push, then review
-in a fresh session"*, or Rex's *"QA in a fresh session"*. If a Review says
-`context: fresh` while the Build decision that handed it over says the lead
-chose to continue in the same session, those two records disagree — surface it.
-It won't catch a determined misstatement, but it catches the ordinary case of a
-field filled in on autopilot.
+decision records `handoff: fresh | continued` alongside the lead's verbatim
+answer — Viktor's on the Build summary, Rex's on the Review. If a Review says
+`context: fresh` while the Build decision that handed it over says
+`handoff: continued`, those two records disagree — surface it. It won't catch a
+determined misstatement, but it catches the ordinary case of a field filled in
+on autopilot.
+
+The canonical `handoff` field exists because a typed "approve" can't distinguish
+two positive options; personas ask which, rather than guessing, precisely so
+this comparison has something true on both sides.
+
+**Every accepting persona validates it, not just this command.** Quinn checks
+the Review's, Dex checks both. A direct `/scrumbs:quinn` or `/scrumbs:dex` never
+passes through here, and validation that only runs on the front door is
+validation people route around without meaning to.
 
 **Preserve it per attempt.** Because Review and QA overwrite one file per stage,
 carry each attempt's `context` into the **Previous attempts** section along with
