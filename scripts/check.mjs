@@ -92,7 +92,9 @@ function siblingBullets(sectionText) {
   const flush = () => {
     if (label === null) return;
     // A duplicate label would overwrite the first, hiding drift behind a clean copy.
-    if (out.has(label)) duplicates.push(label);
+    // Normalized, so "Closed means closed." and "Closed means closed:" collide.
+    const key = norm(label);
+    if ([...out.keys()].some((k) => norm(k) === key)) duplicates.push(label);
     else out.set(label, buf.join("\n"));
   };
   for (const line of lines) {
@@ -110,6 +112,17 @@ function siblingBullets(sectionText) {
 }
 
 const norm = (label) => label.replace(/[.:]\s*$/, "").trim();
+
+/** Every scrumbs header template in a file, flow and multiline, as raw bodies. */
+function scrumbsHeaders(text) {
+  const out = [];
+  for (const m of text.matchAll(/scrumbs:\s*\{([^}]*)\}/g)) out.push(m[1]);
+  for (const m of text.matchAll(/^(\s*)scrumbs:\s*$\n((?:\1\s+\S.*\n?)+)/gm)) out.push(m[2]);
+  return out;
+}
+
+/** Markdown emphasis stripped, so `Sprint **Ledger**` reads as `Sprint Ledger`. */
+const plain = (line) => line.replace(/[*_`]/g, "");
 
 const RITUALS = "## Team rituals (all personas)";
 
@@ -205,53 +218,68 @@ const CHECKS = {
     for (const p of skillNames(repo)) {
       const text = repo[skillKey(p)];
       const seen = new Set();
-      // Standalone `status: x`, and status inside a full header template — the
-      // backtick sits before `scrumbs` there, so a backtick-anchored regex misses it.
-      for (const m of text.matchAll(/`status:\s*([a-z-]+)`/g)) seen.add(m[1]);
-      for (const h of text.matchAll(/scrumbs:\s*\{([^}]*)\}/g))
-        for (const m of h[1].matchAll(/\bstatus:\s*([a-z-]+)/g)) seen.add(m[1]);
+      // Standalone `status: x`, plus status inside every header form. Case is
+      // significant: the front door matches the canonical lowercase words.
+      for (const m of text.matchAll(/`status:\s*([A-Za-z-]+)`/g)) seen.add(m[1]);
+      for (const h of scrumbsHeaders(text))
+        for (const m of h.matchAll(/\bstatus:\s*([A-Za-z-]+)/g)) seen.add(m[1]);
       for (const s of seen)
-        if (!known.has(s)) f.push(`${p}: writes status "${s}", which next.md cannot route`);
+        if (!known.has(s))
+          f.push(
+            `${p}: writes status "${s}", which next.md cannot route` +
+              (known.has(s.toLowerCase()) ? " (casing must match exactly)" : ""),
+          );
     }
     return f;
   },
 
   // Every `invoke …` must resolve to a real persona. Anything this cannot parse
   // is itself a failure — an unreadable handoff is exactly where a typo hides.
+  // Handoffs have one written form: invoke `persona`. That is the grammar, and
+  // it is what makes this checkable at all.
+  //
+  //   invoke `dex`                       a handoff — must resolve
+  //   invoke `next` / `deploybot`        a handoff to nobody — fails
+  //   invoke Vicktor / **Vicktor agent** looks like a handoff, wrong form — fails
+  //   never invoke the deployment tool   lowercase prose about a tool — ignored
+  //
+  // Emphasised or Capitalised targets fail rather than being ignored, because
+  // that is exactly how a misspelled persona would be written by hand.
   handoffs(repo) {
     const names = skillNames(repo);
-    // Prose that legitimately follows "invoke": rules about invocation, not a
-    // target. A misspelled persona is in none of these, so it still fails.
-    const PROSE = new Set([
-      "only", "nobody", "no-one", "noone", "anyone", "nothing", "a", "an",
-      "another", "any", "that", "this", "which", "next", "the", "their", "its",
-      "whichever", "one", "them", "it", "you", "someone", "yourself",
-    ]);
     const f = [];
+    const clean = (s) =>
+      s
+        .replace(/[`*_]/g, "")
+        .replace(/\b(the|skill|agent|persona)\b/gi, "")
+        .replace(/[,.;:)"'\u2014]/g, "")
+        .trim();
     for (const p of names) {
-      // Skip frontmatter: every description contains "Invoke ONLY when…".
+      // Frontmatter says "Invoke ONLY when…" in every skill; that is not a handoff.
       const body = repo[skillKey(p)].replace(/^---\n[\s\S]*?\n---\n/, "");
-      // A code- or bold-formatted target is an explicit handoff and must resolve;
-      // the prose stoplist applies only to bare words like "invoke another persona".
-      const RE = /\binvoke\b\s+(?:the\s+)?(`[^`]+`|\*\*[^*]+\*\*|\S+)/gi;
+      const RE = /\binvoke\b\s+(?:the\s+)?(`[^`]+`|\*\*[^*]+\*\*|[A-Z][A-Za-z-]*|[a-z][a-z-]*)/g;
       for (const m of body.matchAll(RE)) {
         const raw = m[1];
-        const formatted = /^[`*]/.test(raw);
-        const target = raw
-          .replace(/[`*_]/g, "")
-          .replace(/\bskill\b/gi, "")
-          .replace(/^\s*the\s+/i, "")
-          .replace(/[,.;:)"'\u2014]/g, "")
-          .trim()
-          .toLowerCase();
-        if (!target) continue;
+        const emphasised = /^[`*]/.test(raw);
+        const capitalised = /^[A-Z]/.test(raw);
+        const target = clean(raw).toLowerCase();
         if (names.includes(target)) continue;
-        // "invoke **the skill named in that row's `next` column**" is a rule, not
-        // a target: a persona name is one word. "invoke **the Vicktor skill**"
-        // reduces to one word and must therefore resolve.
-        if (/\s/.test(target)) continue;
-        if (!formatted && PROSE.has(target)) continue;
-        f.push(`${p}: "invoke ${raw}" — "${target}" is not a persona`);
+
+        if (emphasised) {
+          // A code span or bold run after "invoke" is always meant as a target.
+          // Multi-word ones are prose only when they clearly describe a rule.
+          if (/\s/.test(target) && !/vicktor|agent|bot|persona/i.test(raw) &&
+              /named|column|row|listed|option|selected|chose/i.test(raw))
+            continue;
+          f.push(`${p}: "invoke ${raw}" — "${target}" is not a persona`);
+        } else if (capitalised) {
+          f.push(
+            `${p}: "invoke ${raw}" — write handoffs as \`invoke \`persona\`\`` +
+              (target ? ` ("${target}" is not a persona)` : ""),
+          );
+        }
+        // Bare lowercase words are ordinary prose ("never invoke the deployment
+        // tool", "invoke nobody") and are deliberately not treated as handoffs.
       }
     }
     return f;
@@ -262,11 +290,7 @@ const CHECKS = {
     let anyFound = 0;
     for (const p of skillNames(repo)) {
       const text = repo[skillKey(p)];
-      const headers = [];
-      for (const m of text.matchAll(/scrumbs:\s*\{([^}]*)\}/g)) headers.push(m[1]);
-      // Multiline YAML form: `scrumbs:` followed by indented keys.
-      for (const m of text.matchAll(/^(\s*)scrumbs:\s*$\n((?:\1\s+\S.*\n?)+)/gm))
-        headers.push(m[2]);
+      const headers = scrumbsHeaders(text);
       anyFound += headers.length;
       for (const body of headers)
         if (!/(^|[\s,{])schema\s*(:|,|$)/m.test(body.trim()))
@@ -294,7 +318,7 @@ const CHECKS = {
         while (j < lines.length && lines[j].trimStart().startsWith(">")) quarantined[j++] = true;
       }
       lines.forEach((line, i) => {
-        const haystack = line.toLowerCase();
+        const haystack = plain(line).toLowerCase();
         for (const phrase of ABSENT_MACHINERY)
           if (haystack.includes(phrase.toLowerCase()) && !quarantined[i])
             f.push(
@@ -499,6 +523,64 @@ const MUTATIONS = [
         original.slice(end);
     },
   },
+  {
+    name: "a bad status hides in a multiline header",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("pablo")] +=
+      "\n\nscrumbs:\n  schema: 2\n  stage: prd\n  status: rubber-stamped\n"),
+  },
+  {
+    name: "a status drifts only in casing",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("rex")] = r[skillKey("rex")].replace("`status: draft`", "`status: Draft`")),
+  },
+  {
+    name: "a duplicate ritual label differs only in punctuation",
+    category: "shared-bullets",
+    apply: (r) => {
+      const o = r[skillKey("iris")];
+      const s = o.indexOf("- **Closed means closed.**");
+      const e = o.indexOf("\n- **", s + 5);
+      const bullet = o.slice(s, e);
+      r[skillKey("iris")] =
+        o.slice(0, s) + bullet + "\n" +
+        bullet.replace("- **Closed means closed.**", "- **Closed means closed:**")
+              .replace("Before inferring any stage", "Before inferring NO stage") +
+        o.slice(e);
+    },
+  },
+  {
+    name: "a bold multiword handoff names no persona",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke **Vicktor agent**")),
+  },
+  {
+    name: "absent machinery hides behind bold formatting",
+    category: "absent-machinery",
+    apply: (r) => (r["personas/stella.md"] +=
+      "\nStella must consult the Sprint **Ledger** before the retro.\n"),
+  },
+];
+
+// Content a maintainer may legitimately write. Each must leave its category
+// GREEN — a checker that rejects ordinary prose gets disabled, not obeyed.
+const MUST_STAY_GREEN = [
+  {
+    name: "ordinary prose about invoking a tool",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("dex")] += "\nNever invoke the deployment tool before approval.\n"),
+  },
+  {
+    name: "a rule describing which skill to invoke",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("stella")] += "\nThen invoke **the skill named in the option the lead selected**.\n"),
+  },
+  {
+    name: "a hosted-port note that is properly marked",
+    category: "absent-machinery",
+    apply: (r) => (r["personas/stella.md"] +=
+      "\n<!-- hosted-port-note -->\n> A hosted port could compile a Sprint Ledger here.\n"),
+  },
 ];
 
 function runChecks(repo) {
@@ -518,6 +600,18 @@ function selfTest(base) {
     if (!caught) bad++;
     console.log(`  ${caught ? "✓ caught " : "✗ MISSED "} ${category.padEnd(24)} ${name}`);
   }
+  for (const { name, category, apply } of MUST_STAY_GREEN) {
+    const repo = { ...base };
+    apply(repo);
+    const failures = runChecks(repo)[category] ?? [];
+    const green = failures.length === 0;
+    if (!green) bad++;
+    console.log(
+      `  ${green ? "✓ allows " : "✗ REJECTS"} ${category.padEnd(24)} ${name}` +
+        (green ? "" : `\n      ${failures[0]}`),
+    );
+  }
+
   const clean = Object.values(runChecks(base)).flat();
   if (clean.length) {
     console.error(`\n  ✗ the unmutated repo does not pass — ${clean.length} failure(s)`);
@@ -529,7 +623,9 @@ function selfTest(base) {
     console.error(`\n${bad} self-test failure(s): a check that cannot fail is not a check.\n`);
     process.exit(1);
   }
-  console.log(`\n${MUTATIONS.length} mutations, all caught.\n`);
+  console.log(
+    `\n${MUTATIONS.length} mutations all caught; ${MUST_STAY_GREEN.length} legitimate edits all allowed.\n`,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────── main

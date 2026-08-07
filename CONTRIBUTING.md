@@ -50,7 +50,7 @@ nobody noticed by reading:
 | **shared-bullets-declared** | a bullet that has *become* byte-identical everywhere without being declared canonical, so the next edit desyncs it silently |
 | **maintainer-comment** | the comment naming a different set than `CANONICAL_BULLETS` — in either direction |
 | **status-vocabulary** | a skill writing a status the front door can't route, *and* the status table being renamed or reformatted out from under the parser |
-| **handoffs** | any `invoke …` that doesn't resolve to a real persona, backticked or not — a bare `invoke Vicktor` fails |
+| **handoffs** | a handoff that resolves to nobody. The written form is `` invoke `persona` `` — a code span or bold run after `invoke` must name a real persona, and a Capitalised bare word (`invoke Vicktor`) fails as the wrong form. Ordinary lowercase prose like "never invoke the deployment tool" is left alone |
 | **header-schema** | a header template without a `schema` key, including lookalikes like `schemaVersion` |
 | **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide, in any casing. Allowed only inside a blockquote preceded by the literal marker `<!-- hosted-port-note -->` — prose can't spoof a marker — and judged per line, so one quoted mention can't shelter a live requirement further down the file |
 | **packaging** | a missing persona in either direction, frontmatter disagreeing with its directory, invalid manifest JSON |
@@ -74,6 +74,12 @@ Add the mutation too. `--self-test` applies a deliberate break for every check
 and asserts it goes red; a category with no mutation, or one that stays green,
 fails the self-test. This is enforced rather than encouraged, because a check
 that cannot fail is worse than no check — it reassures without verifying.
+
+It also runs the reverse: `MUST_STAY_GREEN` holds edits a maintainer might
+legitimately write — prose about invoking a tool, a properly marked hosted-port
+note — and asserts they *don't* trip anything. A checker that rejects ordinary
+writing gets worked around rather than obeyed, so false positives are treated as
+failures too.
 
 ### The shared bullets
 
