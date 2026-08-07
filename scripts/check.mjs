@@ -564,7 +564,14 @@ const CHECKS = {
         }
       }
 
+      // Deprecation notes and troubleshooting legitimately name a command that
+      // doesn't work, to stop people running it. That needs an explicit marker —
+      // inferring it from words like "not" or "old" would reopen the accidental
+      // bypasses this check exists to close.
+      const NOT_A_COMMAND = "<!-- not-a-command -->";
       lines.forEach((line, i) => {
+        if (line.includes(NOT_A_COMMAND) || (lines[i - 1] ?? "").trim() === NOT_A_COMMAND)
+          return;
         // Capture every slash-command-shaped token, whatever namespace it uses —
         // searching only for the exact `/scrumbs:` prefix means a one-character
         // namespace typo is invisible, which is the failure this check claims to
@@ -975,6 +982,12 @@ const MUTATIONS = [
       "/scrumbs:next", "/scrumbs")),
   },
   {
+    name: "a deprecation note WITHOUT the marker",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nThe old `/scrumbs` no longer works — use `/scrumbs:next`.\n"),
+  },
+  {
     name: "an invalid command inside a Markdown link",
     category: "documented-commands",
     apply: (r) => (r["README.md"] += "\nSee [/scrumbs:start](#commands) to begin.\n"),
@@ -1338,6 +1351,12 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "a deprecation note using the explicit marker",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\n<!-- not-a-command -->\nThe old `/scrumbs` no longer works on a clean install — use `/scrumbs:next`.\n"),
   },
   {
     name: "an unrelated Claude Code command",

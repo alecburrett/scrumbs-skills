@@ -54,7 +54,7 @@ nobody noticed by reading:
 | **handoffs** | a handoff that resolves to nobody. The written form is `` invoke `persona` `` — a code span or bold run after `invoke` must name a real persona, and a Capitalised bare word (`invoke Vicktor`) fails as the wrong form. Ordinary lowercase prose like "never invoke the deployment tool" is left alone |
 | **header-schema** | a header template without a `schema` **key** — lookalikes like `schemaVersion`, and mentions in a comment or a value, don't count |
 | **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide, in any casing. Allowed only inside a blockquote preceded by the literal marker `<!-- hosted-port-note -->` — prose can't spoof a marker — and judged per line, so one quoted mention can't shelter a live requirement further down the file |
-| **documented-commands** | telling a user to run a command that doesn't exist — a namespace typo, or a bare `/<plugin>` when plugin commands are always `/<plugin>:<name>`. Covers the README, CONTRIBUTING and both manifests, because the marketplace listing is the first copy anyone reads |
+| **documented-commands** | telling a user to run a command that doesn't exist — a namespace typo, or a bare `/<plugin>` when plugin commands are always `/<plugin>:<name>`. Covers the README, CONTRIBUTING and both manifests, because the marketplace listing is the first copy anyone reads. Writing a deprecation note that names a dead command? Mark the line `<!-- not-a-command -->` |
 | **packaging** | a missing persona in either direction, frontmatter disagreeing with its directory, invalid manifest JSON |
 
 ### What it does not catch
