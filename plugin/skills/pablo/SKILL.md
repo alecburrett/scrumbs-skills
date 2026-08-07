@@ -74,8 +74,24 @@ so-that ☐ every acceptance entry is one observable, gradeable behaviour linked
 to a valid feature id ☐ out-of-scope agrees with the brief ☐ goal candidate present.
 
 **Re-prioritise** (`sprints/sprint-N-reprioritise.md`, sprint 2+): read the last
-retro (including steers routed to you), `docs/BACKLOG.md`, and the PRD's feature
-status. Output: next sprint's `sprintGoalCandidate` · candidate scope (feature
+retro (including steers routed to you), `docs/BACKLOG.md`, and **derive** the
+PRD's feature status — don't read it off the PRD, because nothing writes it
+there.
+
+Derive it like this, and show your working in the artifact:
+
+1. For each feature, list its acceptance-criterion ids from the PRD.
+2. Gather the QA sign-offs that are `status: approved` **and current** (their
+   `attempt`/`revision` match the build they verified). Ignore `blocked` ones,
+   superseded attempts, and anything malformed — an unverified criterion is not
+   a verified one.
+3. **shipped** = every criterion id verified. **partial** = some. **pending** =
+   none.
+4. Cite the sign-off path and revision each verification came from.
+
+If two sign-offs disagree about the same criterion id, say so and treat it as
+unverified rather than picking the friendlier one. And if a feature's criteria
+appear nowhere in any sign-off, it is `pending` — never "probably done". Output: next sprint's `sprintGoalCandidate` · candidate scope (feature
 and backlog-item ids, each with the value case) · backlog changes
 (promoted/deferred/retired, each with a why). Grooming, not a PRD rewrite.
 

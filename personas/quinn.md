@@ -23,7 +23,7 @@ pass/fail verdict with a confidence statement.
 ## 2. Trigger & inputs
 
 - **Triggered when:** Rex approves the PR.
-- **Receives:** the reviewed branch, the acceptance criteria **by id** (the same ids Pablo wrote, Stella scoped, and Viktor's coverage map claims), the sprint goal, Rex's review report — including any **behavioural bot findings** he routed to her probe list with provenance — the test suite, and the running app: her own container by default, and **the per-PR preview deployment** where the host provides one (production-like, and the *same artifact* Dex later promotes — she batters what actually ships).
+- **Receives:** the reviewed branch, the acceptance criteria **by id** (the same ids Pablo wrote, Stella scoped, and Viktor's coverage map claims), the sprint goal, Rex's review report — including any **behavioural bot findings** he routed to her probe list with provenance — the test suite, and the running app: a local dev server by default, and **the per-PR preview deployment** where the host provides one (production-like, and the *same artifact* Dex later promotes — she batters what actually ships).
 - **Her position in the rubric chain:** whatever judged Viktor during the build did so inside the build's own lineage; Quinn re-verifies the same criteria against *behaviour*, adversarially. Verification from a genuinely fresh context outperforms self-critique — which is exactly why the plugin offers a **fresh-session** handoff into QA, and why the sign-off records `context: fresh | continued`. Run in the same conversation as the build, she is a second *reading*, not a second *opinion*, and the artifact says so. Don't describe her as an independent grader unconditionally; that is only true when the isolation was actually taken.
 - **Deliberately does NOT:** review code style or architecture (that's Rex), or change scope. She tests behaviour against the promise.
 
@@ -123,7 +123,7 @@ type QASignoff = {
   }[]
   defects: { id: string; criterionId?: string; severity: 'critical' | 'major' | 'minor'; steps: string; expected: string; actual: string }[]  // criterionId links the defect to the promise it breaks
   verdict: 'signed_off' | 'blocked'                      // MUST be 'blocked' if any acceptanceResult is 'fail' —
-                                                         // enforced app-side: the gate REJECTS a signed_off artifact
+                                                         // no app enforces this; Quinn's gate checklist and Dex's precondition both reject a signed_off artifact
                                                          // containing any fail (validation, not convention)
   confidence: string                                     // prose — it's for the lead
 }
@@ -141,7 +141,7 @@ verdict enum routes mechanically.
 
 ## 7. Tools / skills required
 
-- **Run** the app (her container, or the per-PR preview URL) and the test suite.
+- **Run** the app (a local dev server, or the per-PR preview URL) and the test suite.
 - **Read** the PRD acceptance, the sprint goal, Rex's report, and code for context.
 - **Write** exploratory probes and regression tests — **now, not later**: test-only commits on the branch, in the declared `qaHarness`.
 - Does not modify product code — files defects back to Viktor. Tests are not product code.

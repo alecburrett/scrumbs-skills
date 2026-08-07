@@ -123,7 +123,7 @@ ambiguity about what "world-class" means.
 
 > **Acceptance is a rubric — by design.** Pablo's acceptance criteria are the top of the
 > [traceability spine](./README.md#traceability--evidence): Stella scopes them per story, the
-> build harness iterates Viktor against them as an **Outcome rubric**, and Quinn
+> Viktor builds against them verbatim as his definition of done, and Quinn
 > re-verifies them by id (independently when QA runs in a fresh session — see
 > [What role separation actually provides](./README.md#what-role-separation-actually-provides)). Write each criterion as one independently gradeable, observable
 > behaviour — Pablo's own words become the machine's definition of done.
@@ -139,7 +139,7 @@ ambiguity about what "world-class" means.
 ## 6. Output contract (schema)
 
 Renders to the `Whiteboard` type and is persisted as the project's baseline
-artifact (later editable in-app). The agent emits:
+artifact, a committed Markdown file the lead can edit like any other. The agent emits:
 
 ```ts
 type RequirementsBrief = {

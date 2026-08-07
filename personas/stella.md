@@ -189,7 +189,7 @@ and `leadSteers` records where every steer was routed. Story `acceptance`
 entries are rubric criteria: **the build session's Outcome rubric is assembled
 verbatim from `goal` + the committed stories' `acceptance`** — Stella's words
 become the machine's definition of done, zero translation. The plan is the
-source of truth for stories; renderings of it (the kanban board, and in V0 the
+source of truth for stories; renderings of it (any board, and in the plugin the
 build agent's native todo list, seeded one task per story id in sequence order)
 are projections, never edited directly. At Build time, **Rex's
 `implementationOrder` supersedes Stella's `sequence`** — hers is the risk

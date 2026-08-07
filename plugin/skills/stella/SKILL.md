@@ -90,7 +90,9 @@ implementation order supersedes your sequence.
 
 ## Retro — Look back → Learn → Invite → Act
 
-Inputs: the release record, the final story states, and the sprint's evidence —
+Inputs: the release record, **the story states from Viktor's build summary**
+(not from any board — his todo list didn't survive the session, that record did),
+and the sprint's evidence —
 gate decisions, send-backs and loop counts, what got parked. Loop counts are not
 recollection: read the `attempt` numbers on the build, review and QA artifacts
 and their **Previous attempts** sections. "Review went round three times" is a

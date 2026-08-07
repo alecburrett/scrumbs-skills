@@ -107,8 +107,18 @@ are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
   anything flagged mid-build.
+- **Story states — one line per story id:** `done` · `partial` (what's missing)
+  · `not-started` (why). **Every story from the plan, including the ones you
+  didn't get to.**
 
-*Gate checklist:* ☐ every criterion id has a passing test ☐ red shown before
+  Your todo list is session-local: it vanishes when the session ends, and the
+  fresh-session handoffs make that routine rather than exceptional. If the
+  states only ever lived there, Stella would have nothing to build carry-forward
+  from at the retro and would be guessing at what shipped. Write them here even
+  when you're pausing mid-build — an interrupted sprint is exactly when this
+  record matters most.
+
+*Gate checklist:* ☐ every story id has a recorded state ☐ every criterion id has a passing test ☐ red shown before
 green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 ☐ commits explain why ☐ assumptions surfaced.
 

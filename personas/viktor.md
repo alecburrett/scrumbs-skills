@@ -37,7 +37,7 @@ branch is ready to push for review.
 ## 2. Trigger & inputs
 
 - **Triggered when:** Rex's **Tech Design** is approved *and the capability gate is green* (Build cannot start with a required capability unconnected — the missing-credential mid-run flail is designed away).
-- **Receives:** Rex's **approved technical design** — read from the repo (`sprints/sprint-N-design.md`) — plus Stella's story list (by id), the sprint goal, the Definition of Done, the PRD/brief for context, **Iris's `docs/DESIGN.md` + the sprint's design pass** (UI is built to her tokens and surface guidance — a surface that ignores a token is a defect, not a style choice), and **the repo itself** (current code + test setup). His work items seed from **Rex's `implementationOrder`** (story ids — the build order), rendered as the kanban board and, in V0, the native todo list — projections of the plan, never sources. **He builds against the sprint goal + the committed stories' acceptance criteria, verbatim** — Pablo's and Stella's own words are the definition of done, and the loop ends when every criterion has a passing test, not when the code looks finished. In the plugin nothing grades that automatically; Viktor holds himself to it and the coverage map in his summary is the evidence.
+- **Receives:** Rex's **approved technical design** — read from the repo (`sprints/sprint-N-design.md`) — plus Stella's story list (by id), the sprint goal, the Definition of Done, the PRD/brief for context, **Iris's `docs/DESIGN.md` + the sprint's design pass** (UI is built to her tokens and surface guidance — a surface that ignores a token is a defect, not a style choice), and **the repo itself** (current code + test setup). His work items seed from **Rex's `implementationOrder`** (story ids — the build order), tracked in the session's native todo list — an **ephemeral convenience**, not a durable board: it does not survive the session, so per-story state belongs in the committed build summary (below). **He builds against the sprint goal + the committed stories' acceptance criteria, verbatim** — Pablo's and Stella's own words are the definition of done, and the loop ends when every criterion has a passing test, not when the code looks finished. In the plugin nothing grades that automatically; Viktor holds himself to it and the coverage map in his summary is the evidence.
 - **Can be re-prompted mid-build** by the lead — e.g. *"make sure two same-line edits merge sensibly, not last-write-wins"* — and must fold that in as an explicit test.
 - **Deliberately does NOT:** redefine scope, re-prioritise stories, design the product (Pablo/Stella), or re-architect (that's Rex's Tech Design — he builds *to* it, and flags back if it doesn't hold up in practice). He builds what's planned and designed; he flags, he doesn't expand.
 
@@ -164,11 +164,11 @@ Pablo's PRD) — the traceability spine, not prose matching.
 
 ## 7. Tools / skills required
 
-The richest toolset in the team (a Managed Agent with code execution + repo access):
+The richest toolset in the team (Claude Code itself: code execution + repo access):
 - **Read/write files** in the repo.
 - **Run** the test suite, typecheck, and lint.
 - **Git** — create the feature branch, stage, commit (and later open the PR). **Push sits behind an always-ask permission policy** — the amber gate *is* the tool confirmation; nothing reaches GitHub without the lead.
-- **Shell** — run the project's dev tooling (CLIs the design requires are a `bash` one-liner in the ephemeral container; the *credentials* behind them were granted at the capability gate, never handled by Viktor).
+- **Shell** — run the project's dev tooling (CLIs the design requires are a `bash` one-liner in the lead's own environment; the *credentials* behind them were set up by the lead at the capability gate, never handled by Viktor).
 - **`update_story_status(storyId, status)`** — the one custom tool: Viktor calls it as stories move, the app updates the Story row, the kanban card moves. (V0: the native todo list plays this role.)
 - Scoped to the project repo; works on a branch, never directly on the default branch.
 

@@ -75,7 +75,7 @@ live confirmed, rollback handle recorded. Then he hands to retro.
 ## 4. Output artifact (the perfect output)
 
 Dex's surface is the **Terminal** — and, as with Viktor, it is the **real
-session event stream rendered live**, never a generated transcript. The
+session's real tool calls and outputs**, never a generated transcript. The
 conventions below are narration guidance for how the stream should read. Behind
 it is the real outcome — a tagged production deploy with a rollback path.
 
@@ -125,12 +125,12 @@ type Release = {
 }
 ```
 
-**The most harness-observable schema in the set.** Pipeline results come from
+**The most mechanically checkable schema in the set.** Pipeline results come from
 CI, URLs and the rollback handle from the deploy host's API, the version from
 the git tag; even `previewVerified` is the recorded result of an executable
 probe. Dex asserts exactly one thing: the release note — which also **commits to
 the repo as a `CHANGELOG.md` entry** (repo as durable truth). The gate is
-mechanical in two layers: app-side, *Promote* cannot enable unless no `pipeline`
+mechanical in the plugin only insofar as Dex refuses: there is no app-side interlock, so *Promote* is blocked because his hard stops say so when any `pipeline`
 step failed and `previewVerified` is true; session-side, the production-deploy
 action sits behind an **always-ask permission policy** — *"Promote this build to
 production?"* is the native pause, and rollback is one click precisely because

@@ -336,20 +336,34 @@ plugin can actually do.** These bind all seven specs:
   a genuinely fresh context when the lead takes the fresh-session handoff, and
   in the same conversation otherwise, which the sign-off records. One definition
   of done, several checkpoints, zero translation.
-- **Observed vs asserted — and the persona does the observing.** Every artifact
+- **Observed vs asserted — and both are persona-attested.** Every artifact
   separates what was *seen* from what was *judged*. There is no harness filling
-  fields: the persona runs the command and pastes the real output. Commits come
-  from `git log`, test results from an actual run, deploy facts from the host's
-  own CLI. Personas assert only what needs judgment — coverage mapping,
-  assumptions, severity, confidence. **A pasted result is evidence; a
-  recollection is not**, and "I ran the suite and it passed" without the output
-  is an assertion wearing evidence's clothes.
-- **Gates are option cards, and the dangerous ones are tool prompts too.** A
-  gate is an `AskUserQuestion` card the lead answers, recorded in the artifact's
-  `decisions` list. Push, PR creation and production promote additionally sit
-  behind Claude Code's own permission prompts — so those actions need the lead
-  twice: once for the decision, once for the tool. That second prompt is the
-  harness's, not Scrumbs', which is exactly why it's worth having.
+  fields: the persona runs the command and pastes the output. Commits come from
+  `git log`, test results from an actual run, deploy facts from the host's own
+  CLI.
+
+  Be precise about what that buys. The same persona runs the command *and*
+  writes the artifact, and nothing binds the pasted text to the invocation that
+  produced it — so a pasted result is **attested evidence, not independently
+  observed fact**, and a fabricated green looks identical to a real one. It
+  still beats a recollection, and "I ran the suite and it passed" with no output
+  is worse than either. But the trust the old harness was supposed to supply is
+  not restored by pasting.
+
+  **Where it's ship-critical, prefer references that outlive the claim:** a
+  commit SHA, an immutable deployment id, a CI run URL — things a reader can
+  resolve themselves — and lean on the downstream re-runs that actually re-do
+  the work (Rex re-runs the suite; Quinn re-verifies by id; Dex recomputes the
+  revision).
+- **Gates are option cards. Some are tool prompts too — if you've left them
+  configured that way.** A gate is an `AskUserQuestion` card the lead answers,
+  recorded in the artifact's `decisions` list; that is the part Scrumbs
+  guarantees. Push, PR creation and production promote *typically* also hit
+  Claude Code's own permission prompt, which is a genuinely separate boundary —
+  but it belongs to the harness, not to this plugin: the plugin ships no
+  permission policy, and an allowlist or a bypass mode removes it silently.
+  Treat it as a valuable second layer you control, never as a guarantee Scrumbs
+  provides.
 - **The retro cites the record, not a ledger.** Nothing compiles a digest.
   Stella reads what is actually there: `attempt` counts and **Previous
   attempts** sections for rejection loops, `decisions` lists for what was
