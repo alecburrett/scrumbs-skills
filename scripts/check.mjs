@@ -551,25 +551,38 @@ const CHECKS = {
         }
       });
 
+      // Paragraph context, so a wrapped sentence is judged as a whole.
+      const paraOf = new Array(lines.length).fill("");
+      {
+        let i2 = 0;
+        while (i2 < lines.length) {
+          if (lines[i2].trim() === "") { i2++; continue; }
+          const start = i2;
+          while (i2 < lines.length && lines[i2].trim() !== "") i2++;
+          const text2 = lines.slice(start, i2).join(" ");
+          for (let k = start; k < i2; k++) paraOf[k] = text2;
+        }
+      }
+
       lines.forEach((line, i) => {
-        // Capture the WHOLE token, including characters that aren't valid in a
-        // command name, so `/scrumbs:next_extra` fails rather than matching the
-        // valid `next` and stopping. Trailing sentence punctuation is stripped —
-        // "run /scrumbs:next." is fine, "/scrumbs:next.foo" is not. A `<name>`
-        // metavariable never matches, so generic notation in docs is safe.
-        for (const m of line.matchAll(new RegExp(`/${pluginName}:([A-Za-z0-9_.-]+)`, "g"))) {
-          const token = m[1].replace(/[.,;:!?)]+$/, "");
+        // Capture the whole command-shaped span — everything up to whitespace or
+        // a Markdown delimiter — then validate it as one thing. Stopping at the
+        // first odd character would read `/scrumbs:next/extra` as the valid
+        // `next`. Trailing sentence punctuation is stripped, so "run
+        // /scrumbs:next." is fine while "/scrumbs:next.foo" is not, and a
+        // `<name>` metavariable never matches at all.
+        for (const m of line.matchAll(new RegExp(`/${pluginName}:([^\\s\`*\\[\\]()<>"']+)`, "g"))) {
+          const token = m[1].replace(/[.,;:!?]+$/, "");
           if (token && !available.has(token))
             f.push(`${path}:${i + 1}: documents /${pluginName}:${token}, which doesn't exist`);
         }
 
-        // A bare /plugin with no :name isn't a real command — plugin commands are
-        // always namespaced. Flag it where a user would read it as an
-        // instruction: inside a code block, or anywhere in the JSON manifests.
-        // Inline prose may legitimately mention it (e.g. explaining how to make
-        // a personal shortcut of your own).
+        // A bare /plugin with no :name isn't a real command — plugin commands
+        // are always namespaced. The one legitimate mention is explaining how to
+        // make a personal shortcut of your own, so exempt only that.
         const bare = new RegExp(`/${pluginName}(?![:\\w-])`);
-        if (bare.test(line) && (inFence[i] || path.endsWith(".json")))
+        const explainsShortcut = /shortcut|\.claude\/commands/i.test(paraOf[i] || line);
+        if (bare.test(line) && !explainsShortcut)
           f.push(
             `${path}:${i + 1}: tells the user to run /${pluginName}, but plugin ` +
               `commands are always namespaced — use /${pluginName}:next`,
@@ -935,6 +948,16 @@ const MUTATIONS = [
       "/scrumbs:next", "/scrumbs")),
   },
   {
+    name: "a documented command has a slash suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next/extra")),
+  },
+  {
+    name: "a bare command instruction in ordinary prose",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart the whole thing with /scrumbs.\n"),
+  },
+  {
     name: "a documented command has a numeric suffix",
     category: "documented-commands",
     apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next2")),
@@ -1258,6 +1281,11 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "a command wrapped in backticks",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nRun `/scrumbs:next` to see where you are.\n"),
   },
   {
     name: "generic <name> notation in the docs",
