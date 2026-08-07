@@ -81,14 +81,20 @@ function section(text, heading) {
   return lines.slice(start + 1).join("\n");
 }
 
-/** Top-level `- **Label…` bullets of a section → Map(label → body). */
+/** Top-level `- **Label…` bullets of a section → {bullets: Map(label→body), duplicates: []}. */
 function siblingBullets(sectionText) {
   const out = new Map();
-  if (sectionText == null) return out;
+  const duplicates = [];
+  if (sectionText == null) return { bullets: out, duplicates };
   const lines = sectionText.split("\n");
   let label = null;
   let buf = [];
-  const flush = () => label !== null && out.set(label, buf.join("\n"));
+  const flush = () => {
+    if (label === null) return;
+    // A duplicate label would overwrite the first, hiding drift behind a clean copy.
+    if (out.has(label)) duplicates.push(label);
+    else out.set(label, buf.join("\n"));
+  };
   for (const line of lines) {
     const m = line.match(/^- \*\*(.+?)\*\*/);
     if (m) {
@@ -100,8 +106,10 @@ function siblingBullets(sectionText) {
     }
   }
   flush();
-  return out;
+  return { bullets: out, duplicates };
 }
+
+const norm = (label) => label.replace(/[.:]\s*$/, "").trim();
 
 const RITUALS = "## Team rituals (all personas)";
 
@@ -117,13 +125,16 @@ const CHECKS = {
         f.push(`${p}: no "${RITUALS}" section`);
         continue;
       }
-      perSkill.set(p, siblingBullets(sec));
+      const { bullets, duplicates } = siblingBullets(sec);
+      for (const d of duplicates)
+        f.push(`${p}: duplicate ritual bullet "${d}" — a second copy hides drift in the first`);
+      perSkill.set(p, bullets);
     }
     for (const { label } of CANONICAL_BULLETS) {
-      const key = label.replace(/[.:]$/, "");
+      const key = norm(label);
       const variants = new Map();
       for (const [p, bullets] of perSkill) {
-        const match = [...bullets.entries()].find(([l]) => l.startsWith(key));
+        const match = [...bullets.entries()].find(([l]) => norm(l) === key);
         if (!match) {
           f.push(`${p}: missing shared bullet "${label}"`);
           continue;
@@ -145,12 +156,12 @@ const CHECKS = {
   "shared-bullets-declared"(repo) {
     const names = skillNames(repo);
     if (names.length < 2) return [];
-    const perSkill = names.map((p) => siblingBullets(section(repo[skillKey(p)], RITUALS)));
-    const declared = new Set(CANONICAL_BULLETS.map((b) => b.label.replace(/[.:]$/, "")));
+    const perSkill = names.map((p) => siblingBullets(section(repo[skillKey(p)], RITUALS)).bullets);
+    const declared = new Set(CANONICAL_BULLETS.map((b) => norm(b.label)));
     const f = [];
     for (const [label, body] of perSkill[0]) {
       const identicalEverywhere = perSkill.every((m) => m.get(label) === body);
-      const isDeclared = [...declared].some((d) => label.startsWith(d));
+      const isDeclared = declared.has(norm(label));
       if (identicalEverywhere && !isDeclared)
         f.push(
           `"${label}" is byte-identical in all ${names.length} skills but not in ` +
@@ -191,9 +202,17 @@ const CHECKS = {
       for (const m of cell.matchAll(/`([a-z-]+)`/g)) known.add(m[1]);
     if (known.size < 5) return [`next.md: parsed only ${known.size} statuses — table shape changed`];
     const f = [];
-    for (const p of skillNames(repo))
-      for (const m of repo[skillKey(p)].matchAll(/`status:\s*([a-z-]+)`/g))
-        if (!known.has(m[1])) f.push(`${p}: writes status "${m[1]}", which next.md cannot route`);
+    for (const p of skillNames(repo)) {
+      const text = repo[skillKey(p)];
+      const seen = new Set();
+      // Standalone `status: x`, and status inside a full header template — the
+      // backtick sits before `scrumbs` there, so a backtick-anchored regex misses it.
+      for (const m of text.matchAll(/`status:\s*([a-z-]+)`/g)) seen.add(m[1]);
+      for (const h of text.matchAll(/scrumbs:\s*\{([^}]*)\}/g))
+        for (const m of h[1].matchAll(/\bstatus:\s*([a-z-]+)/g)) seen.add(m[1]);
+      for (const s of seen)
+        if (!known.has(s)) f.push(`${p}: writes status "${s}", which next.md cannot route`);
+    }
     return f;
   },
 
@@ -212,10 +231,26 @@ const CHECKS = {
     for (const p of names) {
       // Skip frontmatter: every description contains "Invoke ONLY when…".
       const body = repo[skillKey(p)].replace(/^---\n[\s\S]*?\n---\n/, "");
-      for (const m of body.matchAll(/\binvoke\b\s+(?:the\s+)?(\S+)/gi)) {
+      // A code- or bold-formatted target is an explicit handoff and must resolve;
+      // the prose stoplist applies only to bare words like "invoke another persona".
+      const RE = /\binvoke\b\s+(?:the\s+)?(`[^`]+`|\*\*[^*]+\*\*|\S+)/gi;
+      for (const m of body.matchAll(RE)) {
         const raw = m[1];
-        const target = raw.replace(/[`*_,.;:)"'\u2014]/g, "").toLowerCase();
-        if (!target || PROSE.has(target) || names.includes(target)) continue;
+        const formatted = /^[`*]/.test(raw);
+        const target = raw
+          .replace(/[`*_]/g, "")
+          .replace(/\bskill\b/gi, "")
+          .replace(/^\s*the\s+/i, "")
+          .replace(/[,.;:)"'\u2014]/g, "")
+          .trim()
+          .toLowerCase();
+        if (!target) continue;
+        if (names.includes(target)) continue;
+        // "invoke **the skill named in that row's `next` column**" is a rule, not
+        // a target: a persona name is one word. "invoke **the Vicktor skill**"
+        // reduces to one word and must therefore resolve.
+        if (/\s/.test(target)) continue;
+        if (!formatted && PROSE.has(target)) continue;
         f.push(`${p}: "invoke ${raw}" — "${target}" is not a persona`);
       }
     }
@@ -224,40 +259,48 @@ const CHECKS = {
 
   "header-schema"(repo) {
     const f = [];
-    let found = 0;
+    let anyFound = 0;
     for (const p of skillNames(repo)) {
-      for (const m of repo[skillKey(p)].matchAll(/scrumbs:\s*\{([^}]*)\}/g)) {
-        found++;
-        if (!/(^|[\s,{])schema\s*(:|,|\})/.test(m[1]))
-          f.push(`${p}: header template lacks a schema key — {${m[1].trim()}}`);
-      }
+      const text = repo[skillKey(p)];
+      const headers = [];
+      for (const m of text.matchAll(/scrumbs:\s*\{([^}]*)\}/g)) headers.push(m[1]);
+      // Multiline YAML form: `scrumbs:` followed by indented keys.
+      for (const m of text.matchAll(/^(\s*)scrumbs:\s*$\n((?:\1\s+\S.*\n?)+)/gm))
+        headers.push(m[2]);
+      anyFound += headers.length;
+      for (const body of headers)
+        if (!/(^|[\s,{])schema\s*(:|,|$)/m.test(body.trim()))
+          f.push(`${p}: header template lacks a schema key — ${body.trim().slice(0, 60)}`);
     }
-    if (found === 0) f.push("no inline scrumbs:{…} templates found at all — did the format change?");
+    if (anyFound === 0) f.push("no scrumbs headers found at all — did the format change?");
     return f;
   },
 
-  // Hosted vocabulary is allowed only inside a blockquote that is explicitly a
-  // hosted-port note. Every occurrence is judged on its own; one quoted mention
-  // must not shelter a live requirement later in the same file.
+  // Hosted vocabulary is allowed only inside a blockquote explicitly marked with
+  // the sentinel below on the line before it. Prose cannot spoof a marker, and
+  // every occurrence is judged on its own line — one quoted mention must never
+  // shelter a live requirement further down the file.
   "absent-machinery"(repo) {
+    const MARKER = "<!-- hosted-port-note -->";
     const f = [];
     for (const [path, text] of Object.entries(repo)) {
       if (!path.endsWith(".md")) continue;
       const lines = text.split("\n");
-      // A blockquote run is quarantined only if the run mentions a hosted port.
       const quarantined = new Array(lines.length).fill(false);
       for (let i = 0; i < lines.length; i++) {
-        if (!lines[i].trimStart().startsWith(">")) continue;
-        let j = i;
-        while (j < lines.length && lines[j].trimStart().startsWith(">")) j++;
-        const run = lines.slice(i, j).join("\n");
-        if (/hosted|if you (are )?port/i.test(run)) quarantined.fill(true, i, j);
-        i = j - 1;
+        if (lines[i].trim() !== MARKER) continue;
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() === "") j++;
+        while (j < lines.length && lines[j].trimStart().startsWith(">")) quarantined[j++] = true;
       }
       lines.forEach((line, i) => {
+        const haystack = line.toLowerCase();
         for (const phrase of ABSENT_MACHINERY)
-          if (line.includes(phrase) && !quarantined[i])
-            f.push(`${path}:${i + 1}: "${phrase}" outside a hosted-port note`);
+          if (haystack.includes(phrase.toLowerCase()) && !quarantined[i])
+            f.push(
+              `${path}:${i + 1}: "${phrase}" outside a hosted-port note ` +
+                `(mark the blockquote with ${MARKER} if it genuinely is one)`,
+            );
       });
     }
     return f;
@@ -388,6 +431,73 @@ const MUTATIONS = [
     name: "frontmatter disagrees with its directory",
     category: "packaging",
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
+  },
+  // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "a bad status hides inside a full header template",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
+      "status: draft, sprint: N",
+      "status: rubber-stamped, sprint: N",
+    )),
+  },
+  {
+    name: "a code-formatted handoff names a non-persona",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke `next`")),
+  },
+  {
+    name: "a bold-formatted handoff is misspelled",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke **the Vicktor skill**")),
+  },
+  {
+    name: "a multiline header omits schema",
+    category: "header-schema",
+    apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
+      "`scrumbs: {schema, stage, status, sprint}`",
+      "a header of the form:\n\nscrumbs:\n  stage: prd\n  status: draft\n",
+    )),
+  },
+  {
+    name: "absent machinery hides behind a blockquote that denies being one",
+    category: "absent-machinery",
+    apply: (r) => (r["personas/stella.md"] +=
+      "\n> This is not a hosted-port note.\n> Stella must read the Sprint Ledger before starting.\n"),
+  },
+  {
+    name: "absent machinery returns in a different case",
+    category: "absent-machinery",
+    apply: (r) => (r["personas/stella.md"] = r["personas/stella.md"].replace(
+      "- **Retro receives:**",
+      "- **Retro receives:** the sprint ledger, and",
+    )),
+  },
+  {
+    name: "an undeclared shared bullet borrows a declared label's prefix",
+    category: "shared-bullets-declared",
+    apply: (r) => {
+      for (const p of REQUIRED_PERSONAS)
+        r[skillKey(p)] = r[skillKey(p)].replace(
+          "- **Explicit, never silent.**",
+          "- **Gate mechanics follow-up.** Identical everywhere, undeclared.\n- **Explicit, never silent.**",
+        );
+    },
+  },
+  {
+    name: "a duplicate ritual label conceals drift in the first copy",
+    category: "shared-bullets",
+    apply: (r) => {
+      const original = r[skillKey("iris")];
+      const start = original.indexOf("- **Closed means closed.**");
+      const end = original.indexOf("\n- **", start + 5);
+      const bullet = original.slice(start, end);
+      r[skillKey("iris")] =
+        original.slice(0, start) +
+        bullet.replace("Before inferring any stage", "Before inferring NO stage") +
+        "\n" + bullet +
+        original.slice(end);
+    },
   },
 ];
 

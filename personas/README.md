@@ -262,6 +262,7 @@ changes the answer, and an explicit admission on the record when it wasn't used.
 
 Beyond their individual specs, every persona observes these team-wide rituals:
 
+<!-- hosted-port-note -->
 > **On gate mechanics, if you are porting these specs to a hosted app.** In the
 > plugin, the human *is* the gate: there is no state outside the repo, so a
 > persona is right to treat a typed "approve" as approval, and the skills say so
@@ -387,6 +388,7 @@ plugin can actually do.** These bind all seven specs:
   the pipeline is config, committed and reviewed. Each sprint's rigor is
   permanent.
 
+<!-- hosted-port-note -->
 > **If you port these specs to a hosted app.** Several of these become
 > mechanical rather than manual — a harness can fill observed fields directly, a
 > ledger can compile the retro digest, feature status can be computed. Those are
@@ -414,10 +416,10 @@ does not start until every one is green. Dex re-verifies at his pre-flight,
 because a grant that worked at design time can expire before release.
 
 **Secrets never transit the conversation.** The lead runs the commands; the
-persona sees a probe succeed. That rule is not a UI affordance here — there is
-no vault, no OAuth redirect, no connect card, no manifest to diff against. There
-is a person running a command in their own terminal, and a persona checking
-whether it worked. Which is enough, provided nobody pretends otherwise.
+persona sees a probe succeed. That rule is not a UI affordance here — no
+credential store, no OAuth redirect, no connect-and-validate card, no manifest
+to diff against. There is a person running a command in their own terminal, and
+a persona checking whether it worked. Which is enough, provided nobody pretends otherwise.
 
 ## Spec format
 

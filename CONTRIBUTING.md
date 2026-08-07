@@ -52,7 +52,7 @@ nobody noticed by reading:
 | **status-vocabulary** | a skill writing a status the front door can't route, *and* the status table being renamed or reformatted out from under the parser |
 | **handoffs** | any `invoke …` that doesn't resolve to a real persona, backticked or not — a bare `invoke Vicktor` fails |
 | **header-schema** | a header template without a `schema` key, including lookalikes like `schemaVersion` |
-| **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide. Allowed only inside a blockquote that is explicitly a hosted-port note — and judged per occurrence, so one quoted mention can't shelter a live requirement further down the file |
+| **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide, in any casing. Allowed only inside a blockquote preceded by the literal marker `<!-- hosted-port-note -->` — prose can't spoof a marker — and judged per line, so one quoted mention can't shelter a live requirement further down the file |
 | **packaging** | a missing persona in either direction, frontmatter disagreeing with its directory, invalid manifest JSON |
 
 ### What it does not catch
