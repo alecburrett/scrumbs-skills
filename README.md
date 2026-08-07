@@ -2,21 +2,37 @@
 
 ### Seven teammates who won't let you skip the boring parts.
 
-Ask an AI to build your thing and it will build *something*. It will also quietly
+Ask an AI to build your thing and it will build *something*. It'll also quietly
 drop the requirement you'd have argued about, skip the test that was awkward to
-write, and hand you a review it did on its own work in the same breath.
+write, and tell you it reviewed its own work.
 
-Scrumbs is seven personas with narrow remits and hard handoffs. One works at a
-time. Each stops and asks you before anything moves. Nobody skips the awkward
-part quietly, because a different teammate owns each one and none of them will
-do another's job — and when one *is* skipped, it leaves a hole in your repo
-you can see.
+Scrumbs gives you a team instead. Seven of them, each with one job. They work
+one at a time, in order, and every one of them stops and asks you before
+anything moves on.
 
 ```
 /scrumbs
 ```
 
-That's the whole interface. It tells you where you are, and who's up next.
+That's the whole thing. It tells you where you are, and who's up next.
+
+---
+
+## What you get out of it
+
+- **You always know what's happening.** One teammate, one job, one question at a
+  time. Never a wall of output you have to audit afterwards.
+- **The awkward conversations actually happen.** Someone asks what you're *not*
+  building. Someone pushes back on scope. Someone tries to break it before your
+  users do.
+- **Nothing moves without you.** Every step ends with a plain question and a
+  couple of options. You pick. Ask them to "just do the whole thing" and they'll
+  politely decline.
+- **You can stop and come back.** Everything lives in your repo, so you can walk
+  away mid-project and pick it up next week — or in a fresh session — exactly
+  where you left off.
+- **You end up with the paperwork you'd never have written.** A spec, a plan, a
+  record of what was decided and why. Useful long after the code lands.
 
 ---
 
@@ -51,169 +67,114 @@ Then, inside the git repo you want built:
 
 ---
 
-## What actually happens
+## How it goes
 
-You tell Pablo your idea. He asks one question at a time, pushes back on scope,
-and writes down what you agreed — including what you're *not* building. You
-approve. Iris gives it a face. Stella cuts it into a sprint. Rex designs the
-approach, Viktor builds it test-first, Rex reviews it, Quinn tries to break it,
-Dex ships it. Stella runs the retro, and the next sprint starts from what you
-actually learned.
+You tell **Pablo** your idea. He asks one question at a time, pushes back when
+the scope creeps, and writes down what you agreed — including what you're *not*
+building. **Iris** gives it a look and a feel. **Stella** cuts it into a sprint
+you can actually finish.
 
-Every stage leaves a real file in your repo:
+Then **Rex** works out how to build it, **Viktor** builds it test-first, Rex
+comes back and reviews it, **Quinn** tries hard to break it, and **Dex** ships
+it — showing you exactly what's about to go live, and how to undo it, before
+anything reaches your users.
+
+**Stella** runs the retro, and the next sprint starts from what you actually
+learned rather than what you meant to do.
+
+You say yes before each step begins. If you don't like something, you say so and
+it goes back to whoever owns it.
+
+---
+
+## What you're left with
+
+Real files, in your repo, in plain Markdown:
 
 ```
-docs/BRIEF.md                    what we're building, and what we're not
-docs/PRD.md                      the spec, with numbered acceptance criteria
-docs/DESIGN.md                   the visual identity            (UI projects)
-docs/BACKLOG.md                  everything we parked, with provenance
+docs/BRIEF.md      what we're building, and what we're not
+docs/PRD.md        the spec, with numbered things it has to do
+docs/DESIGN.md     how it should look and feel        (if it has a screen)
+docs/BACKLOG.md    everything we parked, and who asked for it
 
-sprints/sprint-1.md              the plan
-sprints/sprint-1-design.md       the technical approach
-sprints/sprint-1-build.md        what got built, story by story
-sprints/sprint-1-review.md       the verdict, with findings by id
-sprints/sprint-1-qa.md           the sign-off, with defects by id
-sprints/sprint-1-release.md      what shipped, and the rollback handle
-sprints/sprint-1-retro.md        what we learned
+sprints/           a handful of files per sprint: the plan, the approach,
+                   what got built, the review, the testing, what shipped,
+                   and what we learned
 
-CHANGELOG.md                     what shipped
+CHANGELOG.md       what shipped, in a line each
 ```
 
-<sub>Plus `sprint-N-design-pass.md` on UI sprints, and `sprint-N-reprioritise.md`
-from sprint 2 onward.</sub>
-
-Your repo is the source of truth. Delete the plugin tomorrow and every artifact
-still reads perfectly on its own.
+Delete the plugin tomorrow and every one of these still makes sense on its own.
+They're notes, not a database.
 
 ---
 
-## The one rule
+## Fresh eyes where it counts
 
-**Every stage has a gate, and the gate is yours.**
+Reviewing your own work is hard, and it's no easier for an AI that just spent an
+hour writing the thing.
 
-Nobody hands off to anybody until you approve. No persona starts itself. Ask the
-team to "just do the whole thing" and they'll politely decline — that's the
-point.
+So before the review, and again before the testing, Scrumbs offers to carry on
+in a **brand new session**. Everything it needs is already written down in your
+repo, so the new session picks up the work — and none of the reasoning that
+produced it. Rex reads your code cold, the way a colleague would on a Monday
+morning.
 
-Most gates sit at the end of a stage, approving work you can already read.
-Deploy's sits in the *middle*, right before the promote — because there the
-gate authorises something irreversible rather than blessing something finished.
-You see the preview, the probe result, and the rollback handle first.
-
-Each gate is a question with your options, and the answer goes into the artifact
-next to the work:
-
-```yaml
-decisions:
-  - type: approved
-    at: 2026-08-07T14:22:31Z
-    by: Alec Burrett
-    question: "Approve — ready for QA?"
-    answer: "Confirm — QA in a fresh session"
-    handoff: fresh
-```
-
-The next persona reads that record before it starts. If it's missing or
-malformed, or if it approves a build that has since been rebuilt, it **stops**
-rather than quietly building on it. Inputs are recorded by content hash too, so
-a stage tells you which version of a document it actually consumed — surfaced
-when it has since changed, not blocked.
-
-That's what makes a run resumable weeks later, and a retro citable rather than
-remembered.
+It's your call each time, and whichever you choose gets written down.
 
 ---
 
-## Independent review, when it counts
+## It fits what you're actually building
 
-Review and QA exist to catch what the previous stage missed — which is hard when
-the reviewer still has the reasoning that produced the code sitting in context.
+A command-line tool doesn't need a colour palette, and a one-line bug fix
+doesn't need a morning of planning.
 
-So both offer a handoff into a **fresh session**. Your repo is the state, so a
-new session picks up exactly where the last one stopped: the branch, the design,
-the acceptance criteria — and none of the argument that got you there. Take it
-and Rex reads your code cold.
+- **No screen?** Iris sits the project out entirely — no token design step.
+- **Existing codebase?** Pablo reads what's there and focuses on the change
+  you're making, instead of interviewing you about an app you shipped two years
+  ago.
+- **Just a bug, or something urgent?** The planning shrinks to a few lines.
 
-The artifact records which you chose, and the next stage cross-checks it against
-the handoff. That's an attestation, not a proof — nothing here can verify a
-session was really fresh — but it means a review done in the same room has to
-say so on the record.
-
----
-
-## It fits the work
-
-A CLI doesn't need a visual identity, and a one-line bug fix doesn't need a
-morning of planning.
-
-- **No screen?** Iris's stages don't exist for that project — not a token version
-  of them.
-- **Existing codebase?** Pablo documents what's there and scopes the spec to the
-  change at hand, instead of interviewing you about a product you already
-  shipped.
-- **Just a defect, or a hotfix?** The plan and the technical approach shrink to a
-  few lines each.
-
-Being straight about the floor: **every project starts with a brief and a spec**,
-even a small one — that's where the acceptance criteria come from, and
-everything downstream is checked against them. What shrinks is how long they
-take, not whether they exist.
-
-And **review, QA and deploy never shrink at all.** A hotfix still gets a written,
-approved plan before the code changes and every check after it. A rushed change
-going straight to production is exactly when you want them.
+Two things never shrink: **you still say what "done" means before anyone writes
+code**, and **the review and the testing still happen**. Something rushed
+straight to your users is exactly when you want a second look.
 
 ---
 
-## Why personas, and not one big prompt
+## Why a team, and not one big prompt
 
-Because a product owner who is also the developer will always cut the awkward
-requirement. Narrow remits make that cut visible:
+Because whoever writes the spec will always be tempted to quietly drop the
+tricky bit while building it. Splitting the work up makes that hard to do
+silently:
 
-- Pablo is **pre-technical on purpose** — no stack, no UI, no solutions.
-- Rex **designs and judges but never implements**. Viktor implements.
-- Quinn judges **behaviour**, not code — Rex already did the code.
-- Nobody re-opens someone else's decision. They bounce it back to its owner.
+- Pablo talks about the problem, never the solution.
+- Rex decides how it gets built; Viktor is the one who builds it.
+- Quinn judges whether it *works*, not whether the code is tidy — Rex already
+  did that.
+- Nobody overrules anybody. They hand it back to whoever owns it.
 
-The result is that a different set of questions gets asked at each stage, in a
-fixed order, with a written record and a gate you control. Scope that would have
-been silently dropped has to be dropped *out loud*, by name, in a file.
+The point isn't ceremony. It's that a different question gets asked at each
+stage, and the answers get written down.
 
 ---
 
-## What this is, and what it isn't
+## Being straight with you
 
-Most tools in this space tell you the first half. Here's both.
+Scrumbs is a set of prompts and a paper trail, not a lock on the door. It'll
+keep an honest team honest, catch the ordinary slips, and leave you a record you
+can read months later. It can't stop someone determined to cut corners, and it
+doesn't pretend to — if you need something properly enforced, that's what branch
+protection and required reviewers are for. Scrumbs is happy to sit behind them.
 
-**It is** a discipline made legible. Seven remits, a fixed order, a gate you
-answer, and a paper trail in your own repo that outlives the plugin.
-
-**It isn't** enforcement, and it doesn't pretend to be:
-
-- **The personas share one conversation.** They're Markdown skills, not seven
-  isolated agents. Rex reviewing code designed earlier in the same session is a
-  second *reading*, not a second *opinion* — which is exactly why the
-  fresh-session handoff above exists, and why the artifact records whether you
-  took it.
-- **The paper trail is evidence, not a lock.** These are files on your branch;
-  anyone who can commit can write a convincing record for a gate that never
-  happened. What it reliably catches is the ordinary stuff — a verdict about code
-  that has since been rebuilt, a record nobody filled in, a chain that doesn't
-  line up. Not a determined forger.
-- **Enforcement lives where enforcement works**: branch protection, required
-  reviewers, CI. Scrumbs sits happily behind them and never claims to replace
-  them.
-
-If that reads as underselling, good. A process tool that overstates its
-guarantees is worse than none, because you stop checking.
+We'd rather tell you that now than have you find out later.
 
 ---
 
 ## Read the prompts
 
-Each persona is a plain Markdown skill. Read one, disagree with it, change it —
+Every teammate is a plain Markdown file. Read one, disagree with it, change it —
 it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/). The longer
-specs they're compiled from live in [`personas/`](./personas/).
+write-ups behind them live in [`personas/`](./personas/).
 
 ## Requirements
 
@@ -221,13 +182,8 @@ specs they're compiled from live in [`personas/`](./personas/).
 
 ## Contributing
 
-Yes please — it's Markdown, so the barrier is low. Start with
-[CONTRIBUTING.md](./CONTRIBUTING.md): the spec/skill split, the four rules that
-are the product rather than implementation details, and `scripts/check.mjs` —
-which fails the build when the shared rituals stop being byte-identical, or a
-skill names a status or a handoff that doesn't exist. It compares files to each
-other; it can't run a stage, so a rule that's consistently wrong everywhere
-still passes.
+Yes please — it's all Markdown, so the barrier is low. Start with
+[CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Licence
 
