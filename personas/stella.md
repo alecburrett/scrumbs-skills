@@ -186,19 +186,20 @@ type Retro = {
 Schema enforces the bar: stories carry mandatory `value` + `acceptance`,
 `deferred` is a first-class field, retro `actions` carry a mandatory `owner`,
 and `leadSteers` records where every steer was routed. Story `acceptance`
-entries are rubric criteria: **the build session's Outcome rubric is assembled
-verbatim from `goal` + the committed stories' `acceptance`** — Stella's words
-become the machine's definition of done, zero translation. The plan is the
-source of truth for stories; renderings of it (any board, and in the plugin the
-build agent's native todo list, seeded one task per story id in sequence order)
-are projections, never edited directly. At Build time, **Rex's
+entries are rubric criteria: **Viktor builds against `goal` + the committed
+stories' `acceptance`, verbatim** — Stella's words are the definition of done,
+zero translation. Nothing machine-enforces that; he holds himself to it and the
+coverage map in his summary is what shows he did. The plan is the source of
+truth for stories; the session's native todo list is a projection of it, seeded
+one task per story id in sequence order, **ephemeral and never edited directly**
+— the durable per-story state lives in Viktor's committed build summary. At Build time, **Rex's
 `implementationOrder` supersedes Stella's `sequence`** — hers is the risk
 narrative for planning; his is the build order.
 
 ## 7. Tools / skills required
 
-- **Read:** the PRD + brief, the board state, the trail of approvals/rejections, Dex's release summary.
-- **Write:** the structured plan / retro artifact; (later) create the board's stories from the plan.
+- **Read:** the PRD + brief, **the per-story states in Viktor's committed build summary** (there is no board that survives a session), the `decisions` lists and `attempt` counts that record approvals and rejections, Dex's release record.
+- **Write:** the plan / retro artifact, committed to the repo. Nothing else — there is no board to create stories in.
 - **No repo access.** Stella plans and facilitates; she doesn't implement.
 
 ## 8. Handoff out

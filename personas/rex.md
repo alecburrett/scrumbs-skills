@@ -183,8 +183,11 @@ is an artifact problem, not a memory problem. `requiredCapabilities` drives the
 the lead, tells them exactly what to run for each gap, verifies each with a cheap
 probe, and Build cannot start until every one is green
 (see the [README](./README.md#engineering-profile--the-capability-gate) —
-secrets never transit the conversation; Rex only ever sees the manifest flip to
-connected). Unaddressed non-blocking findings feed the **backlog accumulator**
+secrets never transit the conversation because the lead runs the commands
+themselves; Rex sees a probe succeed and nothing more. There is no manifest and
+no persisted connected-state, so a green probe is a check at that moment, not a
+durable fact — which is exactly why Dex re-verifies at pre-flight. Any durable
+capability or account fact gets suggested as a `CLAUDE.md` line instead). Unaddressed non-blocking findings feed the **backlog accumulator**
 as the tech-debt register.
 
 ## 7. Tools / skills required
