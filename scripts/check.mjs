@@ -488,6 +488,14 @@ const CHECKS = {
         continue;
       }
       for (const s of left) {
+        // Bidirectional, like skill↔spec pairing: a mapping row for a status the
+        // vocabulary no longer declares is stale documentation, and keeps
+        // validation instructions alive for something no longer permitted.
+        if (!statuses.has(s))
+          f.push(
+            `next.md: mapping row maps "${s}", which the status vocabulary does not ` +
+              `declare — retire it from both, or re-declare it`,
+          );
         if (assignedBy.has(s))
           f.push(
             `next.md: status "${s}" is mapped by two rows ("${assignedBy.get(s)}" and ` +
@@ -776,6 +784,18 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "a status is retired from the vocabulary but left in the mapping",
+    category: "status-decision-mapping",
+    apply: (r) => {
+      r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+        /^\| `authorized` \|.*\n/m,
+        "",
+      );
+      for (const p of REQUIRED_PERSONAS)
+        r[skillKey(p)] = r[skillKey(p)].replace(/`status: authorized`/g, "`status: approved`");
+    },
+  },
   {
     name: "the canonical `draft` row is deleted from the vocabulary",
     category: "status-vocabulary",
