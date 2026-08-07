@@ -394,9 +394,21 @@ to **Viktor** to record as a new build attempt, then Rex reviews that. Never to
 Rex directly: his entry condition needs a strictly newer build attempt, and
 until Viktor records one there isn't any, so the lifecycle would strand.
 
-**Fail closed.** If `attempt` or `revision` is missing, malformed, or
-non-monotonic on a Build/Review/QA artifact, do **not** guess and do not treat
-the stage as complete. Say exactly which artifact is malformed and recommend its
+**One exception, for work in progress.** A Build artifact at `status: draft` may
+carry no `revision` yet. Viktor creates it at the start of Build so an
+interrupted sprint still records its per-story states, and at that moment there
+may be nothing to point at — on a greenfield first build the code revision
+command legitimately returns nothing. A draft Build without a revision is
+**in progress, not malformed**: recommend Viktor and resume. `revision` becomes
+mandatory the moment the summary is approved, which is also the first moment it
+can be meaningful.
+
+`attempt` is required from creation regardless — it's just a counter, and
+nothing prevents writing it.
+
+**Fail closed otherwise.** If `attempt` or `revision` is missing, malformed, or
+non-monotonic on a Build/Review/QA artifact — outside that one in-progress
+case — do **not** guess and do not treat the stage as complete. Say exactly which artifact is malformed and recommend its
 owner to rewrite it. An unreadable lifecycle record is an unfinished stage.
 
 | Order | Stage | Persona | Artifact | Applies when |
