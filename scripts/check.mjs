@@ -537,8 +537,14 @@ const CHECKS = {
       ...skillNames(repo),
     ]);
 
-    for (const [path, text] of Object.entries(repo)) {
+    for (const [path, raw] of Object.entries(repo)) {
       if (!/\.(md|json)$/.test(path)) continue;
+      // JSON stores typographic punctuation as \uXXXX escapes, so decode before
+      // tokenizing — otherwise "/scrumbs:next\u2014it" reads as a command called
+      // `next\u2014it`. One escape becomes one character, so line numbers hold.
+      const text = path.endsWith(".json")
+        ? raw.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+        : raw;
       const lines = text.split("\n");
       const inFence = new Array(lines.length).fill(false);
       let fence = null;
@@ -623,7 +629,10 @@ const CHECKS = {
               // namespaced. The only legitimate mention explains how to create a
               // personal shortcut, so require that paragraph to actually show the
               // path — the word "shortcut" alone shelters "There is no shortcut."
-              if (!/\.claude\/commands/.test(paraOf[i] || line))
+              // Must establish THIS plugin's shortcut specifically. A paragraph
+              // about some other shortcut file was sheltering a bare command.
+              const shortcutPath = new RegExp(`\\.claude/commands/${pluginName}\\.md`);
+              if (!shortcutPath.test(paraOf[i] || line))
                 f.push(
                   `${path}:${i + 1}: tells the user to run /${pluginName}, but plugin ` +
                     `commands are always namespaced — use /${pluginName}:next`,
@@ -1008,6 +1017,12 @@ const MUTATIONS = [
     name: "an UNmarked fenced example of a dead command",
     category: "documented-commands",
     apply: (r) => (r["README.md"] += "\nIf you see this, you're on an old version:\n\n```\n/scrumbs\n```\n"),
+  },
+  {
+    name: "an unrelated shortcut path shelters a bare command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nSave your own at `~/.claude/commands/review.md`. Then start with /scrumbs.\n"),
   },
   {
     name: "a deprecation note WITHOUT the marker",
@@ -1406,6 +1421,15 @@ const MUST_STAY_GREEN = [
     name: "a command inside smart quotes",
     category: "documented-commands",
     apply: (r) => (r["README.md"] += "\nThey said \u201cstart with /scrumbs:next\u201d and that was that.\n"),
+  },
+  {
+    name: "a manifest with an escaped em dash beside a command",
+    category: "documented-commands",
+    apply: (r) => {
+      const d = JSON.parse(r[".claude-plugin/marketplace.json"]);
+      d.plugins[0].description += " Run /scrumbs:next\u2014it resumes where you left off.";
+      r[".claude-plugin/marketplace.json"] = JSON.stringify(d, null, 2) + "\n";
+    },
   },
   {
     name: "a command followed by an em dash",
