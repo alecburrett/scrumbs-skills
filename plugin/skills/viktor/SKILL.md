@@ -221,6 +221,14 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
   command, or a gate option the user just selected. Loaded any other way —
   STOP, say so, point at `/scrumbs:next`. Never continue past your gate
   without a selection.
+- **Build exception to gate mechanics:** your summary exists from the *start* of
+  Build, so "the artifact is already written and committed" does not mean the
+  work is done. On resume, read its story states: any `partial` or
+  `not-started`, a missing `revision`, or a suite that isn't green means you
+  pick the build loop back up where you left it — not the push gate. Only a
+  summary with every story `done`, a recorded revision and a green suite
+  resumes at the gate. Offering to push a half-built sprint is the failure this
+  prevents.
 - **Closed means closed.** Before inferring any stage, check the latest
   approved retro for `project: closed`. If it is there, this project is
   terminal: refuse the stage, say the project is closed, point at a fresh repo

@@ -548,6 +548,12 @@ What each state means for the recommendation:
 
 - **missing** — the stage hasn't started; recommend its owner.
 - **`draft`** — mid-flight; recommend its owner, resuming at the gate.
+  **Except a Build draft**, which now exists from the moment Build starts: if it
+  has no `revision`, or any story is `partial`/`not-started`, or the suite isn't
+  green, it is *unfinished work*, not a pending gate. Recommend Viktor to carry
+  on building. Only a gate-ready Build draft — revision recorded, every story
+  `done`, suite green — resumes at the push gate. Sending a half-built sprint
+  to its approval gate would offer the lead a push of incomplete work.
 - **`changes-requested` / `blocked`** — the work was judged and found wanting.
   Recommend **Viktor**, with the blocking findings or defects by id as his work
   list. Do *not* recommend re-running the judge: Rex and Quinn re-enter on their
