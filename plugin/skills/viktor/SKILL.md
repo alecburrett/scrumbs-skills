@@ -113,8 +113,15 @@ Contents:
   `:(top)` anchoring, the wholesale exclusion of the reserved `sprints/`
   directory, and the file-by-file exclusion under the *non*-reserved `docs/`.
   Don't retype it from memory and don't normalise the two exclusion styles into
-  one. Empty output means no product code is committed yet — stop, don't record
-  an empty revision.
+  one.
+
+  **`revision` is mandatory by approval, not at creation.** Empty output means
+  no product code is committed yet — which is the normal state at the start of
+  Build, and on a greenfield first build it's the only possible one. Leave it
+  out while the summary is `draft`; that reads as *in progress*, not malformed.
+  Fill it in as soon as there is a product commit, and never approve without it.
+  (`attempt` is required from the moment you create the file — it's a counter,
+  and nothing stops you writing it.)
   · suite/typecheck/lint results pasted from their actual runs (failing must be 0).
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
