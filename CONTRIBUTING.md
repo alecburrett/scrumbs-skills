@@ -5,10 +5,11 @@ the team behaves. There's no build step and no dependencies, but there **is** a
 conformance check, and it runs on every PR:
 
 ```sh
-node scripts/check.mjs
+node scripts/check.mjs              # the checks
+node scripts/check.mjs --self-test  # prove every check can still fail
 ```
 
-Run it before you push. It takes about a second and needs nothing installed.
+Run both before you push. They take about a second and need nothing installed.
 
 ## The two layers
 
@@ -45,17 +46,34 @@ nobody noticed by reading:
 
 | Check | Catches |
 |---|---|
-| **Shared bullets byte-identical** | a rule fixed in one skill and left wrong in the other six — the drift that let the retro hand off to the wrong persona for as long as it did |
-| **Maintainer comment names them** | a fifth bullet becoming shared without the comment saying so, so the next person syncs four of five |
-| **Status vocabulary** | a skill writing a status the front door can't route |
-| **Handoffs name real personas** | `invoke \`x\`` where `x` isn't a skill, including near-misses like the front-door command |
-| **Header templates carry `schema`** | artifacts that read as legacy the moment they're written |
-| **Absent machinery** | re-introducing a harness, a ledger, a vault, a grader — anything the plugin can't actually provide |
-| **Packaging** | a skill without a spec, frontmatter that disagrees with its directory, invalid manifest JSON |
+| **shared-bullets** | a canonical bullet edited in one skill and left alone in the other six — the drift that let the retro hand off to the wrong persona |
+| **shared-bullets-declared** | a bullet that has *become* byte-identical everywhere without being declared canonical, so the next edit desyncs it silently |
+| **maintainer-comment** | the comment naming a different set than `CANONICAL_BULLETS` — in either direction |
+| **status-vocabulary** | a skill writing a status the front door can't route, *and* the status table being renamed or reformatted out from under the parser |
+| **handoffs** | any `invoke …` that doesn't resolve to a real persona, backticked or not — a bare `invoke Vicktor` fails |
+| **header-schema** | a header template without a `schema` key, including lookalikes like `schemaVersion` |
+| **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide. Allowed only inside a blockquote that is explicitly a hosted-port note — and judged per occurrence, so one quoted mention can't shelter a live requirement further down the file |
+| **packaging** | a missing persona in either direction, frontmatter disagreeing with its directory, invalid manifest JSON |
 
-Adding a check is welcome. Adding one that can't fail isn't: break the invariant
-locally first and confirm the checker actually goes red, or you've written a
-test that only ever agrees with you.
+### What it does not catch
+
+Be clear-eyed about this, or the green tick starts doing work it hasn't earned:
+
+- **A rule that is consistently wrong everywhere.** The checks compare files to
+  each other. Seven skills agreeing on a bad rule is a pass.
+- **Anything behavioural.** No stage is executed, no gate is answered, no
+  artifact is written. Whether Pablo actually asks one question at a time is not
+  something a text comparison can tell you — run a real stage on a real repo.
+- **Merge blocking, unless you configure it.** CI runs both commands on every
+  PR, but GitHub does not make a new job required automatically. Until someone
+  adds `checks / conformance` to a branch ruleset, a red PR can still be merged.
+
+### Adding a check
+
+Add the mutation too. `--self-test` applies a deliberate break for every check
+and asserts it goes red; a category with no mutation, or one that stays green,
+fails the self-test. This is enforced rather than encouraged, because a check
+that cannot fail is worse than no check — it reassures without verifying.
 
 ### The shared bullets
 
