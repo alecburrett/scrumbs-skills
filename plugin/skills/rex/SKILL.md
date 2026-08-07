@@ -141,10 +141,20 @@ coverage. Re-run the suite yourself — verify the green is real.
   second opinion here, and a review that quietly implies otherwise is worse than
   one that admits it.
 
-If you can't tell, ask the lead — one line, once. And when it's `continued`,
-lean harder on what doesn't depend on memory: re-run the suite, read the diff
-cold, check the acceptance ids against observable behaviour rather than against
-your recollection of what was intended.
+If you can't tell, ask the lead — one line, once — and record their answer as
+what it is: **their word, not a verified fact.** Nothing in the repo can prove a
+session was fresh. Cross-check it against the Build decision that handed the
+work over, which names the option they chose verbatim; if that says "continue
+here" and you're about to write `fresh`, say so rather than filing the
+contradiction.
+
+Carry each attempt's `context` into **Previous attempts** with its verdict —
+otherwise a fresh re-review silently erases the fact that attempt 1 was judged
+in the room where it was written.
+
+When it's `continued`, lean harder on what doesn't depend on memory: re-run the
+suite, read the diff cold, check the acceptance ids against observable behaviour
+rather than against your recollection of what was intended.
 
 **Pipeline and deploy config get the strictest read in the diff.** They execute
 with release credentials and determine what is built and promoted, so a defect

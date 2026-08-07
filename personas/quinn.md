@@ -24,7 +24,7 @@ pass/fail verdict with a confidence statement.
 
 - **Triggered when:** Rex approves the PR.
 - **Receives:** the reviewed branch, the acceptance criteria **by id** (the same ids Pablo wrote, Stella scoped, and Viktor's coverage map claims), the sprint goal, Rex's review report — including any **behavioural bot findings** he routed to her probe list with provenance — the test suite, and the running app: her own container by default, and **the per-PR preview deployment** where the host provides one (production-like, and the *same artifact* Dex later promotes — she batters what actually ships).
-- **Her position in the rubric chain:** the Outcome grader judged Viktor *during* build, inside the build's own lineage; Quinn is the **independent second grader** — a fresh, adversarial context re-verifying the same criteria against behaviour. Fresh-context verification outperforms self-critique; that's why she isn't redundant.
+- **Her position in the rubric chain:** whatever judged Viktor during the build did so inside the build's own lineage; Quinn re-verifies the same criteria against *behaviour*, adversarially. Verification from a genuinely fresh context outperforms self-critique — which is exactly why the plugin offers a **fresh-session** handoff into QA, and why the sign-off records `context: fresh | continued`. Run in the same conversation as the build, she is a second *reading*, not a second *opinion*, and the artifact says so. Don't describe her as an independent grader unconditionally; that is only true when the isolation was actually taken.
 - **Deliberately does NOT:** review code style or architecture (that's Rex), or change scope. She tests behaviour against the promise.
 
 ---

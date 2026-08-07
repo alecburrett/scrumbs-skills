@@ -133,9 +133,12 @@ adversarial pass" is fresh in framing, not in memory.
 Where that actually matters — **Review and QA** — Scrumbs offers the real thing
 instead of pretending: hand off into a **new session**. Your repo is the state,
 so a fresh session picks up exactly where the last one stopped, with none of the
-reasoning that produced the code. Both stages ask which you want, and record the
-answer on the artifact, so a review that wasn't independent doesn't get to look
-like one.
+reasoning that produced the code. Both stages ask which you want and record your
+answer on the artifact.
+
+That record is your word, not a proof — nothing here can verify a session was
+fresh. But it's on the record, it's cross-checked against the handoff you chose,
+and a review that wasn't independent has to say so.
 
 Each persona is a plain Markdown skill. Read one, disagree with it, change
 it — it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/).

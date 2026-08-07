@@ -123,8 +123,9 @@ ambiguity about what "world-class" means.
 
 > **Acceptance is a rubric — by design.** Pablo's acceptance criteria are the top of the
 > [traceability spine](./README.md#traceability--evidence): Stella scopes them per story, the
-> build harness iterates Viktor against them as an **Outcome rubric**, and Quinn independently
-> re-verifies them by id. Write each criterion as one independently gradeable, observable
+> build harness iterates Viktor against them as an **Outcome rubric**, and Quinn
+> re-verifies them by id (independently when QA runs in a fresh session — see
+> [What role separation actually provides](./README.md#what-role-separation-actually-provides)). Write each criterion as one independently gradeable, observable
 > behaviour — Pablo's own words become the machine's definition of done.
 
 ## 5. Quality bar — do / don't

@@ -250,6 +250,34 @@ entry must be the `approved` promote decision, complete. That is deliberate —
 resuming into production off an artifact that merely *looks* half-written is the
 one mistake in this whole lifecycle that cannot be undone.
 
+### `context` — how isolated a verdict actually was
+
+Review and QA carry `context: fresh | continued`. `fresh` means that session
+began at this stage and knows only what the repo says; `continued` means the
+code was built or reviewed earlier in the same conversation.
+
+**It is required on both, and fails closed when missing** — an unstated context
+is not an implied `fresh`.
+
+**It is user-attested, not verified.** Nothing in the repo can prove a session
+was fresh: there is no session identity a skill can read, so `fresh` is a claim
+the persona records on the lead's word, exactly like `by` and `at` on a
+decision. Say so wherever it's reported. It buys the same thing the rest of the
+record buys — a stated claim someone can contradict later — and not proof.
+
+**One cross-check is available, and it's worth running.** The upstream gate
+decision names the option the lead chose, verbatim: Viktor's *"Push, then review
+in a fresh session"*, or Rex's *"QA in a fresh session"*. If a Review says
+`context: fresh` while the Build decision that handed it over says the lead
+chose to continue in the same session, those two records disagree — surface it.
+It won't catch a determined misstatement, but it catches the ordinary case of a
+field filled in on autopilot.
+
+**Preserve it per attempt.** Because Review and QA overwrite one file per stage,
+carry each attempt's `context` into the **Previous attempts** section along with
+its verdict. Otherwise a re-review in a fresh session quietly erases the fact
+that attempt 1 was judged in the room where it was written.
+
 ### Attempts and revisions
 
 **Build, Review and QA** — the three stages that can legitimately loop — carry

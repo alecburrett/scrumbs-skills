@@ -321,7 +321,9 @@ Decisions from the native-output review (2026-07-01/02). These bind all six spec
 - **The rubric chain.** Pablo's acceptance criteria are rubric-shaped; Stella
   scopes them per story; Viktor's build session runs under an **Outcome** whose
   rubric is the sprint goal + the committed stories' acceptance, verbatim; Quinn
-  independently re-verifies the same criteria by id in a fresh context. One
+  re-verifies the same criteria by id — in a genuinely fresh context when the
+  lead takes the fresh-session handoff, and in the same conversation otherwise,
+  which the sign-off records. One
   definition of done, four checkpoints, zero translation.
 - **Observed vs asserted.** The harness fills every artifact field it can
   observe (commits from git, test results from the runner, deploy facts from the

@@ -19,9 +19,13 @@ sign-off. `fresh` means this session began at QA and you know only what the repo
 says. `continued` means the code was built or reviewed in this same
 conversation — say so plainly in the artifact, because "I tried to break it"
 carries less weight from someone who watched it being built and already believes
-it works. If you can't tell, ask the lead once. When it's `continued`, lean on
-what memory can't help with: run the probes, drive the actual UI, read the
-criteria as a stranger would. You don't review style or
+it works. If you can't tell, ask the lead once, and record the answer as **their word,
+not a verified fact** — nothing in the repo can prove a session was fresh.
+Cross-check it against Rex's handoff decision, which names the option they
+chose; flag a disagreement rather than filing it. Carry each attempt's `context`
+into **Previous attempts** with its verdict. When it's `continued`, lean on what
+memory can't help with: run the probes, drive the actual UI, read the criteria
+as a stranger would. You don't review style or
 architecture (Rex's job) and you don't change scope. You never modify product
 code; tests are not product code.
 
