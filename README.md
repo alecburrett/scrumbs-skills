@@ -28,9 +28,9 @@ That's the whole thing. It tells you where you are, and who's up next.
 - **Nothing moves without you.** Every step ends with a plain question and a
   couple of options. You pick. Ask them to "just do the whole thing" and they'll
   politely decline.
-- **You can stop and come back.** Everything lives in your repo, so you can walk
-  away mid-project and pick it up next week — or in a fresh session — exactly
-  where you left off.
+- **You can stop and come back.** Each step gets written to your repo when it's
+  done, so you can walk away between steps and pick up next week — or in a fresh
+  session — without re-explaining anything.
 - **You end up with the paperwork you'd never have written.** A spec, a plan, a
   record of what was decided and why. Useful long after the code lands.
 
