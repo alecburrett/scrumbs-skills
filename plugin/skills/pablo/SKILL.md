@@ -123,6 +123,12 @@ one-line description of what follows. On confirmation, update `shape` on the
 brief, **append** that exact question and answer to its `decisions` list, cite
 the previous brief blob in `inputs` as provenance, and commit.
 
+**The appended entry is `type: approved`** — the brief's status stays
+`approved`, and the last decision must match the status or the brief is
+malformed and every persona that reads it stops. Don't invent a
+`type: shape-change`; what makes this entry legible is its `question` and
+`answer`, which say in the lead's own words exactly what was approved.
+
 Then say what actually changes, and do the one thing that makes it real:
 
 - **`headless` → `ui`:** Iris's setup Design becomes due before anything is

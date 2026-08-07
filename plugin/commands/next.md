@@ -78,8 +78,17 @@ identify paperwork.
    | `held` | `held` |
    | `returned` | `returned` (with `to:`) |
    | `abandoned` | `abandoned` |
+   | `superseded` | *(exempt — see below)* |
 
    Missing, partial, or not matching → **malformed, fail closed**, and say so.
+
+   **`draft` and `superseded` are exempt**, and for the same reason: neither is
+   something the lead chose. `draft` is work in progress; `superseded` is a
+   *derived* state — an artifact replaced by a later attempt, or retired by a
+   shape change. Nobody attends a gate to supersede something, so demanding a
+   matching decision would make every superseded artifact malformed. Its
+   existing `decisions` history stays exactly as it is; that history is still
+   true, it has just stopped being current.
 
    Note the one many-to-one row. `authorized` and `approved` both rest on the
    *same* `approved` decision, because the lead authorized the promote exactly

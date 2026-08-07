@@ -274,6 +274,42 @@ const CHECKS = {
     return f;
   },
 
+  // Every status must ALSO have a row in the status→required-decision mapping,
+  // or be explicitly exempt. A status the vocabulary defines but the mapping
+  // omits produces artifacts the validator rejects — which is exactly how the
+  // shape-change path shipped an artifact its own validator refused.
+  "status-decision-mapping"(repo) {
+    const next = repo["plugin/commands/next.md"];
+    const vocab = section(
+      next,
+      "### The status vocabulary (canonical — skills use these exact words)",
+    );
+    if (vocab === null) return ["next.md: status vocabulary section not found"];
+    const statuses = new Set();
+    // The table's own header cell is literally `status` — not a status value.
+    for (const m of vocab.matchAll(/^\|\s*`([a-z-]+)`\s*\|/gm))
+      if (m[1] !== "status") statuses.add(m[1]);
+    if (statuses.size < 5) return ["next.md: parsed too few statuses — vocabulary shape changed"];
+
+    // Scope strictly to the mapping table: scanning to end-of-file would sweep
+    // up later tables and mark statuses covered that this table never lists.
+    const lines = next.split("\n");
+    const head = lines.findIndex((l) => l.includes("required last decision"));
+    if (head === -1) return ["next.md: status→decision mapping table not found"];
+    const covered = new Set(["draft"]); // never a chosen outcome
+    for (let i = head + 1; i < lines.length && /^\s*\|/.test(lines[i]); i++)
+      for (const s of lines[i].matchAll(/`([a-z-]+)`/g)) covered.add(s[1]);
+
+    const f = [];
+    for (const s of statuses)
+      if (!covered.has(s))
+        f.push(
+          `next.md: status "${s}" has no row in the status→decision mapping — ` +
+            `an artifact written with it is malformed by its own validator`,
+        );
+    return f;
+  },
+
   // Every `invoke …` must resolve to a real persona. Anything this cannot parse
   // is itself a failure — an unreadable handoff is exactly where a typo hides.
   // Handoffs have one written form: invoke `persona`. That is the grammar, and
@@ -517,6 +553,14 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "a status is defined but missing from the decision mapping",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `superseded` | *(exempt — see below)* |\n",
+      "",
+    )),
+  },
   {
     name: "a bad status hides inside a full header template",
     category: "status-vocabulary",
