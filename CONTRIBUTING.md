@@ -49,7 +49,7 @@ nobody noticed by reading:
 | **shared-bullets** | a canonical bullet edited in one skill and left alone in the other six — the drift that let the retro hand off to the wrong persona |
 | **shared-bullets-declared** | a bullet that has *become* byte-identical everywhere without being declared canonical, so the next edit desyncs it silently |
 | **maintainer-comment** | the comment naming a different set than `CANONICAL_BULLETS` — in either direction |
-| **status-vocabulary** | a skill writing a status the front door can't route, *and* the status table being renamed or reformatted out from under the parser |
+| **status-vocabulary** | a skill writing a status the front door can't route — backticked, bare, quoted, in a flow or multiline header, or drifting only in casing — *and* the status table being renamed or reformatted out from under the parser |
 | **handoffs** | a handoff that resolves to nobody. The written form is `` invoke `persona` `` — a code span or bold run after `invoke` must name a real persona, and a Capitalised bare word (`invoke Vicktor`) fails as the wrong form. Ordinary lowercase prose like "never invoke the deployment tool" is left alone |
 | **header-schema** | a header template without a `schema` key, including lookalikes like `schemaVersion` |
 | **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide, in any casing. Allowed only inside a blockquote preceded by the literal marker `<!-- hosted-port-note -->` — prose can't spoof a marker — and judged per line, so one quoted mention can't shelter a live requirement further down the file |
@@ -67,6 +67,10 @@ Be clear-eyed about this, or the green tick starts doing work it hasn't earned:
 - **Merge blocking, unless you configure it.** CI runs both commands on every
   PR, but GitHub does not make a new job required automatically. Until someone
   adds `checks / conformance` to a branch ruleset, a red PR can still be merged.
+- **A determined evasion.** This catches *accidental* drift — a typo, a dropped
+  backtick, a reflowed paragraph, a half-synced bullet. It is not an adversarial
+  control, and it isn't trying to be: anyone editing these files can defeat it
+  if they set out to.
 
 ### Adding a check
 

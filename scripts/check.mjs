@@ -254,6 +254,16 @@ const CHECKS = {
       };
       for (const m of text.matchAll(/`status:[^`]*`/g)) grab(m[0].replace(/`/g, ""));
       for (const h of scrumbsHeaders(text)) grab(h);
+      // Unbackticked instructions too — dropping the code span is ordinary
+      // editing. A short stoplist keeps ordinary sentences out: "the artifact's
+      // status: it depends on the verdict" is prose, not an instruction.
+      const NOT_A_STATUS = new Set([
+        "it", "its", "the", "a", "an", "this", "that", "they", "we", "you",
+        "what", "which", "whether", "when", "how", "and", "or", "but", "not",
+        "one", "each", "every", "any", "some", "no", "yes", "there", "here",
+      ]);
+      for (const m of text.matchAll(/\bstatus:\s*([a-z][a-z-]*)(?=[\s.,;)`"']|$)/gm))
+        if (!NOT_A_STATUS.has(m[1])) seen.add(m[1]);
       for (const s of seen)
         if (!known.has(s))
           f.push(
@@ -625,6 +635,11 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke **Vicktor agent**")),
   },
   {
+    name: "an invalid status with the backticks removed",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("rex")] = r[skillKey("rex")].replace("`status: draft`", "status: rubber-stamped")),
+  },
+  {
     name: "a quoted status bypasses casing validation",
     category: "status-vocabulary",
     apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
@@ -674,6 +689,12 @@ const MUST_STAY_GREEN = [
     name: "a rule describing which skill to invoke",
     category: "handoffs",
     apply: (r) => (r[skillKey("stella")] += "\nThen invoke **the skill named in the option the lead selected**.\n"),
+  },
+  {
+    name: "prose that mentions status followed by ordinary words",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("dex")] +=
+      "\nThe artifact's status: it depends on whether the preview verified.\n"),
   },
   {
     name: "a header with an inline YAML comment",
