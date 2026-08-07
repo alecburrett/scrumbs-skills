@@ -1,6 +1,6 @@
 {
   "name": "scrumbs",
-  "description": "Your AI scrum team. Minus the standups. Seven personas walk a project from raw idea to shipped software through explicit, approval-gated stages — you always know who is working and what happens next.",
+  "description": "Seven AI teammates who won't let you skip the boring parts. Someone asks what you're not building, someone pushes back on scope, someone tries to break it before your users do. They work one at a time and ask before anything moves on, and everything they decide is written down in your repo. Start with /scrumbs:next.",
   "version": "0.3.0",
   "author": {
     "name": "Alec Burrett"

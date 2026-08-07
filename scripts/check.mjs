@@ -44,7 +44,8 @@ const ABSENT_MACHINERY = [
 function loadRepo() {
   const files = {};
   const add = (p) => (files[rel(p)] = readFileSync(p, "utf8"));
-  add(join(ROOT, "plugin", "commands", "next.md"));
+  for (const f of readdirSync(join(ROOT, "plugin", "commands")))
+    if (f.endsWith(".md")) add(join(ROOT, "plugin", "commands", f));
   add(join(ROOT, "README.md"));
   add(join(ROOT, "CONTRIBUTING.md"));
   for (const d of readdirSync(join(ROOT, "plugin", "skills"), { withFileTypes: true }))
@@ -514,6 +515,63 @@ const CHECKS = {
     return f;
   },
 
+  // Every command a user is told to type must exist. This has now been wrong
+  // twice — once on the README's front page, once in the marketplace listing —
+  // and in both cases it was the FIRST thing a new user would try.
+  "documented-commands"(repo) {
+    const f = [];
+    const pluginName = (() => {
+      try {
+        return JSON.parse(repo["plugin/.claude-plugin/plugin.json"]).name;
+      } catch {
+        return null;
+      }
+    })();
+    if (!pluginName) return ["plugin.json: unreadable, cannot verify documented commands"];
+
+    // Plugin commands and skills are both invoked as /plugin:name.
+    const available = new Set([
+      ...Object.keys(repo)
+        .map((k) => k.match(/^plugin\/commands\/(.+)\.md$/)?.[1])
+        .filter(Boolean),
+      ...skillNames(repo),
+    ]);
+
+    for (const [path, text] of Object.entries(repo)) {
+      if (!/\.(md|json)$/.test(path)) continue;
+      const lines = text.split("\n");
+      const inFence = new Array(lines.length).fill(false);
+      let fence = null;
+      lines.forEach((line, i) => {
+        const m = line.trim().match(/^(```+|~~~+)/);
+        if (fence === null && m) { fence = m[1]; inFence[i] = true; return; }
+        if (fence !== null) {
+          inFence[i] = true;
+          if (line.trim().startsWith(fence[0].repeat(fence.length))) fence = null;
+        }
+      });
+
+      lines.forEach((line, i) => {
+        for (const m of line.matchAll(new RegExp(`/${pluginName}:([a-z-]+)`, "g")))
+          if (!available.has(m[1]))
+            f.push(`${path}:${i + 1}: documents /${pluginName}:${m[1]}, which doesn't exist`);
+
+        // A bare /plugin with no :name isn't a real command — plugin commands are
+        // always namespaced. Flag it where a user would read it as an
+        // instruction: inside a code block, or anywhere in the JSON manifests.
+        // Inline prose may legitimately mention it (e.g. explaining how to make
+        // a personal shortcut of your own).
+        const bare = new RegExp(`/${pluginName}(?![:\\w-])`);
+        if (bare.test(line) && (inFence[i] || path.endsWith(".json")))
+          f.push(
+            `${path}:${i + 1}: tells the user to run /${pluginName}, but plugin ` +
+              `commands are always namespaced — use /${pluginName}:next`,
+          );
+      });
+    }
+    return f;
+  },
+
   // Every `invoke …` must resolve to a real persona. Anything this cannot parse
   // is itself a failure — an unreadable handoff is exactly where a typo hides.
   // Handoffs have one written form: invoke `persona`. That is the grammar, and
@@ -859,6 +917,22 @@ const MUTATIONS = [
     },
   },
   {
+    name: "the README tells you to run a bare /scrumbs",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next\n```", "/scrumbs\n```")),
+  },
+  {
+    name: "the marketplace listing advertises a bare /scrumbs",
+    category: "documented-commands",
+    apply: (r) => (r[".claude-plugin/marketplace.json"] = r[".claude-plugin/marketplace.json"].replace(
+      "/scrumbs:next", "/scrumbs")),
+  },
+  {
+    name: "the README documents a command that doesn't exist",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:start")),
+  },
+  {
     name: "an exemption marker is a placeholder",
     category: "status-decision-mapping",
     apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
@@ -1157,6 +1231,12 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "prose explaining how to make your own /scrumbs shortcut",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nSave a file at `~/.claude/commands/scrumbs.md` and you can just type `/scrumbs`.\n"),
   },
   {
     name: "prose that mentions the mapping table's header phrase",
