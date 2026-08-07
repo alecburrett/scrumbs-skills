@@ -220,10 +220,17 @@ const CHECKS = {
       const seen = new Set();
       // Standalone `status: x`, plus status inside every header form. Case is
       // significant: the front door matches the canonical lowercase words.
-      // Optional quotes: `status: "Draft"` is ordinary YAML and must not slip past.
-      const STATUS = /\bstatus:\s*["']?([A-Za-z-]+)["']?/g;
-      for (const m of text.matchAll(/`status:\s*["']?([A-Za-z-]+)["']?`/g)) seen.add(m[1]);
-      for (const h of scrumbsHeaders(text)) for (const m of h.matchAll(STATUS)) seen.add(m[1]);
+      // Capture the WHOLE scalar, quoted or bare, so `approved_pending` cannot be
+      // read as `approved`. Quotes are ordinary YAML and must not slip past either.
+      const STATUS = /\bstatus:\s*(?:"([^"\n]*)"|'([^'\n]*)'|([^,}\n|`]*))/g;
+      const grab = (src) => {
+        for (const m of src.matchAll(STATUS)) {
+          const value = (m[1] ?? m[2] ?? m[3] ?? "").trim();
+          if (value && !/^<.*>$/.test(value)) seen.add(value);
+        }
+      };
+      for (const m of text.matchAll(/`status:[^`]*`/g)) grab(m[0].replace(/`/g, ""));
+      for (const h of scrumbsHeaders(text)) grab(h);
       for (const s of seen)
         if (!known.has(s))
           f.push(
@@ -570,6 +577,22 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
       "status: draft, sprint: N",
       'status: "Draft", sprint: N',
+    )),
+  },
+  {
+    name: "an invalid status starts with a canonical one",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
+      "status: draft, sprint: N",
+      "status: draft_pending, sprint: N",
+    )),
+  },
+  {
+    name: "an invalid quoted status is multi-word",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
+      "status: draft, sprint: N",
+      'status: "approved pending", sprint: N',
     )),
   },
   {
