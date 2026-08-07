@@ -285,7 +285,9 @@ const CHECKS = {
     for (const p of names) {
       // Frontmatter says "Invoke ONLY when…" in every skill; that is not a handoff.
       const body = repo[skillKey(p)].replace(/^---\n[\s\S]*?\n---\n/, "");
-      const RE = /\binvoke\b\s+(?:the\s+)?(`[^`]+`|\*\*[^*]+\*\*|[A-Z][A-Za-z-]*|[a-z][a-z-]*)/g;
+      // The keyword is case-insensitive (a sentence may start with "Invoke");
+      // the TARGET's casing is what carries meaning, so it stays case-sensitive.
+      const RE = /\b[Ii]nvoke\b\s+(?:[Tt]he\s+)?(`[^`]+`|\*\*[^*]+\*\*|[A-Z][A-Za-z-]*|[a-z][a-z-]*)/g;
       for (const m of body.matchAll(RE)) {
         const raw = m[1];
         const emphasised = /^[`*]/.test(raw);
@@ -598,6 +600,11 @@ const MUTATIONS = [
     name: "a bare lowercase handoff is a typo for a persona",
     category: "handoffs",
     apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke vicktor")),
+  },
+  {
+    name: "a sentence-initial Invoke hides a typo",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "Invoke vicktor")),
   },
   {
     name: "a bold multiword handoff names no persona",
