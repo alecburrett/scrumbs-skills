@@ -194,6 +194,13 @@ function liveLines(lines) {
   return live;
 }
 
+/** Blank out non-live lines, preserving line count so offsets stay meaningful. */
+const liveOnly = (text) => {
+  const lines = text.split("\n");
+  const live = liveLines(lines);
+  return lines.map((l, i) => (live[i] ? l : "")).join("\n");
+};
+
 /**
  * Find a table by the columns it declares, not by prose. Looking for a phrase
  * anywhere in the file matches a sentence that merely mentions it — a real false
@@ -337,7 +344,10 @@ const CHECKS = {
 
   "status-vocabulary"(repo) {
     const heading = "### The status vocabulary (canonical — skills use these exact words)";
-    const sec = section(repo["plugin/commands/next.md"], heading);
+    // Live document only: a section commented out or fenced as an example is not
+    // the canonical one, and section() alone would happily slice it out of a
+    // comment because the opener sits above the heading it looks for.
+    const sec = section(liveOnly(repo["plugin/commands/next.md"]), heading);
     if (sec === null) return [`next.md: no "${heading}" section — status table moved or renamed`];
     const secLines = sec.split("\n");
     const hi = findTable(secLines, "status");
@@ -411,7 +421,7 @@ const CHECKS = {
   // omits produces artifacts the validator rejects — which is exactly how the
   // shape-change path shipped an artifact its own validator refused.
   "status-decision-mapping"(repo) {
-    const next = repo["plugin/commands/next.md"];
+    const next = liveOnly(repo["plugin/commands/next.md"]);
     const vocab = section(
       next,
       "### The status vocabulary (canonical — skills use these exact words)",
@@ -762,6 +772,34 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "the whole status vocabulary section is commented out",
+    category: "status-vocabulary",
+    apply: (r) => {
+      const h = "### The status vocabulary (canonical — skills use these exact words)";
+      const lines = r["plugin/commands/next.md"].split("\n");
+      const i = lines.findIndex((l) => l.trim() === h);
+      let end = i + 1;
+      while (end < lines.length && !/^#{1,3}\s/.test(lines[end])) end++;
+      lines.splice(end, 0, "-->");
+      lines.splice(i, 0, "<!--");
+      r["plugin/commands/next.md"] = lines.join("\n");
+    },
+  },
+  {
+    name: "the whole status vocabulary section is fenced as an example",
+    category: "status-vocabulary",
+    apply: (r) => {
+      const h = "### The status vocabulary (canonical — skills use these exact words)";
+      const lines = r["plugin/commands/next.md"].split("\n");
+      const i = lines.findIndex((l) => l.trim() === h);
+      let end = i + 1;
+      while (end < lines.length && !/^#{1,3}\s/.test(lines[end])) end++;
+      lines.splice(end, 0, "```");
+      lines.splice(i, 0, "```markdown");
+      r["plugin/commands/next.md"] = lines.join("\n");
+    },
+  },
   {
     name: "the only mapping table is commented out",
     category: "status-decision-mapping",
