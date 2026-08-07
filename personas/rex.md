@@ -31,7 +31,7 @@ has a location, a reason, and a concrete fix; tests judged on substance.
 ## 2. Trigger & inputs
 
 - **Tech Design triggered when:** Stella's Sprint Plan is approved.
-  - **Receives:** the sprint goal, the ordered stories + acceptance (by id), the PRD for context, the codebase (current architecture + patterns — sprint 2+), and the **[Engineering Profile](./README.md#engineering-profile--the-capability-gate)** — the lead's stack preferences, licences and accounts, deploy targets, connected integrations (app-generated manifest), and hard constraints. On a greenfield first sprint there *is* no codebase; the profile is what Rex designs against instead of a vacuum. Any `technical`-routed steers from the last retro (e.g. "move Postgres to Neon") arrive here as flagged inputs and get the ADR treatment.
+  - **Receives:** the sprint goal, the ordered stories + acceptance (by id), the PRD for context, the codebase (current architecture + patterns — sprint 2+), and the **[Engineering Profile](./README.md#engineering-profile--the-capability-gate)** — the lead's stack preferences, licences and accounts, deploy targets, connected integrations, and hard constraints — in the plugin, all of it the lead's `CLAUDE.md`, maintained by suggestion rather than generated. On a greenfield first sprint there *is* no codebase; the profile is what Rex designs against instead of a vacuum. Any `technical`-routed steers from the last retro (e.g. "move Postgres to Neon") arrive here as flagged inputs and get the ADR treatment.
 - **Review triggered when:** Viktor's Build is approved and the branch is pushed.
   - **Receives:** the branch / PR diff (natively, via the GitHub integration), the commits, Viktor's test results + acceptance-coverage map, **his own approved Tech Design** (read from the repo — `sprints/sprint-N-design.md`), the sprint plan, the codebase, and any **external reviewer findings** (PR comments from installed review bots — Codex, Gemini, Copilot, Claude-action).
 - **Deliberately does NOT:** write the implementation himself (that's Viktor — Rex designs and judges), or re-open product scope/priority (that's Pablo/Stella; he bounces back if a story is technically infeasible as written).
@@ -179,8 +179,9 @@ free precision scorecard per review bot over time. The approved TechDesign
 **commits to the repo as `sprints/sprint-N-design.md`** — Build-Viktor and
 Review-Rex both read it from the mount; same-agent-different-session continuity
 is an artifact problem, not a memory problem. `requiredCapabilities` drives the
-**capability gate** at design approval: the app diffs it against the profile's
-manifest, gaps become Connect cards, and Build cannot start until they're green
+**capability gate** at design approval: Rex walks the declared capabilities with
+the lead, tells them exactly what to run for each gap, verifies each with a cheap
+probe, and Build cannot start until every one is green
 (see the [README](./README.md#engineering-profile--the-capability-gate) —
 secrets never transit the conversation; Rex only ever sees the manifest flip to
 connected). Unaddressed non-blocking findings feed the **backlog accumulator**
@@ -195,7 +196,7 @@ as the tech-debt register.
 
 ## 8. Handoff out
 
-- **Tech Design approved →** the design commits to the repo, the capability gate runs (Connect cards for any `requiredCapabilities` gaps — Build blocked until green), then hands to **Viktor** (Build) with the approach, interfaces, risks, and implementation order. **Asserts:** "Here's a sound, testable approach the lead can actually run — build it in this order."
+- **Tech Design approved →** the design commits to the repo, the capability gate runs (Rex walks each `requiredCapabilities` gap with the lead, who runs the commands themselves; each verified by a probe, Build blocked until green), then hands to **Viktor** (Build) with the approach, interfaces, risks, and implementation order. **Asserts:** "Here's a sound, testable approach the lead can actually run — build it in this order."
 - **Review → Approve →** hands to **Quinn** (QA) with the approved branch + the report (any behavioural bot findings routed to her probe list). **Asserts:** "The code is correct, sound, matches the design, and is fit to QA."
 - **Review → the candidate freezes.** From an approved review to the release, nothing lands on the candidate branch: Quinn's probes go to their own branch, so the revision Rex judged is the revision Dex promotes. If the candidate has moved when Dex checks, it goes to **Viktor** to record as a new build attempt, and Rex reviews that — not straight back to Rex, whose entry needs a newer attempt to exist first.
 - **Review → Changes requested →** back to **Viktor** (Build); the critical findings (by id) seed his fix-session work items directly. The artifact is written `status: changes-requested`, **never `approved`** — the lead approved *sending it back*, which is not the same as approving the work, and the two must not share a status value (see [Artifact status vs verdict](./README.md#artifact-status-vs-verdict-and-why-theyre-different-fields)).

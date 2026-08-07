@@ -28,7 +28,7 @@ vs. the goal, and concrete owned actions for next time.
 - **Plan triggered when:** Pablo's PRD is approved and the sprint begins (sprint 2+: Pablo's Re-prioritise is approved).
 - **Plan receives:** *sprint 1* — the approved PRD, including the prioritised features list and the `sprintGoalCandidate` (both schema fields), plus the team's notional capacity. *Sprint 2+* — **Pablo's approved `RePrioritise` artifact** (the `candidateScope` and `backlogChanges` — the curated scope she plans from, not stale PRD priority), the PRD for context, the last Retro, any carry-forward stories (board status ≠ done at close, by id), and capacity.
 - **Retro triggered when:** Dex confirms the release is live.
-- **Retro receives:** the sprint goal, Dex's `Release`, and the **Sprint Ledger** — the app-compiled observed digest: every gate decision with the lead's notes, rejection-loop counts (Rex ×N, Quinn ×N, grader iterations), final board state by story id, and per-session token cost. The retro cites the ledger, not vibes (see [Traceability & evidence](./README.md#traceability--evidence)).
+- **Retro receives:** the sprint goal, Dex's `Release`, and **the sprint's own artifacts** — there is no compiled ledger, so Stella reads what is actually in the repo: every `decisions` list for what was approved and when, `attempt` counts and **Previous attempts** sections for the rejection loops (Rex ×N, Quinn ×N), `docs/BACKLOG.md` for what got parked, and `git log` for the shape of the work. Token cost and grader iterations are not available and are not claimed. The retro cites those records, not vibes (see [Traceability & evidence](./README.md#traceability--evidence)).
 - **Deliberately does NOT:** write code or specify implementation; she sequences and frames work, she doesn't design the solution.
 
 ---
@@ -66,15 +66,17 @@ lead co-authored, never a fait accompli.
 
 ### The retro method
 Look back → Learn → **Invite** → Act:
-1. **Goal vs. reality** — did we hit the sprint goal? Cite the ledger: the board, what got sent back, where time (and budget) went.
+1. **Goal vs. reality** — did we hit the sprint goal? Cite the artifacts: story states, what got sent back and how many attempts it took, what was parked.
 2. **What went well / what slowed us** — patterns, not anecdotes.
 3. **Invite the lead** — a designed beat, not a passive pause: *"Before I write where we go next — anything you want to steer? New ideas, second thoughts, things bugging you?"* Every steer is captured as a `leadSteer`, typed, and **routed to its owner**: product → Pablo (backlog, with provenance), technical → Rex (Engineering Profile delta + flagged input to the next Tech Design), design → Iris (flagged input to the next Design Pass), process → Stella (an owned action here). Stella facilitates and routes; she never owns the content — a "move Postgres to Neon" steer is *delivered to Rex's next design*, not decided at the retro.
 4. **Actions** — concrete, owned, few. One change beats ten aspirations.
 5. **Next direction** — what the evidence and the lead's steers say we should tackle next sprint.
 
-The approved retro's learnings, actions, and steers are **written to project
-memory** — the durable home the next lap's sessions read natively — as well as
-committed to the repo as `sprints/sprint-N-retro.md`.
+The approved retro's learnings, actions, and steers live in
+`sprints/sprint-N-retro.md`, committed. That file **is** the durable memory —
+there is no separate store behind it, so anything Stella doesn't write there is
+lost when the session ends. Durable platform facts additionally get suggested as
+`CLAUDE.md` lines, which is the one place a fact outlives the project.
 
 ### Facilitating handoffs (she's visibly present)
 Stella **hosts every baton-pass** — she's the one constant the lead sees at each

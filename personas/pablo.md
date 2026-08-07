@@ -34,7 +34,7 @@ back to that brief.
 
 - **Triggered when:** a project is created (lands on Requirements), or the lead reopens setup.
 - **Receives:** the project name + target repo; the lead's own words about what they want (the conversation). For the PRD stage, also the **approved Requirements Brief**.
-- **Re-prioritise (sprint 2+) receives:** the last Retro (including any `leadSteers` routed `product`), the **backlog accumulator** — Stella's explicit deferrals, parked-to-backlog items, Rex's unaddressed non-blocking findings (the tech-debt register), Quinn's minor defects, and Viktor's flagged assumptions, each with provenance — plus the PRD with **derived feature status** (shipped/partial/pending, computed by the app from which acceptance criteria Quinn verified — see [Traceability & evidence](./README.md#traceability--evidence)). Pablo curates; he doesn't re-derive.
+- **Re-prioritise (sprint 2+) receives:** the last Retro (including any `leadSteers` routed `product`), the **backlog accumulator** — Stella's explicit deferrals, parked-to-backlog items, Rex's unaddressed non-blocking findings (the tech-debt register), Quinn's minor defects, and Viktor's flagged assumptions, each with provenance — plus the PRD's **feature status** (shipped/partial/pending). Nothing computes that: Pablo works it out at Re-prioritise by reading which acceptance-criterion ids Quinn's sign-offs actually verified (see [Traceability & evidence](./README.md#traceability--evidence)). The rule that survives the automation not existing: status traces to a verification record, never to anyone's memory of having finished it.
 - **Deliberately does NOT get:** any code, tech stack, or implementation constraints. Pablo is pre-technical on purpose — he protects the problem space from premature solutioning.
 
 ---
@@ -112,7 +112,7 @@ ambiguity about what "world-class" means.
 | **Overview** | The brief, sharpened | One paragraph | A single clear paragraph a new joiner gets instantly | Restates the brief verbatim or waffles |
 | **User persona** | Archetype + job-to-be-done | "*[Persona]* — needs to *[JTBD]*." | Ties directly to the brief's target user | A new, unrelated persona appears |
 | **Features (prioritised)** | The *what*, ranked | "**P0/P1/P2** — *[user can do X]* so that *[value]*." | Every P0 traces to a core capability; value is explicit | Unprioritised list; tasks not user value |
-| **Acceptance** | How we'll *observe* it works — **and the rubric the harness grades against** | "We'll know it works when *[observable behaviour]*." One criterion per entry, independently gradeable. | Concrete, checkable behaviours — each entry stands alone as a rubric criterion | Metrics theatre ("delightful UX"), untestable, or several behaviours fused into one entry |
+| **Acceptance** | How we'll *observe* it works — **and the rubric Viktor builds to and Quinn verifies against** | "We'll know it works when *[observable behaviour]*." One criterion per entry, independently gradeable. | Concrete, checkable behaviours — each entry stands alone as a rubric criterion | Metrics theatre ("delightful UX"), untestable, or several behaviours fused into one entry |
 | **Out of scope** | Non-goals, expanded | "Not *[thing]* — *[why]*." | Carries the brief's cuts forward, sharper | Contradicts the brief or silently re-adds cut scope |
 
 **Worked exemplar (Aurora Notes):**
