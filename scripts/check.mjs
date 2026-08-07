@@ -225,7 +225,10 @@ const CHECKS = {
       const STATUS = /\bstatus:\s*(?:"([^"\n]*)"|'([^'\n]*)'|([^,}\n|`]*))/g;
       const grab = (src) => {
         for (const m of src.matchAll(STATUS)) {
-          const value = (m[1] ?? m[2] ?? m[3] ?? "").trim();
+          let value = m[1] ?? m[2] ?? m[3] ?? "";
+          // A bare scalar may carry a trailing YAML comment; a quoted one may not.
+          if (m[3] !== undefined) value = value.replace(/\s+#.*$/, "");
+          value = value.trim();
           if (value && !/^<.*>$/.test(value)) seen.add(value);
         }
       };
@@ -621,6 +624,12 @@ const MUST_STAY_GREEN = [
     name: "a rule describing which skill to invoke",
     category: "handoffs",
     apply: (r) => (r[skillKey("stella")] += "\nThen invoke **the skill named in the option the lead selected**.\n"),
+  },
+  {
+    name: "a header with an inline YAML comment",
+    category: "status-vocabulary",
+    apply: (r) => (r[skillKey("pablo")] +=
+      "\n\nscrumbs:\n  schema: 2\n  stage: prd\n  status: draft # initial state\n"),
   },
   {
     name: "a hosted-port note that is properly marked",
