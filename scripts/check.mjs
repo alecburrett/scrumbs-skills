@@ -296,11 +296,32 @@ const CHECKS = {
     const lines = next.split("\n");
     const head = lines.findIndex((l) => l.includes("required last decision"));
     if (head === -1) return ["next.md: status→decision mapping table not found"];
-    const covered = new Set(["draft"]); // never a chosen outcome
-    for (let i = head + 1; i < lines.length && /^\s*\|/.test(lines[i]); i++)
-      for (const s of lines[i].matchAll(/`([a-z-]+)`/g)) covered.add(s[1]);
 
     const f = [];
+    const covered = new Set(["draft"]); // never a chosen outcome
+    // Read the table by COLUMN. A status counts as mapped only when it appears
+    // in the LEFT cell of a row whose RIGHT cell actually names a decision type
+    // (or marks it exempt). Scanning the row as one blob would let a mere
+    // mention — an empty right cell, a "TBD", a status named only on the right —
+    // pass as coverage, which is the whole failure this check exists to catch.
+    for (let i = head + 1; i < lines.length && /^\s*\|/.test(lines[i]); i++) {
+      const cells = lines[i].trim().replace(/^\||\|$/g, "").split("|");
+      if (cells.length < 2) continue;
+      const left = [...cells[0].matchAll(/`([a-z-]+)`/g)].map((m) => m[1]);
+      const right = cells[1];
+      if (left.length === 0) continue; // separator row
+      const names = right.match(/`([a-z-]+)`/) !== null;
+      const exempt = /exempt/i.test(right);
+      if (!names && !exempt) {
+        f.push(
+          `next.md: mapping row for ${left.map((s) => `"${s}"`).join(", ")} names no ` +
+            `required decision type — an artifact with that status has nothing to validate against`,
+        );
+        continue;
+      }
+      for (const s of left) covered.add(s);
+    }
+
     for (const s of statuses)
       if (!covered.has(s))
         f.push(
@@ -553,6 +574,29 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "a mapping row names a status but no decision type",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `abandoned` | `abandoned` |",
+      "   | `abandoned` |  |",
+    )),
+  },
+  {
+    name: "a mapping row says TBD instead of a decision type",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `abandoned` | `abandoned` |",
+      "   | `abandoned` | TBD |",
+    )),
+  },
+  {
+    name: "a status is mentioned only in a mapping row's right column",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"]
+      .replace("| `held` | Dex verified a build", "| `escalated` | pushed to a human owner | no | that owner |\n| `held` | Dex verified a build")
+      .replace("   | `abandoned` | `abandoned` |", "   | `abandoned` | `abandoned` or `escalated` |")),
+  },
   {
     name: "a status is defined but missing from the decision mapping",
     category: "status-decision-mapping",
