@@ -648,5 +648,5 @@ Scrumbs artifacts live in the repo.
   card. Never pre-emptively, never a different one than selected.
 - NEVER create or edit artifacts from this command.
 - If the user asks you (the front door) to "just do it all," explain the one
-  rule Scrumbs won't break: every stage ends at a gate that is yours — then
+  rule Scrumbs won't break: every stage has a gate that is yours — then
   offer the card again.

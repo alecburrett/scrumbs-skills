@@ -1,15 +1,59 @@
 # Scrumbs
 
-### Your AI scrum team. Minus the standups.
+### Seven teammates who won't let you skip the boring parts.
 
-Seven teammates take your project from *"I've got an idea"* to shipped code.
-One works at a time. Each one stops and asks you before anything moves.
+Ask an AI to build your thing and it will build *something*. It'll also quietly
+drop the requirement you'd have argued about, skip the test that was awkward to
+write, and tell you it reviewed its own work.
+
+Scrumbs gives you a team instead. Seven of them, each with one job. They work
+one at a time, in order, and every one of them stops and asks you before
+anything moves on.
 
 ```
-/scrumbs
+/scrumbs:next
 ```
 
-That's the whole interface. It tells you where you are and who's up next.
+That's the whole thing. It tells you where you are, and who's up next.
+
+---
+
+## What you get out of it
+
+- **You always know what's happening.** One teammate, one job, one question at a
+  time. Never a wall of output you have to audit afterwards.
+- **The awkward conversations actually happen.** Someone asks what you're *not*
+  building. Someone pushes back on scope. Someone tries to break it before your
+  users do.
+- **Nothing moves without you.** Every step ends with a plain question and a
+  couple of options. You pick. Ask them to "just do the whole thing" and they'll
+  politely decline.
+- **You can stop and come back.** Each step gets written to your repo when it's
+  done, so you can walk away between steps and pick up next week — or in a fresh
+  session — without re-explaining anything.
+- **You end up with the paperwork you'd never have written.** A spec, a plan, a
+  record of what was decided and why. Useful long after the code lands.
+
+---
+
+## Install
+
+```sh
+claude plugin marketplace add alecburrett/scrumbs-skills
+claude plugin install scrumbs
+```
+
+Then, inside the git repo you want built:
+
+```
+/scrumbs:next
+```
+
+<sub>Already in a Claude Code session? `/plugin marketplace add alecburrett/scrumbs-skills` works too.</sub>
+
+<sub>Typing that a lot? Make yourself a shorter one: save a file at
+`~/.claude/commands/scrumbs.md` containing *"Do exactly what `/scrumbs:next`
+does."* and you can just type `/scrumbs`.</sub>
 
 ---
 
@@ -27,125 +71,114 @@ That's the whole interface. It tells you where you are and who's up next.
 
 ---
 
-## Install
+## How it goes
 
-```sh
-claude plugin marketplace add alecburrett/scrumbs-skills
-claude plugin install scrumbs
-```
+You tell **Pablo** your idea. He asks one question at a time, pushes back when
+the scope creeps, and writes down what you agreed — including what you're *not*
+building. **Iris** gives it a look and a feel. **Stella** cuts it into a sprint
+you can actually finish.
 
-Then, inside the git repo you want built:
+Then **Rex** works out how to build it, **Viktor** builds it test-first, Rex
+comes back and reviews it, **Quinn** tries hard to break it, and **Dex** ships
+it — showing you exactly what's about to go live, and how to undo it, before
+anything reaches your users.
 
-```
-/scrumbs
-```
+**Stella** runs the retro, and the next sprint starts from what you actually
+learned rather than what you meant to do.
 
-<sub>Already in a Claude Code session? `/plugin marketplace add alecburrett/scrumbs-skills` works too.</sub>
-
----
-
-## The one rule
-
-**Every stage ends at a gate, and the gate is yours.**
-
-Nobody hands off to anybody until you tap approve. No persona starts
-itself. Nothing happens silently — you always know who is working, what
-they produced, and what happens next.
-
-Ask the team to "just do the whole thing" and they'll politely decline.
-That's the point.
-
-Every decision is recorded where it happened: the question you were asked, the
-option you chose, when, and under whose git identity — committed alongside the
-work. The next persona reads that record and stops if it's missing or broken,
-instead of quietly building on it.
-
-**It's a paper trail, not a lock.** These are Markdown files on your branch;
-anyone who can commit can write a convincing record for a gate that never
-happened. What the trail catches is the ordinary stuff — a stale approval, a
-stage built on a document that changed underneath it, a record nobody filled in.
-Not a determined forger. If you need enforcement, that's branch protection and
-required reviewers, and Scrumbs sits happily behind them.
+You say yes before each step begins. If you don't like something, you say so and
+it goes back to whoever owns it.
 
 ---
 
-## It bends to what you're building
+## What you're left with
 
-A CLI doesn't need a visual identity, and a one-line bug fix doesn't need a PRD.
-Two facts shape the run: whether there's a **screen** (a headless project drops
-Iris's stages entirely, rather than getting a token version of them) and whether
-there's **already code** (brownfield means Pablo documents what exists instead
-of interviewing you about it). Then each sprint declares its own kind — an
-ordinary feature, a defect, or a hotfix where the plan and the technical
-approach are a few lines each rather than a morning's work.
-
-What never scales down: **every stage still runs**. A hotfix's plan might be one
-story and its design three lines, but both are still written and still approved
-*before* the code changes — so there's a record of what was authorised — and
-review, QA and deploy are untouched. A rushed change going straight to
-production is exactly when you want them.
-
-## What actually happens
-
-You talk to Pablo about your idea. He asks one question at a time, pushes
-back on scope, and writes it down. You approve. Iris gives it a look. You
-approve. Stella cuts it into a sprint. Rex designs it, Viktor builds it
-test-first, Rex reviews his own design being met, Quinn tries to break it,
-Dex ships it. Stella runs the retro and the next sprint starts.
-
-Every stage leaves a real file in your repo:
+Real files, in your repo, in plain Markdown:
 
 ```
-docs/BRIEF.md          what we're building, and what we're not
-docs/PRD.md            the spec, with numbered acceptance criteria
-docs/DESIGN.md         the visual identity
-docs/BACKLOG.md        everything we parked, with provenance
-sprints/sprint-1.md    the plan · the design · the build · review · QA · retro
-CHANGELOG.md           what shipped
+docs/BRIEF.md      what we're building, and what we're not
+docs/PRD.md        the spec, with numbered things it has to do
+docs/DESIGN.md     how it should look and feel        (if it has a screen)
+docs/BACKLOG.md    everything we parked, and who asked for it
+
+sprints/           a handful of files per sprint: the plan, the approach,
+                   what got built, the review, the testing, what shipped,
+                   and what we learned
+
+CHANGELOG.md       what shipped, in a line each
 ```
 
-Your repo is the source of truth. Delete the plugin tomorrow and every
-artifact still reads perfectly on its own.
+Delete the plugin tomorrow and every one of these still makes sense on its own.
+They're notes, not a database.
 
 ---
 
-## Why personas, and not one big prompt
+## Fresh eyes where it counts
 
-Because a product owner who is also the developer will always cut the
-awkward requirement. Narrow remits and hard handoffs make that cut visible:
+Reviewing your own work is hard, and it's no easier for an AI that just spent an
+hour writing the thing.
 
-- Pablo is **pre-technical on purpose** — no stack, no UI, no solutions.
-- Rex **designs and judges but never implements**. Viktor implements.
-- Quinn judges **behaviour**, not code — Rex already did the code.
-- Nobody re-opens someone else's decision. They bounce it back to its owner.
+So before the review, and again before the testing, Scrumbs offers to carry on
+in a **brand new session**. Everything it needs is already written down in your
+repo, so the new session picks up the work — and none of the reasoning that
+produced it. Rex reads your code cold, the way a colleague would on a Monday
+morning.
 
-**What that buys, precisely.** A different set of questions gets asked at each
-stage, in a fixed order, with a written record and a gate you control. Scope
-that would have been silently dropped has to be dropped *out loud*. That's
-worth a lot, and it's most of what goes wrong on a small project.
-
-**What it doesn't buy: independence.** The personas are Markdown skills loaded
-into one Claude Code conversation, not seven separate agents. By the time Rex
-reviews the code, the same context that designed it is still in the room — he is
-not a second opinion, he's the same one wearing a different hat. Quinn's "fresh
-adversarial pass" is fresh in framing, not in memory.
-
-Where that actually matters — **Review and QA** — Scrumbs offers the real thing
-instead of pretending: hand off into a **new session**. Your repo is the state,
-so a fresh session picks up exactly where the last one stopped, with none of the
-reasoning that produced the code. Both stages ask which you want and record your
-answer on the artifact.
-
-That record is your word, not a proof — nothing here can verify a session was
-fresh. But it's on the record, it's cross-checked against the handoff you chose,
-and a review that wasn't independent has to say so.
-
-Each persona is a plain Markdown skill. Read one, disagree with it, change
-it — it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/).
-The longer specs they're compiled from live in
-[`personas/`](./personas/).
+It's your call each time, and whichever you choose gets written down.
 
 ---
+
+## It fits what you're actually building
+
+A command-line tool doesn't need a colour palette, and a one-line bug fix
+doesn't need a morning of planning.
+
+- **No screen?** Iris sits the project out entirely — no token design step.
+- **Existing codebase?** Pablo reads what's there and focuses on the change
+  you're making, instead of interviewing you about an app you shipped two years
+  ago.
+- **Just a bug, or something urgent?** The planning shrinks to a few lines.
+
+Two things never shrink: **you still say what "done" means before anyone writes
+code**, and **the review and the testing still happen**. Something rushed
+straight to your users is exactly when you want a second look.
+
+---
+
+## Why a team, and not one big prompt
+
+Because whoever writes the spec will always be tempted to quietly drop the
+tricky bit while building it. Splitting the work up makes that hard to do
+silently:
+
+- Pablo talks about the problem, never the solution.
+- Rex decides how it gets built; Viktor is the one who builds it.
+- Quinn judges whether it *works*, not whether the code is tidy — Rex already
+  did that.
+- Nobody overrules anybody. They hand it back to whoever owns it.
+
+The point isn't ceremony. It's that a different question gets asked at each
+stage, and the answers get written down.
+
+---
+
+## Being straight with you
+
+Scrumbs is a set of prompts and a paper trail, not a lock on the door. It'll
+keep an honest team honest, catch the ordinary slips, and leave you a record you
+can read months later. It can't stop someone determined to cut corners, and it
+doesn't pretend to — if you need something properly enforced, that's what branch
+protection and required reviewers are for. Scrumbs is happy to sit behind them.
+
+We'd rather tell you that now than have you find out later.
+
+---
+
+## Read the prompts
+
+Every teammate is a plain Markdown file. Read one, disagree with it, change it —
+it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/). The longer
+write-ups behind them live in [`personas/`](./personas/).
 
 ## Requirements
 
@@ -153,11 +186,8 @@ The longer specs they're compiled from live in
 
 ## Contributing
 
-Yes please — it's Markdown, so the barrier is low. Start with
-[CONTRIBUTING.md](./CONTRIBUTING.md); it explains the spec/skill split and the
-four rules that are the product rather than implementation details.
-
-This repo is the canonical home for both the skills and the specs.
+Yes please — it's all Markdown, so the barrier is low. Start with
+[CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Licence
 
