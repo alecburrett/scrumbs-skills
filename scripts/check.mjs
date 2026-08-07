@@ -124,6 +124,23 @@ function scrumbsHeaders(text) {
 /** Markdown emphasis stripped, so `Sprint **Ledger**` reads as `Sprint Ledger`. */
 const plain = (line) => line.replace(/[*_`]/g, "");
 
+/** Levenshtein distance, capped — used to spot a mistyped persona name. */
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 99;
+  let prev = [...Array(b.length + 1).keys()];
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++)
+      row[j] = Math.min(
+        prev[j] + 1,
+        row[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    prev = row;
+  }
+  return prev[b.length];
+}
+
 const RITUALS = "## Team rituals (all personas)";
 
 // ─────────────────────────────────────────────────────────────────── checks
@@ -288,9 +305,17 @@ const CHECKS = {
             `${p}: "invoke ${raw}" — write handoffs as \`invoke \`persona\`\`` +
               (target ? ` ("${target}" is not a persona)` : ""),
           );
+        } else {
+          // Bare lowercase words are ordinary prose ("never invoke the deployment
+          // tool", "invoke nobody") — except one that is a near-miss for a real
+          // persona, which is what a hand-typed mistake actually looks like.
+          const near = names.find((n) => editDistance(target, n) === 1);
+          if (near)
+            f.push(
+              `${p}: "invoke ${raw}" — did you mean \`${near}\`? ` +
+                `(and write handoffs as \`invoke \`${near}\`\`)`,
+            );
         }
-        // Bare lowercase words are ordinary prose ("never invoke the deployment
-        // tool", "invoke nobody") and are deliberately not treated as handoffs.
       }
     }
     return f;
@@ -568,6 +593,11 @@ const MUTATIONS = [
               .replace("Before inferring any stage", "Before inferring NO stage") +
         o.slice(e);
     },
+  },
+  {
+    name: "a bare lowercase handoff is a typo for a persona",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke vicktor")),
   },
   {
     name: "a bold multiword handoff names no persona",
