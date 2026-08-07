@@ -552,9 +552,16 @@ const CHECKS = {
       });
 
       lines.forEach((line, i) => {
-        for (const m of line.matchAll(new RegExp(`/${pluginName}:([a-z-]+)`, "g")))
-          if (!available.has(m[1]))
-            f.push(`${path}:${i + 1}: documents /${pluginName}:${m[1]}, which doesn't exist`);
+        // Capture the WHOLE token, including characters that aren't valid in a
+        // command name, so `/scrumbs:next_extra` fails rather than matching the
+        // valid `next` and stopping. Trailing sentence punctuation is stripped —
+        // "run /scrumbs:next." is fine, "/scrumbs:next.foo" is not. A `<name>`
+        // metavariable never matches, so generic notation in docs is safe.
+        for (const m of line.matchAll(new RegExp(`/${pluginName}:([A-Za-z0-9_.-]+)`, "g"))) {
+          const token = m[1].replace(/[.,;:!?)]+$/, "");
+          if (token && !available.has(token))
+            f.push(`${path}:${i + 1}: documents /${pluginName}:${token}, which doesn't exist`);
+        }
 
         // A bare /plugin with no :name isn't a real command — plugin commands are
         // always namespaced. Flag it where a user would read it as an
@@ -928,6 +935,26 @@ const MUTATIONS = [
       "/scrumbs:next", "/scrumbs")),
   },
   {
+    name: "a documented command has a numeric suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next2")),
+  },
+  {
+    name: "a documented command has an underscore suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next_extra")),
+  },
+  {
+    name: "a documented command has a dotted suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next.foo")),
+  },
+  {
+    name: "a documented command is miscapitalised",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:Next")),
+  },
+  {
     name: "the README documents a command that doesn't exist",
     category: "documented-commands",
     apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:start")),
@@ -1231,6 +1258,16 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "generic <name> notation in the docs",
+    category: "documented-commands",
+    apply: (r) => (r["CONTRIBUTING.md"] += "\nPlugin commands are always `/scrumbs:<name>`.\n"),
+  },
+  {
+    name: "a command reference ending a sentence",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart the whole thing with /scrumbs:next.\n"),
   },
   {
     name: "prose explaining how to make your own /scrumbs shortcut",
