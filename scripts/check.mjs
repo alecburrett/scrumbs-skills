@@ -124,21 +124,24 @@ function scrumbsHeaders(text) {
 /** Markdown emphasis stripped, so `Sprint **Ledger**` reads as `Sprint Ledger`. */
 const plain = (line) => line.replace(/[*_`]/g, "");
 
-/** Levenshtein distance, capped — used to spot a mistyped persona name. */
+/**
+ * Damerau-Levenshtein distance, capped — used to spot a mistyped persona name.
+ * Transposition counts as ONE edit, not two: "vikotr" for "viktor" is the single
+ * most common way a name gets typed wrong, and plain Levenshtein scores it 2.
+ */
 function editDistance(a, b) {
   if (Math.abs(a.length - b.length) > 2) return 99;
-  let prev = [...Array(b.length + 1).keys()];
-  for (let i = 1; i <= a.length; i++) {
-    const row = [i];
-    for (let j = 1; j <= b.length; j++)
-      row[j] = Math.min(
-        prev[j] + 1,
-        row[j - 1] + 1,
-        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
-      );
-    prev = row;
-  }
-  return prev[b.length];
+  const d = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  return d[a.length][b.length];
 }
 
 const RITUALS = "## Team rituals (all personas)";
@@ -600,6 +603,16 @@ const MUTATIONS = [
     name: "a bare lowercase handoff is a typo for a persona",
     category: "handoffs",
     apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke vicktor")),
+  },
+  {
+    name: "a transposed persona name in a handoff",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "invoke vikotr")),
+  },
+  {
+    name: "a transposed name after a sentence-initial Invoke",
+    category: "handoffs",
+    apply: (r) => (r[skillKey("quinn")] = r[skillKey("quinn")].replace("invoke `dex`", "Invoke vikotr")),
   },
   {
     name: "a sentence-initial Invoke hides a typo",
