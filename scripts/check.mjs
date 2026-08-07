@@ -357,7 +357,11 @@ const CHECKS = {
     if (errors.length) return errors.map((e) => `next.md: status vocabulary ${e}`);
     const sc = col("status");
     if (sc === -1) return ["next.md: status vocabulary table has no `status` column"];
-    const known = new Set(["draft"]);
+    // Derived purely from the live table — never pre-seeded. Seeding "draft"
+    // would mean deleting its row goes unnoticed while every skill still writes
+    // it. (The mapping check separately exempts `draft` from needing a decision
+    // type; that is a different question from whether it is declared at all.)
+    const known = new Set();
     const bad = [];
     for (const r of rows) {
       const cell = (r[sc] ?? "").trim();
@@ -772,6 +776,14 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "the canonical `draft` row is deleted from the vocabulary",
+    category: "status-vocabulary",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      /^\| `draft` \|.*\n/m,
+      "",
+    )),
+  },
   {
     name: "the whole status vocabulary section is commented out",
     category: "status-vocabulary",
