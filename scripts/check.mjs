@@ -569,9 +569,29 @@ const CHECKS = {
       // inferring it from words like "not" or "old" would reopen the accidental
       // bypasses this check exists to close.
       const NOT_A_COMMAND = "<!-- not-a-command -->";
+      const exempt = new Array(lines.length).fill(false);
       lines.forEach((line, i) => {
-        if (line.includes(NOT_A_COMMAND) || (lines[i - 1] ?? "").trim() === NOT_A_COMMAND)
-          return;
+        if (line.includes(NOT_A_COMMAND)) exempt[i] = true;
+        if (line.trim() !== NOT_A_COMMAND) return;
+        // A standalone marker covers what follows: the next line, or — since the
+        // marker can't go INSIDE a fence without rendering — the whole fenced
+        // block if that's what comes next.
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() === "") j++;
+        const fence = lines[j]?.trim().match(/^(```+|~~~+)/);
+        if (fence) {
+          exempt[j] = true;
+          for (j++; j < lines.length; j++) {
+            exempt[j] = true;
+            if (lines[j].trim().startsWith(fence[1][0].repeat(fence[1].length))) break;
+          }
+        } else if (j < lines.length) {
+          exempt[j] = true;
+        }
+      });
+
+      lines.forEach((line, i) => {
+        if (exempt[i]) return;
         // Capture every slash-command-shaped token, whatever namespace it uses —
         // searching only for the exact `/scrumbs:` prefix means a one-character
         // namespace typo is invisible, which is the failure this check claims to
@@ -982,6 +1002,11 @@ const MUTATIONS = [
       "/scrumbs:next", "/scrumbs")),
   },
   {
+    name: "an UNmarked fenced example of a dead command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nIf you see this, you're on an old version:\n\n```\n/scrumbs\n```\n"),
+  },
+  {
     name: "a deprecation note WITHOUT the marker",
     category: "documented-commands",
     apply: (r) => (r["README.md"] +=
@@ -1351,6 +1376,12 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "a marked fenced example of a dead command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nIf you see this, you're on an old version:\n\n<!-- not-a-command -->\n```\n/scrumbs\n```\n"),
   },
   {
     name: "a deprecation note using the explicit marker",
