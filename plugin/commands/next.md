@@ -284,12 +284,24 @@ and Quinn can't replace an approved QA at the current attempt — so a pre-chang
 sprint could reach neither QA nor Deploy without fabricating a field or forcing
 a synthetic rebuild.
 
-Route it as approved, flag it as **unattested isolation**, and let its owner
-repair it: Rex and Quinn may re-enter at the *same* attempt and revision purely
-to attach an attested `context`. Ideally they take the fresh-session handoff and
-genuinely re-judge; at minimum they ask the lead what happened and record the
-answer with today's date. **Never invent the history** — an attested
-`continued` is worth more than a fabricated `fresh`.
+Its owner repairs it: Rex and Quinn may re-enter at the *same* attempt and
+revision purely to attach an attested `context`. Ideally they take the
+fresh-session handoff and genuinely re-judge; at minimum they ask the lead what
+happened and record the answer with today's date. **Never invent the history** —
+an attested `continued` is worth more than a fabricated `fresh`.
+
+**Recommend that repair, don't just permit it.** Check for it *before* the
+ordinary first-non-approved scan, because the scan will skip right past an
+approved artifact and recommend the next stage instead — where the receiving
+persona stops on the missing field, and the one persona who could fix it is
+never suggested. That's a dead end reached by following the recommended path,
+which is the worst kind.
+
+So: if an approved Review or QA at the current attempt is missing `context`,
+recommend **its owner** for a repair-only pass — **Review before QA**, since
+Quinn's preconditions read the Review. Say plainly that it's a repair: the
+verdict, status, attempt, revision and prior decisions are all preserved, and
+the only thing being added is the isolation record.
 
 **Every accepting persona validates it, not just this command.** Quinn checks
 the Review's, Dex checks both. A direct `/scrumbs:quinn` or `/scrumbs:dex` never
