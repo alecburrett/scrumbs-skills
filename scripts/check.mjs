@@ -565,28 +565,52 @@ const CHECKS = {
       }
 
       lines.forEach((line, i) => {
-        // Capture the whole command-shaped span — everything up to whitespace or
-        // a Markdown delimiter — then validate it as one thing. Stopping at the
-        // first odd character would read `/scrumbs:next/extra` as the valid
-        // `next`. Trailing sentence punctuation is stripped, so "run
-        // /scrumbs:next." is fine while "/scrumbs:next.foo" is not, and a
-        // `<name>` metavariable never matches at all.
-        for (const m of line.matchAll(new RegExp(`/${pluginName}:([^\\s\`*\\[\\]()<>"']+)`, "g"))) {
-          const token = m[1].replace(/[.,;:!?]+$/, "");
-          if (token && !available.has(token))
-            f.push(`${path}:${i + 1}: documents /${pluginName}:${token}, which doesn't exist`);
-        }
+        // Capture every slash-command-shaped token, whatever namespace it uses —
+        // searching only for the exact `/scrumbs:` prefix means a one-character
+        // namespace typo is invisible, which is the failure this check claims to
+        // catch. Unrelated commands like /plugin are ignored by distance.
+        const TOKEN = /\/([A-Za-z][A-Za-z0-9_-]*)(?::([^\s`*\[\]()<>"']+))?/g;
+        for (const m of line.matchAll(TOKEN)) {
+          // A slash command starts a token. Skip matches inside a URL or path
+          // (github.com/alecburrett/scrumbs-skills is not a command).
+          const before = m.index > 0 ? line[m.index - 1] : "";
+          if (before && !/[\s`(*"'|]/.test(before)) continue;
+          const ns = m[1];
+          const cmd = (m[2] ?? "").replace(/[.,;:!?]+$/, "");
+          const lower = ns.toLowerCase();
 
-        // A bare /plugin with no :name isn't a real command — plugin commands
-        // are always namespaced. The one legitimate mention is explaining how to
-        // make a personal shortcut of your own, so exempt only that.
-        const bare = new RegExp(`/${pluginName}(?![:\\w-])`);
-        const explainsShortcut = /shortcut|\.claude\/commands/i.test(paraOf[i] || line);
-        if (bare.test(line) && !explainsShortcut)
-          f.push(
-            `${path}:${i + 1}: tells the user to run /${pluginName}, but plugin ` +
-              `commands are always namespaced — use /${pluginName}:next`,
-          );
+          // `/scrumbs:<name>` is generic notation: a colon follows, so it is not a
+          // bare command, and `<name>` is deliberately not a real one.
+          const afterNs = line[m.index + 1 + ns.length] ?? "";
+          if (afterNs === ":" && !cmd) continue;
+
+          if (ns === pluginName) {
+            if (!cmd) {
+              // A bare /plugin isn't a command; plugin commands are always
+              // namespaced. The only legitimate mention explains how to create a
+              // personal shortcut, so require that paragraph to actually show the
+              // path — the word "shortcut" alone shelters "There is no shortcut."
+              if (!/\.claude\/commands/.test(paraOf[i] || line))
+                f.push(
+                  `${path}:${i + 1}: tells the user to run /${pluginName}, but plugin ` +
+                    `commands are always namespaced — use /${pluginName}:next`,
+                );
+            } else if (!available.has(cmd)) {
+              f.push(`${path}:${i + 1}: documents /${pluginName}:${cmd}, which doesn't exist`);
+            }
+            continue;
+          }
+
+          const nearMiss =
+            lower === pluginName || // case drift
+            lower.startsWith(pluginName) || // /scrumbs-next
+            editDistance(lower, pluginName) <= 2; // /scrubms
+          if (nearMiss)
+            f.push(
+              `${path}:${i + 1}: documents /${ns}${cmd ? `:${cmd}` : ""} — the namespace ` +
+                `is "${pluginName}", so this command doesn't exist`,
+            );
+        }
       });
     }
     return f;
@@ -948,6 +972,26 @@ const MUTATIONS = [
       "/scrumbs:next", "/scrumbs")),
   },
   {
+    name: "the namespace is misspelled",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrubms:next")),
+  },
+  {
+    name: "the namespace is miscapitalised",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/Scrumbs:next")),
+  },
+  {
+    name: "the namespace separator is a hyphen",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs-next")),
+  },
+  {
+    name: '"shortcut" without the path shelters a bare command',
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nThere is no shortcut. Start with /scrumbs.\n"),
+  },
+  {
     name: "a documented command has a slash suffix",
     category: "documented-commands",
     apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next/extra")),
@@ -1281,6 +1325,16 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "an unrelated Claude Code command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nRun `/plugin` to manage installs, or `/help` for anything else.\n"),
+  },
+  {
+    name: "the repo URL, which contains the plugin name",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nSee https://github.com/alecburrett/scrumbs-skills for more.\n"),
   },
   {
     name: "a command wrapped in backticks",
