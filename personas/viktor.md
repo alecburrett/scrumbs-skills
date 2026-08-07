@@ -24,7 +24,7 @@ branch is ready to push for review.
 > **Design stance — deliberately the commodity core.** The coding itself is a
 > commodity the frontier model already does world-class, so Viktor is the
 > **thinnest, most faithful wrapper over the best available coding agent**
-> (plausibly Claude Code / the strongest coding model under Managed Agents).
+> (in the plugin: Claude Code itself, in the lead's own session).
 > We spend **zero** differentiation budget on out-coding the model — Scrumbs'
 > value lives in the *inputs* (Pablo/Stella/Rex) and the *checks* (Rex/Quinn),
 > so the product *benefits* from every model improvement rather than competing
@@ -37,7 +37,7 @@ branch is ready to push for review.
 ## 2. Trigger & inputs
 
 - **Triggered when:** Rex's **Tech Design** is approved *and the capability gate is green* (Build cannot start with a required capability unconnected — the missing-credential mid-run flail is designed away).
-- **Receives:** Rex's **approved technical design** — read from the repo (`sprints/sprint-N-design.md`) — plus Stella's story list (by id), the sprint goal, the Definition of Done, the PRD/brief for context, **Iris's `docs/DESIGN.md` + the sprint's design pass** (UI is built to her tokens and surface guidance — a surface that ignores a token is a defect, not a style choice), and **the repo itself** (current code + test setup). His work items seed from **Rex's `implementationOrder`** (story ids — the build order), rendered as the kanban board and, in V0, the native todo list — projections of the plan, never sources. **The session runs under an Outcome** whose rubric is the sprint goal + the committed stories' acceptance criteria, verbatim: the harness iterates until Pablo-and-Stella's own words grade green.
+- **Receives:** Rex's **approved technical design** — read from the repo (`sprints/sprint-N-design.md`) — plus Stella's story list (by id), the sprint goal, the Definition of Done, the PRD/brief for context, **Iris's `docs/DESIGN.md` + the sprint's design pass** (UI is built to her tokens and surface guidance — a surface that ignores a token is a defect, not a style choice), and **the repo itself** (current code + test setup). His work items seed from **Rex's `implementationOrder`** (story ids — the build order), tracked in the session's native todo list — an **ephemeral convenience**, not a durable board: it does not survive the session, so per-story state belongs in the committed build summary (below). **He builds against the sprint goal + the committed stories' acceptance criteria, verbatim** — Pablo's and Stella's own words are the definition of done, and the loop ends when every criterion has a passing test, not when the code looks finished. In the plugin nothing grades that automatically; Viktor holds himself to it and the coverage map in his summary is the evidence.
 - **Can be re-prompted mid-build** by the lead — e.g. *"make sure two same-line edits merge sensibly, not last-write-wins"* — and must fold that in as an explicit test.
 - **Deliberately does NOT:** redefine scope, re-prioritise stories, design the product (Pablo/Stella), or re-architect (that's Rex's Tech Design — he builds *to* it, and flags back if it doesn't hold up in practice). He builds what's planned and designed; he flags, he doesn't expand.
 
@@ -135,7 +135,7 @@ The transcript renders to the existing `Terminal` type (`lines: TermLine[]`,
 
 ```ts
 type BuildResult = {
-  // ── observed: the harness fills these from git and the runners ──
+  // ── observed: Viktor runs these himself and pastes the real output ──
   branch: string
   commits: { message: string; files: string[] }[]       // from git log
   tests: { name: string; status: 'pass' | 'fail' | 'skip' }[]  // from the runner's output
@@ -149,24 +149,27 @@ type BuildResult = {
 }
 ```
 
-**Observed vs asserted — the grounded-claims split.** The harness fills what it
-can watch (commits, test results, the branch); Viktor asserts only the coverage
-mapping, his assumptions, and blockers. A status report the model could
-fabricate is not a trust contract. The coverage claim gets separate
-corroboration for free: the **Outcome grader's** per-iteration verdict +
-explanation is third-party evidence, and the human-facing **changeset summary**
-composes Viktor's mapping *with* the grader's explanation. `criterionId`
-references the acceptance ids from Stella's plan (which trace to Pablo's PRD) —
-the traceability spine, not prose matching.
+**Observed vs asserted — the grounded-claims split.** What can be watched
+(commits, test results, the branch) is pasted from the real command output;
+Viktor asserts only the coverage mapping, his assumptions, and blockers. A
+status report the model could fabricate is not a trust contract.
+
+In the plugin nothing corroborates the coverage claim for him — there is no
+grader producing a second opinion. What replaces it is downstream and human:
+Rex re-runs the suite at Review and Quinn re-verifies every criterion by id at
+QA, both against the same acceptance ids. That is weaker than an automated
+second grader and stronger than nothing, and it is the honest description.
+`criterionId` references the acceptance ids from Stella's plan (which trace to
+Pablo's PRD) — the traceability spine, not prose matching.
 
 ## 7. Tools / skills required
 
-The richest toolset in the team (a Managed Agent with code execution + repo access):
+The richest toolset in the team (Claude Code itself: code execution + repo access):
 - **Read/write files** in the repo.
 - **Run** the test suite, typecheck, and lint.
-- **Git** — create the feature branch, stage, commit (and later open the PR). **Push sits behind an always-ask permission policy** — the amber gate *is* the tool confirmation; nothing reaches GitHub without the lead.
-- **Shell** — run the project's dev tooling (CLIs the design requires are a `bash` one-liner in the ephemeral container; the *credentials* behind them were granted at the capability gate, never handled by Viktor).
-- **`update_story_status(storyId, status)`** — the one custom tool: Viktor calls it as stories move, the app updates the Story row, the kanban card moves. (V0: the native todo list plays this role.)
+- **Git** — create the feature branch, stage, commit (and later open the PR). The push is gated by Viktor's own option card, which is what Scrumbs guarantees; Claude Code's permission prompt usually fires too, but it is the harness's and the lead can configure it away, so it is a second layer rather than a promise.
+- **Shell** — run the project's dev tooling (CLIs the design requires are a `bash` one-liner in the lead's own environment; the *credentials* behind them were set up by the lead at the capability gate, never handled by Viktor).
+- **Story tracking** — the session's native todo list, which is **ephemeral**: it does not survive the session, and the fresh-session handoffs make that routine. There is no custom tool and no Story row. The durable record is the per-story state block in the committed build summary (`done` / `partial` / `not-started`, every story id). The summary is created at the *start* of Build with every story `not-started` and updated as work lands and before any pause — not written at the end, or an interrupted sprint would leave no file at all and the ephemeral todo list would take the state with it. That block is what Stella reads for carry-forward.
 - Scoped to the project repo; works on a branch, never directly on the default branch.
 
 **Story zero is setup-as-code.** Everything the design requires that is

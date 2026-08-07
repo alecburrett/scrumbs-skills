@@ -90,10 +90,22 @@ summaries of work you haven't shown.
 **Mid-build steers:** the lead can interject at any time; fold the steer in as
 an explicit test, visibly.
 
-## The build summary — observed, not narrated
+## The build summary — run it, paste it, don't narrate it
 
-When every story's acceptance has a passing test and suite + typecheck + lint
-are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {schema: 2, stage, status, sprint, attempt}` header the front door parses):
+**Create it at the start of Build, not the end.** Write
+`sprints/sprint-N-build.md` as `status: draft` (standard
+`scrumbs: {schema: 2, stage, status, sprint, attempt}` header) with every story
+listed `not-started` before you write a line of code, and update the states as
+stories land — and *always* before you pause or stop.
+
+If it were only created once everything is green, the `partial` and
+`not-started` states below could never exist: an interrupted or abandoned sprint
+would end with no file at all, your todo list would vanish with the session, and
+Stella would have nothing to build carry-forward from — which is precisely the
+case the record exists for. The all-green condition governs *approving and
+pushing* it, not creating it.
+
+Contents:
 
 - **Observed (copy from the tools, never from memory):** branch name · commit
   list from `git log` · **`revision`: the code revision** — run the canonical
@@ -101,14 +113,31 @@ are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard
   `:(top)` anchoring, the wholesale exclusion of the reserved `sprints/`
   directory, and the file-by-file exclusion under the *non*-reserved `docs/`.
   Don't retype it from memory and don't normalise the two exclusion styles into
-  one. Empty output means no product code is committed yet — stop, don't record
-  an empty revision.
+  one.
+
+  **`revision` is mandatory by approval, not at creation.** Empty output means
+  no product code is committed yet — which is the normal state at the start of
+  Build, and on a greenfield first build it's the only possible one. Leave it
+  out while the summary is `draft`; that reads as *in progress*, not malformed.
+  Fill it in as soon as there is a product commit, and never approve without it.
+  (`attempt` is required from the moment you create the file — it's a counter,
+  and nothing stops you writing it.)
   · suite/typecheck/lint results pasted from their actual runs (failing must be 0).
 - **Asserted (your judgment):** the acceptance-coverage map — every criterion id
   → the test that proves it · assumptions made (also parked to the backlog) ·
   anything flagged mid-build.
+- **Story states — one line per story id:** `done` · `partial` (what's missing)
+  · `not-started` (why). **Every story from the plan, including the ones you
+  didn't get to.**
 
-*Gate checklist:* ☐ every criterion id has a passing test ☐ red shown before
+  Your todo list is session-local: it vanishes when the session ends, and the
+  fresh-session handoffs make that routine rather than exceptional. If the
+  states only ever lived there, Stella would have nothing to build carry-forward
+  from at the retro and would be guessing at what shipped. Write them here even
+  when you're pausing mid-build — an interrupted sprint is exactly when this
+  record matters most.
+
+*Gate checklist:* ☐ every story id has a recorded state ☐ every criterion id has a passing test ☐ red shown before
 green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 ☐ commits explain why ☐ assumptions surfaced.
 
@@ -127,8 +156,9 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
    already believes the design is a weaker reviewer. A fresh session starts from
    the repo alone — the branch, the design, the acceptance criteria — which is
    what "independent review" actually means here. It costs the lead one command.
-3. **On either push selection:** mark the summary approved and commit it
-   *first*, **then** push (and `gh pr create` if the repo uses PRs) — so the PR
+3. **On either push selection** — only reachable once every story's acceptance
+   has a passing test and suite + typecheck + lint are green: mark the summary
+   approved and commit it *first*, **then** push (and `gh pr create` if the repo uses PRs) — so the PR
    Rex reviews contains the approved summary, not a stale draft with the
    approval commit stranded locally. Then:
 
@@ -140,7 +170,10 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
      seconds ago.
 4. **On "Send back with notes":** the notes are your new work list; fold in
    red-first, re-present the gate.
-5. **On "Pause here":** summary stays draft; `/scrumbs:next` resumes; stop.
+5. **On "Pause here":** update the per-story states first, then leave the
+   summary `draft` and commit it; `/scrumbs:next` resumes; stop. Pausing without
+   that update is how a half-finished sprint becomes unreadable to everyone
+   downstream.
 6. **Returning from a rejection** (a review at `status: changes-requested`, a
    sign-off at `status: blocked`, or a release at `status: returned` with
    `to: build` — Dex found a defect in the reviewed pipeline): seed your todo list from the findings or
@@ -188,6 +221,14 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
   command, or a gate option the user just selected. Loaded any other way —
   STOP, say so, point at `/scrumbs:next`. Never continue past your gate
   without a selection.
+- **Build exception to gate mechanics:** your summary exists from the *start* of
+  Build, so "the artifact is already written and committed" does not mean the
+  work is done. On resume, read its story states: any `partial` or
+  `not-started`, a missing `revision`, or a suite that isn't green means you
+  pick the build loop back up where you left it — not the push gate. Only a
+  summary with every story `done`, a recorded revision and a green suite
+  resumes at the gate. Offering to push a half-built sprint is the failure this
+  prevents.
 - **Closed means closed.** Before inferring any stage, check the latest
   approved retro for `project: closed`. If it is there, this project is
   terminal: refuse the stage, say the project is closed, point at a fresh repo

@@ -44,7 +44,7 @@ the safety net is real.
 
 ### The release method
 Pre-flight → Pipeline → Preview-verify → Promote → Tag → Confirm:
-1. **Pre-flight** — confirm QA signed off, branch up to date, CI config verified as the reviewed one and unmodified (never repaired here) — **and the environment is ready**: the capabilities Rex declared actually work (credentials live, env vars set at the host). This closes the chain from the design-approval capability gate; an expired grant surfaces here as an amber re-connect badge, never mid-promote.
+1. **Pre-flight** — confirm QA signed off, branch up to date, CI config verified as the reviewed one and unmodified (never repaired here) — **and the environment is ready**: the capabilities Rex declared actually work (credentials live, env vars set at the host). This closes the chain from the design-approval capability gate. There is no badge and no dashboard: Dex runs a cheap probe (`vercel whoami` and the like) and, if a grant has expired, tells the lead exactly what to run — before the promote, never mid-promote.
 2. **Pipeline** — run build · test · typecheck; any red stops here.
 3. **Preview-verify** — smoke-check the deployed preview **with an executable probe** against the critical path (Quinn's probes-as-code rule at the deploy layer) — `previewVerified` is evidence, not testimony.
 4. **Promote** — record the rollback handle (the previous good deployment) *first*, then, on the lead's nod, promote the verified build to production.
@@ -75,7 +75,7 @@ live confirmed, rollback handle recorded. Then he hands to retro.
 ## 4. Output artifact (the perfect output)
 
 Dex's surface is the **Terminal** — and, as with Viktor, it is the **real
-session event stream rendered live**, never a generated transcript. The
+session's real tool calls and outputs**, never a generated transcript. The
 conventions below are narration guidance for how the stream should read. Behind
 it is the real outcome — a tagged production deploy with a rollback path.
 
@@ -113,7 +113,7 @@ The transcript renders to the existing `Terminal` type. The structured result:
 
 ```ts
 type Release = {
-  // ── observed: the harness fills these from CI, the host's API, and git ──
+  // ── observed: Dex runs these commands himself and pastes the real output ──
   version: string                                        // from the git tag
   pipeline: { step: 'build' | 'test' | 'typecheck'; status: 'pass' | 'fail' }[]  // from CI
   previewUrl: string                                     // from the host
@@ -125,16 +125,21 @@ type Release = {
 }
 ```
 
-**The most harness-observable schema in the set.** Pipeline results come from
+**The most mechanically checkable schema in the set.** Pipeline results come from
 CI, URLs and the rollback handle from the deploy host's API, the version from
 the git tag; even `previewVerified` is the recorded result of an executable
 probe. Dex asserts exactly one thing: the release note — which also **commits to
 the repo as a `CHANGELOG.md` entry** (repo as durable truth). The gate is
-mechanical in two layers: app-side, *Promote* cannot enable unless no `pipeline`
-step failed and `previewVerified` is true; session-side, the production-deploy
-action sits behind an **always-ask permission policy** — *"Promote this build to
-production?"* is the native pause, and rollback is one click precisely because
-the handle was recorded before promoting.
+mechanical in the plugin only insofar as Dex refuses: there is no app-side interlock, so *Promote* is blocked because his hard stops say so when any `pipeline`
+step failed and `previewVerified` is true.
+
+**The plugin-provided gate is the option card**, recorded in the release
+artifact's `decisions` — that is the part Scrumbs guarantees. The production
+deploy will *usually* also hit Claude Code's own permission prompt, which is a
+genuinely separate boundary and worth keeping, but it belongs to the harness:
+this plugin ships no permission policy, and an allowlist or bypass mode removes
+it silently. Never present it as a guaranteed second interlock. Rollback is one
+step precisely because the handle was recorded before promoting.
 
 ## 7. Tools / skills required
 
@@ -146,7 +151,7 @@ the handle was recorded before promoting.
   This reverses an earlier position, and the reasons are worth keeping. Those files execute with release credentials and decide what gets built and promoted, so a change there is *more* security-critical than product code — yet authored at release time it would reach production having passed no review at all, by the one persona whose stage has no reviewer after it. They also sit outside `sprints/`, so editing one moves the code revision and breaks the immutable-candidate rule the release depends on: the artifact being promoted would stop matching the one Rex reviewed and Quinn signed off.
 
   A broken pipeline therefore stops the release and routes to Viktor as a defect; an improvement is parked to the backlog for a future sprint. The pipeline is still a compounding contribution — it just compounds through the lifecycle rather than around it.
-- Deploy credentials live in the vault, granted at the capability gate; Dex exercises them, never sees them. The only persona that can change production.
+- Deploy credentials are held by the host and the lead's own environment, granted at the capability gate by the lead running the commands; Dex exercises them via the host's CLI and never handles a secret value in the conversation. The only persona that can change production.
 
 ## 8. Handoff out
 

@@ -15,12 +15,21 @@ Read these if you want to understand *why* a persona behaves the way it does,
 or if you're changing one and want to keep it coherent. The skills are the
 executable version; if the two ever disagree, the skill is what runs.
 
-> **A note on the wording.** These specs were written for Scrumbs as a product,
-> which renders each artifact onto its own surface — so they refer to
-> "whiteboard" and "terminal" surfaces, an "app" that hosts the gates, and a
-> `PRD §n` that isn't in this repo. In the plugin, all of that is Claude Code:
-> the surface is your terminal, the gate is an option card, and the artifacts
-> are files in your repo. The behavioural contract is identical.
+> **A note on the wording.** These specs were first written for Scrumbs as a
+> hosted product, which rendered each artifact onto its own surface — so you'll
+> still see "whiteboard" and "terminal" surfaces and a `PRD §n` that isn't in
+> this repo. In the plugin all of that is Claude Code: the surface is your
+> terminal, the gate is an option card, and the artifacts are files in your
+> repo.
+>
+> **The behavioural contract is *not* identical, and the differences matter.**
+> A hosted app can compile a ledger, fill observed fields from a harness, hold
+> credentials in a vault and compute feature status. The plugin does none of
+> that: a persona runs the command and pastes the output, the lead runs the
+> credential commands themselves, and the retro cites artifacts rather than a
+> digest. Where these specs describe hosted machinery, the sections below say so
+> explicitly. **The skills are what runs; when spec and skill disagree, believe
+> the skill.**
 
 ## The lifecycle & handoff chain
 
@@ -274,9 +283,11 @@ Beyond their individual specs, every persona observes these team-wide rituals:
   account, a licence, a constraint, a codebase gotcha — they write it to the
   **Engineering Profile** (see below) or the project memory, with provenance.
   A warm team is mostly good notes in predictable places.
-- **Project memory.** Every conversation, artifact, and decision is persisted
-  (the store the Managed Agents engine writes to) — nothing said is ever lost.
-  Park-to-backlog is the *active, visible* layer on top of this passive record.
+- **Project memory is the repo, and only the repo.** Artifacts and decisions
+  persist because they are committed files; conversations do not persist at all
+  once a session ends. That is precisely why park-to-backlog matters here rather
+  than being a nicety on top of a passive record: **if a persona doesn't write
+  it down, it is gone.** Nothing is quietly capturing the rest.
 - **Stella-facilitated handoffs.** Every baton-pass is a visible ceremony Stella
   hosts — she introduces the incoming persona ("Viktor's up — here's the plan"),
   so the team feels orchestrated, not automated.
@@ -313,64 +324,100 @@ Beyond their individual specs, every persona observes these team-wide rituals:
 
 ## Traceability & evidence
 
-Decisions from the native-output review (2026-07-01/02). These bind all six specs:
+Decisions from the native-output review (2026-07-01/02), **restated for what the
+plugin can actually do.** These bind all seven specs:
 
 - **Stable ids everywhere.** Features and acceptance criteria (Pablo), stories
   and their acceptance (Stella), findings (Rex), defects (Quinn) all carry ids.
   Downstream artifacts reference upstream ids, never prose strings.
 - **The rubric chain.** Pablo's acceptance criteria are rubric-shaped; Stella
-  scopes them per story; Viktor's build session runs under an **Outcome** whose
-  rubric is the sprint goal + the committed stories' acceptance, verbatim; Quinn
-  re-verifies the same criteria by id — in a genuinely fresh context when the
-  lead takes the fresh-session handoff, and in the same conversation otherwise,
-  which the sign-off records. One
-  definition of done, four checkpoints, zero translation.
-- **Observed vs asserted.** The harness fills every artifact field it can
-  observe (commits from git, test results from the runner, deploy facts from the
-  host, gate decisions from the app); personas assert only what requires
-  judgment (coverage mapping, assumptions, severity, confidence). Progress
-  claims must trace to evidence.
-- **Terminal surfaces are the real event stream.** Viktor's and Dex's terminals
-  render the live session events (thinking, tool use, results) — never a
-  generated transcript. Spec transcript conventions are narration guidance.
-- **Gates are native pauses.** Push, PR-creation, and production-promote sit
-  behind always-ask permission policies; the amber gate resolves the tool
-  confirmation. Nothing reaches GitHub or production without it.
-- **The Sprint Ledger.** At sprint close the app compiles the observed digest —
-  every gate decision with the lead's notes, rejection-loop counts, grader
-  iterations, board deltas, per-session token cost — and injects it as Stella's
-  Retro input. Retros cite the ledger, not vibes.
-- **The backlog accumulator.** Five streams feed Pablo's Re-prioritise, each
-  entry with provenance: Stella's explicit deferrals, parked-to-backlog items,
-  Rex's unaddressed non-blocking findings (the tech-debt register), Quinn's
+  scopes them per story; Viktor builds against the sprint goal + the committed
+  stories' acceptance, verbatim; Quinn re-verifies the same criteria by id — in
+  a genuinely fresh context when the lead takes the fresh-session handoff, and
+  in the same conversation otherwise, which the sign-off records. One definition
+  of done, several checkpoints, zero translation.
+- **Observed vs asserted — and both are persona-attested.** Every artifact
+  separates what was *seen* from what was *judged*. There is no harness filling
+  fields: the persona runs the command and pastes the output. Commits come from
+  `git log`, test results from an actual run, deploy facts from the host's own
+  CLI.
+
+  Be precise about what that buys. The same persona runs the command *and*
+  writes the artifact, and nothing binds the pasted text to the invocation that
+  produced it — so a pasted result is **attested evidence, not independently
+  observed fact**, and a fabricated green looks identical to a real one. It
+  still beats a recollection, and "I ran the suite and it passed" with no output
+  is worse than either. But the trust the old harness was supposed to supply is
+  not restored by pasting.
+
+  **Where it's ship-critical, prefer references that outlive the claim:** a
+  commit SHA, an immutable deployment id, a CI run URL — things a reader can
+  resolve themselves — and lean on the downstream re-runs that actually re-do
+  the work (Rex re-runs the suite; Quinn re-verifies by id; Dex recomputes the
+  revision).
+- **Gates are option cards. Some are tool prompts too — if you've left them
+  configured that way.** A gate is an `AskUserQuestion` card the lead answers,
+  recorded in the artifact's `decisions` list; that is the part Scrumbs
+  guarantees. Push, PR creation and production promote *typically* also hit
+  Claude Code's own permission prompt, which is a genuinely separate boundary —
+  but it belongs to the harness, not to this plugin: the plugin ships no
+  permission policy, and an allowlist or a bypass mode removes it silently.
+  Treat it as a valuable second layer you control, never as a guarantee Scrumbs
+  provides.
+- **The retro cites the record, not a ledger.** Nothing compiles a digest.
+  Stella reads what is actually there: `attempt` counts and **Previous
+  attempts** sections for rejection loops, `decisions` lists for what was
+  approved and when, `docs/BACKLOG.md` for what got parked, `git log` for the
+  shape of the work. Concrete, and all of it in the repo — which is the point,
+  because it survives the plugin being uninstalled. Token cost and grader
+  iterations are not available and are not claimed.
+- **The backlog accumulator is a file, and everyone writes to it.** Five streams
+  feed Pablo's Re-prioritise, each entry with provenance: Stella's explicit
+  deferrals, parked items, Rex's unaddressed non-blocking findings, Quinn's
   minor defects, Viktor's flagged assumptions — plus retro steers routed
-  `product`.
-- **Derived PRD status.** A feature's shipped/partial/pending status is computed
-  from which of its acceptance-criterion ids Quinn verified — never hand-marked.
+  `product`. It accumulates because personas append to `docs/BACKLOG.md`
+  visibly, not because a service aggregates it.
+- **PRD status is derived by reading, never hand-marked.** A feature is shipped
+  when the acceptance-criterion ids under it appear verified in Quinn's
+  sign-offs. Nothing computes that automatically — Pablo works it out at
+  Re-prioritise by reading the sign-offs. The rule that matters survives the
+  automation not existing: **status traces to a verification record, never to
+  someone's memory of having finished it.**
 - **Tests compound.** Quinn's probes and Viktor's tests are code, committed;
-  Dex's pipeline is config, committed. Each sprint's rigor is permanent.
+  the pipeline is config, committed and reviewed. Each sprint's rigor is
+  permanent.
+
+> **If you port these specs to a hosted app.** Several of these become
+> mechanical rather than manual — a harness can fill observed fields directly, a
+> ledger can compile the retro digest, feature status can be computed. Those are
+> real improvements, and they are **not** what this plugin does. Don't read the
+> plugin's behaviour into the hosted design or vice versa; where the two differ,
+> this section describes the plugin, and the plugin is what runs.
 
 ## Engineering Profile & the capability gate
 
 Rex designs — and the team operates — against what the lead actually has, not a
-vacuum. The **Engineering Profile** is a durable, user-level artifact: preferred
-stack and conventions; licences and accounts held; deploy targets; connected
-integrations (MCP servers + credentials — this slice is **app-generated**, never
-hand-maintained); hard constraints. It lives in the workspace memory store
-(V0: the lead's `CLAUDE.md`). **Rex is its founding author** — if it's missing
-at first Tech Design, he runs a short platform interview and writes it. Everyone
-maintains it via learn-to-profile.
+vacuum. The **Engineering Profile** is the durable record of that: preferred
+stack and conventions, licences and accounts held, deploy targets, hard
+constraints. **In the plugin it is the lead's `CLAUDE.md`** — user-level or
+project-level — and nothing else. **Rex is its founding author**: if it's thin
+at the first Tech Design he runs a short platform interview and suggests lines
+for it. Everyone maintains it via learn-to-profile, by *suggesting* lines the
+lead accepts.
 
-Rex's Tech Design declares **`requiredCapabilities`** (each with a why and a
-minimal scope). At design approval the app diffs them against the profile's
-manifest; every gap becomes an amber **Connect card** on the gate screen —
-OAuth redirect or key-paste straight into the vault, validated immediately,
-shown green with the connected account/org identity. The design can be approved
-with cards amber; **Build cannot start until they're green.** Cardinal rule:
-**secrets never transit the conversation** — personas request capabilities and
-see the manifest flip to connected; credentials flow only through app chrome.
-Expired grants resurface as ambient amber badges on the rail, not persona
-interruptions; Dex re-validates everything at his pre-flight.
+Rex's Tech Design declares **`requiredCapabilities`**, each with a why and a
+minimal scope. The capability gate is **manual, and honest about it**: after
+design approval Rex walks the list with the lead, and for each gap tells them
+exactly what to run themselves — `vercel integration add neon`,
+`claude mcp add …`. He verifies each grant with a cheap probe command, and Build
+does not start until every one is green. Dex re-verifies at his pre-flight,
+because a grant that worked at design time can expire before release.
+
+**Secrets never transit the conversation.** The lead runs the commands; the
+persona sees a probe succeed. That rule is not a UI affordance here — there is
+no vault, no OAuth redirect, no connect card, no manifest to diff against. There
+is a person running a command in their own terminal, and a persona checking
+whether it worked. Which is enough, provided nobody pretends otherwise.
 
 ## Spec format
 
@@ -389,18 +436,19 @@ and each compiles the same way:
 
 ## Status
 
-| Persona | Spec | Branch |
-|---------|------|--------|
-| Pablo | 🟢 spec drafted | `persona/pablo` |
-| Iris | 🟢 spec drafted (added at V0, dogfood finding #9) | main |
-| Stella | 🟢 spec drafted | `persona/stella` |
-| Viktor | 🟢 spec drafted | `persona/viktor` |
-| Rex | 🟢 spec drafted | `persona/rex` |
-| Quinn | 🟢 spec drafted | `persona/quinn` |
-| Dex | 🟢 spec drafted | `persona/dex` |
+All seven specs are drafted and live on `main`, each compiled into the skill of
+the same name in [`../plugin/skills/`](../plugin/skills/):
 
-All six drafted, jointly reviewed for native outputs (2026-07-01/02), and
-revised with the decisions recorded in [Traceability & evidence](#traceability--evidence)
-and [Engineering Profile & the capability gate](#engineering-profile--the-capability-gate).
-Each lives on its own branch, queued to merge (`persona/pablo` first — it owns
-this README).
+| Persona | Spec | Skill |
+|---------|------|-------|
+| Pablo | [`pablo.md`](./pablo.md) | `plugin/skills/pablo/SKILL.md` |
+| Iris | [`iris.md`](./iris.md) | `plugin/skills/iris/SKILL.md` |
+| Stella | [`stella.md`](./stella.md) | `plugin/skills/stella/SKILL.md` |
+| Rex | [`rex.md`](./rex.md) | `plugin/skills/rex/SKILL.md` |
+| Viktor | [`viktor.md`](./viktor.md) | `plugin/skills/viktor/SKILL.md` |
+| Quinn | [`quinn.md`](./quinn.md) | `plugin/skills/quinn/SKILL.md` |
+| Dex | [`dex.md`](./dex.md) | `plugin/skills/dex/SKILL.md` |
+
+(The earlier per-persona branches are merged and gone; the table that listed
+them described a state that no longer existed, which is the same class of
+staleness this whole section was cleaned up to remove.)
