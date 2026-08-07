@@ -81,11 +81,17 @@ a requirement.** Searching a row for a backticked word, or a header body for
 column — and reports conformance. Every one of those was a real false negative
 here.
 
-So the parsers read *structure*: Markdown tables are split by column with the
-columns located by header name (outer pipes optional, `\|` escapes honoured), and
-header keys are extracted as keys rather than matched as text. If you extend a
-check, extend it that way — and add both a mutation and, where the change could
-plausibly reject valid Markdown, a `MUST_STAY_GREEN` case.
+So the parsers read *structure*: Markdown tables are split by column, with a
+valid delimiter row required and columns located by **exact** normalized header
+name (outer pipes optional, `\|` escapes honoured, ambiguous duplicate columns
+rejected rather than guessed at). Header keys are extracted as keys, at the right
+indentation level, rather than matched as text. Vocabularies are closed sets, and
+the exemption marker has one exact spelling — `*(exempt)*` or
+`*(exempt — see below)*` — because "(exemption TBD)" is a placeholder and a
+placeholder must not exempt anything.
+
+If you extend a check, extend it that way — and add both a mutation and, where
+the change could plausibly reject valid Markdown, a `MUST_STAY_GREEN` case.
 
 ### Adding a check
 

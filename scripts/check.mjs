@@ -162,19 +162,37 @@ function splitRow(line) {
   return cells.map((c) => c.trim());
 }
 
+const normHeader = (h) => h.replace(/[`*_]/g, "").trim().toLowerCase();
+
 function parseTable(lines, headerIdx) {
   const header = splitRow(lines[headerIdx]);
+  const errors = [];
+  // Markdown requires a delimiter row, one cell per column, three hyphens up.
+  const sep = lines[headerIdx + 1] === undefined ? [] : splitRow(lines[headerIdx + 1]);
+  const validSep =
+    sep.length === header.length && sep.every((c) => /^:?-{3,}:?$/.test(c.trim()));
+  if (!validSep) errors.push("table has no valid delimiter row beneath its header");
+
   const rows = [];
-  for (let i = headerIdx + 1; i < lines.length; i++) {
+  for (let i = headerIdx + (validSep ? 2 : 1); i < lines.length; i++) {
     const line = lines[i];
     if (line.trim() === "" || !line.includes("|")) break;
     const cells = splitRow(line);
-    if (cells.every((c) => c === "" || /^:?-+:?$/.test(c))) continue; // separator
+    if (cells.every((c) => c === "" || /^:?-+:?$/.test(c))) continue;
     rows.push(cells);
   }
-  const col = (...needles) =>
-    header.findIndex((h) => needles.some((n) => h.toLowerCase().includes(n)));
-  return { header, rows, col };
+  // Exact normalized header names — "Decision notes" must not be mistaken for
+  // "required last decision type", and an ambiguous duplicate is an error, not
+  // a coin toss.
+  const col = (name) => {
+    const hits = header.map((h, i) => [normHeader(h), i]).filter(([h]) => h === name);
+    if (hits.length > 1) {
+      errors.push(`table has ${hits.length} columns named "${name}"`);
+      return -1;
+    }
+    return hits.length ? hits[0][1] : -1;
+  };
+  return { header, rows, col, errors };
 }
 
 /**
@@ -273,8 +291,10 @@ const CHECKS = {
     const secLines = sec.split("\n");
     const hi = secLines.findIndex((l) => l.includes("|") && /status/i.test(l));
     if (hi === -1) return ["next.md: status vocabulary table not found"];
-    const { rows, col } = parseTable(secLines, hi);
-    const sc = Math.max(col("status"), 0);
+    const { rows, col, errors } = parseTable(secLines, hi);
+    if (errors.length) return errors.map((e) => `next.md: status vocabulary ${e}`);
+    const sc = col("status");
+    if (sc === -1) return ["next.md: status vocabulary table has no `status` column"];
     const known = new Set(["draft"]);
     const bad = [];
     for (const r of rows) {
@@ -349,7 +369,9 @@ const CHECKS = {
     const vhi = vLines.findIndex((l) => l.includes("|") && /status/i.test(l));
     if (vhi === -1) return ["next.md: status vocabulary table not found"];
     const v = parseTable(vLines, vhi);
-    const vsc = Math.max(v.col("status"), 0);
+    if (v.errors.length) return v.errors.map((e) => `next.md: status vocabulary ${e}`);
+    const vsc = v.col("status");
+    if (vsc === -1) return ["next.md: status vocabulary table has no `status` column"];
     const statuses = new Set();
     for (const r of v.rows) {
       const cell = (r[vsc] ?? "").trim();
@@ -362,12 +384,16 @@ const CHECKS = {
     const head = lines.findIndex((l) => l.includes("required last decision"));
     if (head === -1) return ["next.md: status→decision mapping table not found"];
     const m = parseTable(lines, head);
-    const msc = Math.max(m.col("status"), 0);
-    const mdc = m.col("decision");
-    if (mdc === -1) return ["next.md: mapping table has no decision column"];
+    if (m.errors.length) return m.errors.map((e) => `next.md: status→decision mapping ${e}`);
+    const msc = m.col("status");
+    const mdc = m.col("required last decision type");
+    if (msc === -1) return ["next.md: mapping table has no `status` column"];
+    if (mdc === -1)
+      return ['next.md: mapping table has no "required last decision `type`" column'];
 
     const f = [];
     const covered = new Set(["draft"]); // never a chosen outcome
+    const assignedBy = new Map(); // status -> the row that mapped it
     for (const r of m.rows) {
       const left = statusCell(r[msc] ?? "");
       if (left === null) {
@@ -379,7 +405,10 @@ const CHECKS = {
       // Exactly an exemption marker, or a backticked decision type drawn from the
       // status vocabulary (optionally with a parenthetical note). Anything else —
       // a placeholder, prose, a negated "not exempt" — maps nothing.
-      const exempt = /^\*?\(exempt[^)]*\)\*?$/i.test(right);
+      // A narrow, exact exemption syntax. "(exemption TBD)", "(exempted pending
+      // review)" and "(exempt — not exempt pending approval)" are placeholders,
+      // and a placeholder must not exempt anything.
+      const exempt = /^\*\(exempt(?: — see below)?\)\*$/.test(right);
       const typed = right.match(/^`([a-z-]+)`(\s*\(.*\))?$/);
       const known = typed !== null && statuses.has(typed[1]);
       if (!exempt && !known) {
@@ -390,7 +419,15 @@ const CHECKS = {
         );
         continue;
       }
-      for (const s of left) covered.add(s);
+      for (const s of left) {
+        if (assignedBy.has(s))
+          f.push(
+            `next.md: status "${s}" is mapped by two rows ("${assignedBy.get(s)}" and ` +
+              `"${right}") — the validator would have contradictory instructions`,
+          );
+        assignedBy.set(s, right);
+        covered.add(s);
+      }
     }
     for (const s of statuses)
       if (!covered.has(s))
@@ -476,11 +513,17 @@ const CHECKS = {
         // is a mention, not a key.
         const keys = new Set();
         if (body.includes("\n")) {
+          // Indentation matters: a `schema` nested under another key is not the
+          // top-level `scrumbs.schema` the front door requires.
+          let topIndent = null;
           for (const line of body.split("\n")) {
-            const bare = line.replace(/\s+#.*$/, "").trim();
-            if (!bare || bare.startsWith("#")) continue;
-            const k = bare.match(/^([A-Za-z_][\w-]*)\s*:/);
-            if (k) keys.add(k[1]);
+            const noComment = line.replace(/\s+#.*$/, "");
+            if (!noComment.trim() || noComment.trimStart().startsWith("#")) continue;
+            const k = noComment.match(/^(\s*)([A-Za-z_][\w-]*)\s*:/);
+            if (!k) continue;
+            const indent = k[1].length;
+            if (topIndent === null) topIndent = indent;
+            if (indent === topIndent) keys.add(k[2]);
           }
         } else {
           for (const part of body.split(",")) {
@@ -665,6 +708,40 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "an exemption marker is a placeholder",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `abandoned` | `abandoned` |", "   | `abandoned` | *(exemption TBD)* |")),
+  },
+  {
+    name: "an exemption marker is negated inline",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `abandoned` | `abandoned` |",
+      "   | `abandoned` | *(exempt — not exempt pending approval)* |")),
+  },
+  {
+    name: "two rows map the same status to different types",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `abandoned` | `abandoned` |",
+      "   | `abandoned` | `abandoned` |\n   | `abandoned` | `approved` |")),
+  },
+  {
+    name: "the mapping table loses its delimiter row",
+    category: "status-decision-mapping",
+    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
+      "   | `status` | required last decision `type` |\n   |---|---|",
+      "   | `status` | required last decision `type` |")),
+  },
+  {
+    name: "a nested schema key stands in for the top-level one",
+    category: "header-schema",
+    apply: (r) => (r[skillKey("pablo")] = r[skillKey("pablo")].replace(
+      "`scrumbs: {schema, stage, status, sprint}`",
+      "a header of the form:\n\nscrumbs:\n  metadata:\n    schema: 2\n  stage: prd\n  status: draft\n")),
+  },
   {
     name: "a mapping right cell is a backticked placeholder",
     category: "status-decision-mapping",
@@ -932,11 +1009,19 @@ const MUST_STAY_GREEN = [
     )),
   },
   {
-    name: "a mapping table with an extra Notes column",
+    name: "a Decision notes column inserted before the decision column",
     category: "status-decision-mapping",
-    apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"]
-      .replace("| `status` | required last decision `type` |", "| `status` | required last decision `type` | Notes |")
-      .replace("   | `abandoned` | `abandoned` |", "   | `abandoned` | `abandoned` | terminal |")),
+    apply: (r) => {
+      const lines = r["plugin/commands/next.md"].split("\n");
+      const h = lines.findIndex((l) => l.includes("required last decision"));
+      lines[h] = "   | `status` | Decision notes | required last decision `type` |";
+      lines[h + 1] = "   |---|---|---|";
+      for (let i = h + 2; i < lines.length && lines[i].trimStart().startsWith("|"); i++) {
+        const c = lines[i].trim().replace(/^\||\|$/g, "").split("|");
+        lines[i] = `   | ${c[0].trim()} | — | ${c[1].trim()} |`;
+      }
+      r["plugin/commands/next.md"] = lines.join("\n");
+    },
   },
   {
     name: "a header with an inline YAML comment",
