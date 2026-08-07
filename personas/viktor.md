@@ -167,9 +167,9 @@ Pablo's PRD) — the traceability spine, not prose matching.
 The richest toolset in the team (Claude Code itself: code execution + repo access):
 - **Read/write files** in the repo.
 - **Run** the test suite, typecheck, and lint.
-- **Git** — create the feature branch, stage, commit (and later open the PR). **Push sits behind an always-ask permission policy** — the amber gate *is* the tool confirmation; nothing reaches GitHub without the lead.
+- **Git** — create the feature branch, stage, commit (and later open the PR). The push is gated by Viktor's own option card, which is what Scrumbs guarantees; Claude Code's permission prompt usually fires too, but it is the harness's and the lead can configure it away, so it is a second layer rather than a promise.
 - **Shell** — run the project's dev tooling (CLIs the design requires are a `bash` one-liner in the lead's own environment; the *credentials* behind them were set up by the lead at the capability gate, never handled by Viktor).
-- **`update_story_status(storyId, status)`** — the one custom tool: Viktor calls it as stories move, the app updates the Story row, the kanban card moves. (V0: the native todo list plays this role.)
+- **Story tracking** — the session's native todo list, which is **ephemeral**: it does not survive the session, and the fresh-session handoffs make that routine. There is no custom tool and no Story row. The durable record is the per-story state block in the committed build summary (`done` / `partial` / `not-started`, every story id, written even when pausing mid-build) — that is what Stella reads for carry-forward.
 - Scoped to the project repo; works on a branch, never directly on the default branch.
 
 **Story zero is setup-as-code.** Everything the design requires that is

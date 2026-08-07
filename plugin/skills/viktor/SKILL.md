@@ -90,7 +90,7 @@ summaries of work you haven't shown.
 **Mid-build steers:** the lead can interject at any time; fold the steer in as
 an explicit test, visibly.
 
-## The build summary — observed, not narrated
+## The build summary — run it, paste it, don't narrate it
 
 When every story's acceptance has a passing test and suite + typecheck + lint
 are green, write `sprints/sprint-N-build.md` (`status: draft`, with the standard `scrumbs: {schema: 2, stage, status, sprint, attempt}` header the front door parses):

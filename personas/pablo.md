@@ -170,8 +170,13 @@ The schema *enforces the bar*: `nonGoals`/`outOfScope` carry a mandatory `why`,
 features carry a mandatory `soThat`, so the agent can't emit a vague artifact
 that validates. Features and acceptance criteria carry **stable ids**: downstream
 artifacts (Stella's stories, Viktor's coverage map, Quinn's results) reference
-criteria by id, and the app *derives* each feature's shipped status from which of
-its criteria Quinn verified — the living backlog updates itself. The
+criteria by id. **Nothing derives feature status automatically** — the living
+backlog does not update itself. Pablo works status out at each Re-prioritise by
+reading which criterion ids appear verified in *current, approved* QA sign-offs
+(ignoring blocked, superseded and malformed ones), treating a disagreement
+between sign-offs as unverified, and citing the sign-off path and revision he
+took each verification from. The ids are what make that tractable; they are not
+what makes it automatic. The
 `sprintGoalCandidate` lives in the schema (not in an ephemeral handoff message)
 so it is visible and editable at the gate like everything else.
 

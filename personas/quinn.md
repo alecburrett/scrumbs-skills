@@ -130,11 +130,18 @@ type QASignoff = {
 ```
 
 Schema enforces the bar: every acceptance criterion is verified **by id** (the
-traceability spine — the app derives PRD feature status from which ids Quinn
-passed), every `method` references an actual run (her probes execute in the
-session, so verification is observed, not narrated — the grounded-claims split:
-what's genuinely hers to *assert* is the edge-case selection, severity triage,
-and the confidence statement), every defect carries an `id` (on `blocked`,
+traceability spine Pablo reads to work out feature status by hand), every
+`method` references an actual run — a test path, a command, an output reference,
+never a narrative claim.
+
+Be exact about what that proves: Quinn runs the probe *and* writes the artifact,
+and nothing binds the pasted output to the invocation, so this is
+**persona-attested**, not independently observed. It beats narration and it is
+not proof. Prefer references a reader can resolve themselves (a committed test
+path, a CI run URL); the real corroboration is downstream, where Rex re-runs the
+suite and Dex recomputes the revision. What is genuinely hers to *assert* is the
+edge-case selection, severity triage, and the confidence statement. Every defect
+carries an `id` (on `blocked`,
 defects seed Viktor's fix-session work items directly, and minor non-blocking
 defects feed the backlog accumulator), and `blocked` cannot pass the gate — the
 verdict enum routes mechanically.

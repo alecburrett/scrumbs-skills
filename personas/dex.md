@@ -131,10 +131,15 @@ the git tag; even `previewVerified` is the recorded result of an executable
 probe. Dex asserts exactly one thing: the release note — which also **commits to
 the repo as a `CHANGELOG.md` entry** (repo as durable truth). The gate is
 mechanical in the plugin only insofar as Dex refuses: there is no app-side interlock, so *Promote* is blocked because his hard stops say so when any `pipeline`
-step failed and `previewVerified` is true; session-side, the production-deploy
-action sits behind an **always-ask permission policy** — *"Promote this build to
-production?"* is the native pause, and rollback is one click precisely because
-the handle was recorded before promoting.
+step failed and `previewVerified` is true.
+
+**The plugin-provided gate is the option card**, recorded in the release
+artifact's `decisions` — that is the part Scrumbs guarantees. The production
+deploy will *usually* also hit Claude Code's own permission prompt, which is a
+genuinely separate boundary and worth keeping, but it belongs to the harness:
+this plugin ships no permission policy, and an allowlist or bypass mode removes
+it silently. Never present it as a guaranteed second interlock. Rollback is one
+step precisely because the handle was recorded before promoting.
 
 ## 7. Tools / skills required
 
