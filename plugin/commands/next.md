@@ -524,7 +524,7 @@ final stepper with every stage ✓, and offer only **"Start a new project"** ·
 **"Exit"**. Never infer another Re-prioritise lap past a closed retro.
 
 *"Start a new project" means a new repository.* Say so plainly: `git init` a
-fresh repo, run `/scrumbs` there, and Pablo starts from a blank brief. Scrumbs
+fresh repo, run `/scrumbs:next` there, and Pablo starts from a blank brief. Scrumbs
 deliberately has **no in-place reset** — re-basing a closed repo would mean
 deleting or relocating artifacts that are the user's own project history, and
 this command never writes. If the user wants the old code, they fork or copy

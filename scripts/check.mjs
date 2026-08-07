@@ -44,7 +44,8 @@ const ABSENT_MACHINERY = [
 function loadRepo() {
   const files = {};
   const add = (p) => (files[rel(p)] = readFileSync(p, "utf8"));
-  add(join(ROOT, "plugin", "commands", "next.md"));
+  for (const f of readdirSync(join(ROOT, "plugin", "commands")))
+    if (f.endsWith(".md")) add(join(ROOT, "plugin", "commands", f));
   add(join(ROOT, "README.md"));
   add(join(ROOT, "CONTRIBUTING.md"));
   for (const d of readdirSync(join(ROOT, "plugin", "skills"), { withFileTypes: true }))
@@ -514,6 +515,149 @@ const CHECKS = {
     return f;
   },
 
+  // Every command a user is told to type must exist. This has now been wrong
+  // twice — once on the README's front page, once in the marketplace listing —
+  // and in both cases it was the FIRST thing a new user would try.
+  "documented-commands"(repo) {
+    const f = [];
+    const pluginName = (() => {
+      try {
+        return JSON.parse(repo["plugin/.claude-plugin/plugin.json"]).name;
+      } catch {
+        return null;
+      }
+    })();
+    if (!pluginName) return ["plugin.json: unreadable, cannot verify documented commands"];
+
+    // Plugin commands and skills are both invoked as /plugin:name.
+    const available = new Set([
+      ...Object.keys(repo)
+        .map((k) => k.match(/^plugin\/commands\/(.+)\.md$/)?.[1])
+        .filter(Boolean),
+      ...skillNames(repo),
+    ]);
+
+    for (const [path, raw] of Object.entries(repo)) {
+      if (!/\.(md|json)$/.test(path)) continue;
+      // JSON stores typographic punctuation as \uXXXX escapes, so decode before
+      // tokenizing — otherwise "/scrumbs:next\u2014it" reads as a command called
+      // `next\u2014it`. One escape becomes one character, so line numbers hold.
+      const text = path.endsWith(".json")
+        ? raw.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+        : raw;
+      const lines = text.split("\n");
+      const inFence = new Array(lines.length).fill(false);
+      let fence = null;
+      lines.forEach((line, i) => {
+        const m = line.trim().match(/^(```+|~~~+)/);
+        if (fence === null && m) { fence = m[1]; inFence[i] = true; return; }
+        if (fence !== null) {
+          inFence[i] = true;
+          if (line.trim().startsWith(fence[0].repeat(fence.length))) fence = null;
+        }
+      });
+
+      // Paragraph context, so a wrapped sentence is judged as a whole.
+      const paraOf = new Array(lines.length).fill("");
+      {
+        let i2 = 0;
+        while (i2 < lines.length) {
+          if (lines[i2].trim() === "") { i2++; continue; }
+          const start = i2;
+          while (i2 < lines.length && lines[i2].trim() !== "") i2++;
+          const text2 = lines.slice(start, i2).join(" ");
+          for (let k = start; k < i2; k++) paraOf[k] = text2;
+        }
+      }
+
+      // Deprecation notes and troubleshooting legitimately name a command that
+      // doesn't work, to stop people running it. That needs an explicit marker —
+      // inferring it from words like "not" or "old" would reopen the accidental
+      // bypasses this check exists to close.
+      const NOT_A_COMMAND = "<!-- not-a-command -->";
+      const exempt = new Array(lines.length).fill(false);
+      lines.forEach((line, i) => {
+        if (line.includes(NOT_A_COMMAND)) exempt[i] = true;
+        if (line.trim() !== NOT_A_COMMAND) return;
+        // A standalone marker covers what follows: the next line, or — since the
+        // marker can't go INSIDE a fence without rendering — the whole fenced
+        // block if that's what comes next.
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() === "") j++;
+        const fence = lines[j]?.trim().match(/^(```+|~~~+)/);
+        if (fence) {
+          exempt[j] = true;
+          for (j++; j < lines.length; j++) {
+            exempt[j] = true;
+            if (lines[j].trim().startsWith(fence[1][0].repeat(fence[1].length))) break;
+          }
+        } else if (j < lines.length) {
+          exempt[j] = true;
+        }
+      });
+
+      lines.forEach((line, i) => {
+        if (exempt[i]) return;
+        // Capture every slash-command-shaped token, whatever namespace it uses —
+        // searching only for the exact `/scrumbs:` prefix means a one-character
+        // namespace typo is invisible, which is the failure this check claims to
+        // catch. Unrelated commands like /plugin are ignored by distance.
+        // Typographic punctuation ends a token too — this repo is full of em dashes
+        // and smart quotes, and "/scrumbs:next”" is not a command called `next”`.
+        const TOKEN =
+          /\/([A-Za-z][A-Za-z0-9_-]*)(?::([^\s`*\[\]()<>"'\u2018\u2019\u201c\u201d\u2013\u2014\u2026\u00ab\u00bb]+))?/g;
+        for (const m of line.matchAll(TOKEN)) {
+          // Skip only when this really is part of a longer path or URL —
+          // github.com/alecburrett/scrumbs-skills, or ~/.claude/commands/…
+          // Anything else is a boundary, including Markdown and HTML wrappers:
+          // `[/scrumbs:start](#x)` and `<kbd>/scrumbs:start</kbd>` show a command
+          // to a reader and must be validated like any other.
+          const before = m.index > 0 ? line[m.index - 1] : "";
+          if (before && /[\w/.~:-]/.test(before)) continue;
+          const ns = m[1];
+          const cmd = (m[2] ?? "").replace(/[.,;:!?]+$/, "");
+          const lower = ns.toLowerCase();
+
+          // `/scrumbs:<name>` is generic notation: a colon follows, so it is not a
+          // bare command, and `<name>` is deliberately not a real one.
+          const afterNs = line[m.index + 1 + ns.length] ?? "";
+          if (afterNs === ":" && !cmd) continue;
+
+          if (ns === pluginName) {
+            if (!cmd) {
+              // A bare /plugin isn't a command; plugin commands are always
+              // namespaced. The only legitimate mention explains how to create a
+              // personal shortcut, so require that paragraph to actually show the
+              // path — the word "shortcut" alone shelters "There is no shortcut."
+              // Must establish THIS plugin's shortcut specifically. A paragraph
+              // about some other shortcut file was sheltering a bare command.
+              const shortcutPath = new RegExp(`\\.claude/commands/${pluginName}\\.md`);
+              if (!shortcutPath.test(paraOf[i] || line))
+                f.push(
+                  `${path}:${i + 1}: tells the user to run /${pluginName}, but plugin ` +
+                    `commands are always namespaced — use /${pluginName}:next`,
+                );
+            } else if (!available.has(cmd)) {
+              f.push(`${path}:${i + 1}: documents /${pluginName}:${cmd}, which doesn't exist`);
+            }
+            continue;
+          }
+
+          const nearMiss =
+            lower === pluginName || // case drift
+            lower.startsWith(pluginName) || // /scrumbs-next
+            editDistance(lower, pluginName) <= 2; // /scrubms
+          if (nearMiss)
+            f.push(
+              `${path}:${i + 1}: documents /${ns}${cmd ? `:${cmd}` : ""} — the namespace ` +
+                `is "${pluginName}", so this command doesn't exist`,
+            );
+        }
+      });
+    }
+    return f;
+  },
+
   // Every `invoke …` must resolve to a real persona. Anything this cannot parse
   // is itself a failure — an unreadable handoff is exactly where a typo hides.
   // Handoffs have one written form: invoke `persona`. That is the grammar, and
@@ -859,6 +1003,99 @@ const MUTATIONS = [
     },
   },
   {
+    name: "the README tells you to run a bare /scrumbs",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next\n```", "/scrumbs\n```")),
+  },
+  {
+    name: "the marketplace listing advertises a bare /scrumbs",
+    category: "documented-commands",
+    apply: (r) => (r[".claude-plugin/marketplace.json"] = r[".claude-plugin/marketplace.json"].replace(
+      "/scrumbs:next", "/scrumbs")),
+  },
+  {
+    name: "an UNmarked fenced example of a dead command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nIf you see this, you're on an old version:\n\n```\n/scrumbs\n```\n"),
+  },
+  {
+    name: "an unrelated shortcut path shelters a bare command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nSave your own at `~/.claude/commands/review.md`. Then start with /scrumbs.\n"),
+  },
+  {
+    name: "a deprecation note WITHOUT the marker",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nThe old `/scrumbs` no longer works — use `/scrumbs:next`.\n"),
+  },
+  {
+    name: "an invalid command inside a Markdown link",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nSee [/scrumbs:start](#commands) to begin.\n"),
+  },
+  {
+    name: "an invalid command wrapped in HTML",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nPress <kbd>/scrumbs:start</kbd> to begin.\n"),
+  },
+  {
+    name: "the namespace is misspelled",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrubms:next")),
+  },
+  {
+    name: "the namespace is miscapitalised",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/Scrumbs:next")),
+  },
+  {
+    name: "the namespace separator is a hyphen",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs-next")),
+  },
+  {
+    name: '"shortcut" without the path shelters a bare command',
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nThere is no shortcut. Start with /scrumbs.\n"),
+  },
+  {
+    name: "a documented command has a slash suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next/extra")),
+  },
+  {
+    name: "a bare command instruction in ordinary prose",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart the whole thing with /scrumbs.\n"),
+  },
+  {
+    name: "a documented command has a numeric suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next2")),
+  },
+  {
+    name: "a documented command has an underscore suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next_extra")),
+  },
+  {
+    name: "a documented command has a dotted suffix",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:next.foo")),
+  },
+  {
+    name: "a documented command is miscapitalised",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:Next")),
+  },
+  {
+    name: "the README documents a command that doesn't exist",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] = r["README.md"].replace("/scrumbs:next", "/scrumbs:start")),
+  },
+  {
     name: "an exemption marker is a placeholder",
     category: "status-decision-mapping",
     apply: (r) => (r["plugin/commands/next.md"] = r["plugin/commands/next.md"].replace(
@@ -1157,6 +1394,68 @@ const MUST_STAY_GREEN = [
       "   | `abandoned` | `abandoned` |",
       "   `abandoned` | `abandoned`",
     )),
+  },
+  {
+    name: "a marked fenced example of a dead command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nIf you see this, you're on an old version:\n\n<!-- not-a-command -->\n```\n/scrumbs\n```\n"),
+  },
+  {
+    name: "a deprecation note using the explicit marker",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\n<!-- not-a-command -->\nThe old `/scrumbs` no longer works on a clean install — use `/scrumbs:next`.\n"),
+  },
+  {
+    name: "an unrelated Claude Code command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nRun `/plugin` to manage installs, or `/help` for anything else.\n"),
+  },
+  {
+    name: "the repo URL, which contains the plugin name",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nSee https://github.com/alecburrett/scrumbs-skills for more.\n"),
+  },
+  {
+    name: "a command inside smart quotes",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nThey said \u201cstart with /scrumbs:next\u201d and that was that.\n"),
+  },
+  {
+    name: "a manifest with an escaped em dash beside a command",
+    category: "documented-commands",
+    apply: (r) => {
+      const d = JSON.parse(r[".claude-plugin/marketplace.json"]);
+      d.plugins[0].description += " Run /scrumbs:next\u2014it resumes where you left off.";
+      r[".claude-plugin/marketplace.json"] = JSON.stringify(d, null, 2) + "\n";
+    },
+  },
+  {
+    name: "a command followed by an em dash",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nRun /scrumbs:next \u2014 it tells you where you are.\n"),
+  },
+  {
+    name: "a command wrapped in backticks",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nRun `/scrumbs:next` to see where you are.\n"),
+  },
+  {
+    name: "generic <name> notation in the docs",
+    category: "documented-commands",
+    apply: (r) => (r["CONTRIBUTING.md"] += "\nPlugin commands are always `/scrumbs:<name>`.\n"),
+  },
+  {
+    name: "a command reference ending a sentence",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart the whole thing with /scrumbs:next.\n"),
+  },
+  {
+    name: "prose explaining how to make your own /scrumbs shortcut",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] +=
+      "\nSave a file at `~/.claude/commands/scrumbs.md` and you can just type `/scrumbs`.\n"),
   },
   {
     name: "prose that mentions the mapping table's header phrase",

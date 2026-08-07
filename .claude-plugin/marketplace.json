@@ -7,7 +7,7 @@
     {
       "name": "scrumbs",
       "source": "./plugin",
-      "description": "Your AI scrum team. Minus the standups. /scrumbs to start — every stage is explicit, every handoff signposted, every gate yours."
+      "description": "Seven AI teammates who won't let you skip the boring parts. They work one at a time \u2014 product, design, planning, build, review, QA, release \u2014 and every one stops and asks you before anything moves on. Start with /scrumbs:next."
     }
   ]
 }
