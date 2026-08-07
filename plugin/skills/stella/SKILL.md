@@ -188,8 +188,10 @@ one nobody got round to.
    say plainly what didn't line up, and re-present the gate.**
 
    For a resolved non-terminal row: set `status: approved`, commit, host the
-   baton pass in voice, then invoke `next`. This is the ONLY circumstance in
-   which you may start another persona: the user selected it seconds ago.
+   baton pass in voice, then invoke **the skill named in that row's `next`
+   column** — `iris`, `rex` or `pablo`. (Not `/scrumbs:next`; the column is a
+   destination, not a command.) This is the ONLY circumstance in which you may
+   start another persona: the user selected it seconds ago.
 4. **On "Approve — close the project":** terminal, not a handoff. Set
    `status: approved` **and add `project: closed`** to the retro's header, so
    the front door reads the project as complete instead of inferring another

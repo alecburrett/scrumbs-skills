@@ -1,7 +1,15 @@
 # Contributing
 
-Scrumbs is prompts and Markdown. There's no build, no test suite, and no
-toolchain — if you can edit a text file you can change how the team behaves.
+Scrumbs is prompts and Markdown — if you can edit a text file you can change how
+the team behaves. There's no build step and no dependencies, but there **is** a
+conformance check, and it runs on every PR:
+
+```sh
+node scripts/check.mjs              # the checks
+node scripts/check.mjs --self-test  # prove every check can still fail
+```
+
+Run both before you push. They take about a second and need nothing installed.
 
 ## The two layers
 
@@ -28,15 +36,65 @@ claude plugin install scrumbs
 ```
 
 Then run a real stage on a real repo. A persona's prompt reads fine and
-behaves badly more often than you'd think.
+behaves badly more often than you'd think — the checker catches contradictions
+between files, not a rule that is consistently wrong everywhere.
+
+## What `scripts/check.mjs` enforces
+
+Each of these exists because the invariant was already broken once, in a way
+nobody noticed by reading:
+
+| Check | Catches |
+|---|---|
+| **shared-bullets** | a canonical bullet edited in one skill and left alone in the other six — the drift that let the retro hand off to the wrong persona |
+| **shared-bullets-declared** | a bullet that has *become* byte-identical everywhere without being declared canonical, so the next edit desyncs it silently |
+| **maintainer-comment** | the comment naming a different set than `CANONICAL_BULLETS` — in either direction |
+| **status-vocabulary** | a skill writing a status the front door can't route — backticked, bare, quoted, in a flow or multiline header, or drifting only in casing — *and* the status table being renamed or reformatted out from under the parser |
+| **handoffs** | a handoff that resolves to nobody. The written form is `` invoke `persona` `` — a code span or bold run after `invoke` must name a real persona, and a Capitalised bare word (`invoke Vicktor`) fails as the wrong form. Ordinary lowercase prose like "never invoke the deployment tool" is left alone |
+| **header-schema** | a header template without a `schema` key, including lookalikes like `schemaVersion` |
+| **absent-machinery** | re-introducing a ledger, harness, vault, grader or custom tool the plugin can't provide, in any casing. Allowed only inside a blockquote preceded by the literal marker `<!-- hosted-port-note -->` — prose can't spoof a marker — and judged per line, so one quoted mention can't shelter a live requirement further down the file |
+| **packaging** | a missing persona in either direction, frontmatter disagreeing with its directory, invalid manifest JSON |
+
+### What it does not catch
+
+Be clear-eyed about this, or the green tick starts doing work it hasn't earned:
+
+- **A rule that is consistently wrong everywhere.** The checks compare files to
+  each other. Seven skills agreeing on a bad rule is a pass.
+- **Anything behavioural.** No stage is executed, no gate is answered, no
+  artifact is written. Whether Pablo actually asks one question at a time is not
+  something a text comparison can tell you — run a real stage on a real repo.
+- **Merge blocking, unless you configure it.** CI runs both commands on every
+  PR, but GitHub does not make a new job required automatically. Until someone
+  adds `checks / conformance` to a branch ruleset, a red PR can still be merged.
+- **A determined evasion.** This catches *accidental* drift — a typo, a dropped
+  backtick, a reflowed paragraph, a half-synced bullet. It is not an adversarial
+  control, and it isn't trying to be: anyone editing these files can defeat it
+  if they set out to.
+
+### Adding a check
+
+Add the mutation too. `--self-test` applies a deliberate break for every check
+and asserts it goes red; a category with no mutation, or one that stays green,
+fails the self-test. This is enforced rather than encouraged, because a check
+that cannot fail is worse than no check — it reassures without verifying.
+
+It also runs the reverse: `MUST_STAY_GREEN` holds edits a maintainer might
+legitimately write — prose about invoking a tool, a properly marked hosted-port
+note — and asserts they *don't* trip anything. A checker that rejects ordinary
+writing gets worked around rather than obeyed, so false positives are treated as
+failures too.
 
 ### The shared bullets
 
 Every skill ends with a `## Team rituals (all personas)` section. Four of those
 bullets — **"Explicit, never silent"**, **"Closed means closed"**,
 **"Record the gate"** and **"Gate mechanics"** — are byte-identical across all
-seven skills on purpose. Change them in every skill or in none; a partial edit is
-a silent divergence nobody notices for months.
+seven skills on purpose. Change them in every skill or in none; a partial edit
+used to be a silent divergence nobody noticed for months, which is exactly why
+`scripts/check.mjs` now fails on it. If you add a fifth shared bullet, add it to
+`CANONICAL_BULLETS` in that script and to the maintainer comment in all seven
+skills — the checker verifies both.
 
 The two newer ones are shared for the same structural reason. "Closed means
 closed": a terminal project has to be refused by *every* persona reachable
@@ -90,4 +148,4 @@ stage table (`plugin/commands/next.md`).
 
 Say what behaviour changed and what you saw when you ran it. "Pablo stopped
 asking three questions at once" beats a diff summary. Small and specific
-lands quickly.
+lands quickly. `node scripts/check.mjs` must pass; CI runs it too.
