@@ -165,14 +165,46 @@ function splitRow(line) {
 const normHeader = (h) => h.replace(/[`*_]/g, "").trim().toLowerCase();
 
 /**
+ * Which lines are live Markdown — outside HTML comments and fenced code. A table
+ * that has been commented out or kept as a fenced example is not the normative
+ * one, and must not satisfy a check about the normative one.
+ */
+function liveLines(lines) {
+  const live = new Array(lines.length).fill(true);
+  let inComment = false;
+  let fence = null;
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    if (!inComment && fence === null) {
+      const f = trimmed.match(/^(```+|~~~+)/);
+      if (f) { fence = f[1][0].repeat(f[1].length); live[i] = false; return; }
+    } else if (fence !== null) {
+      live[i] = false;
+      if (new RegExp(`^${fence[0]}{${fence.length},}\\s*$`).test(trimmed)) fence = null;
+      return;
+    }
+    if (inComment) {
+      live[i] = false;
+      if (line.includes("-->")) inComment = false;
+      return;
+    }
+    if (line.includes("<!--") && !line.includes("-->")) { live[i] = false; inComment = true; return; }
+    if (/<!--.*-->/.test(line) && trimmed.startsWith("<!--")) live[i] = false;
+  });
+  return live;
+}
+
+/**
  * Find a table by the columns it declares, not by prose. Looking for a phrase
  * anywhere in the file matches a sentence that merely mentions it — a real false
  * rejection, since the sentence then gets parsed as a header with no delimiter.
  * Returns the header line index, or -1 / -2 for none / ambiguous.
  */
 function findTable(lines, ...requiredCols) {
+  const live = liveLines(lines);
   const hits = [];
   for (let i = 0; i < lines.length; i++) {
+    if (!live[i] || !live[i + 1]) continue;
     if (!lines[i].includes("|")) continue;
     const header = splitRow(lines[i]).map(normHeader);
     if (!requiredCols.every((c) => header.includes(c))) continue;
@@ -730,6 +762,32 @@ const MUTATIONS = [
     apply: (r) => (r[skillKey("stella")] = r[skillKey("stella")].replace("name: stella", "name: stela")),
   },
   // ── the six an adversarial pass proved were slipping through ──────────────
+  {
+    name: "the only mapping table is commented out",
+    category: "status-decision-mapping",
+    apply: (r) => {
+      const lines = r["plugin/commands/next.md"].split("\n");
+      const h = lines.findIndex((l) => l.includes("required last decision"));
+      let end = h + 1;
+      while (end < lines.length && lines[end].trimStart().startsWith("|")) end++;
+      lines.splice(end, 0, "-->");
+      lines.splice(h, 0, "<!--");
+      r["plugin/commands/next.md"] = lines.join("\n");
+    },
+  },
+  {
+    name: "the only mapping table is inside a fenced example",
+    category: "status-decision-mapping",
+    apply: (r) => {
+      const lines = r["plugin/commands/next.md"].split("\n");
+      const h = lines.findIndex((l) => l.includes("required last decision"));
+      let end = h + 1;
+      while (end < lines.length && lines[end].trimStart().startsWith("|")) end++;
+      lines.splice(end, 0, "```");
+      lines.splice(h, 0, "```markdown");
+      r["plugin/commands/next.md"] = lines.join("\n");
+    },
+  },
   {
     name: "an exemption marker is a placeholder",
     category: "status-decision-mapping",
