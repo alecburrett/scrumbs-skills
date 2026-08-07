@@ -36,6 +36,12 @@ of this that ends with a clean release.
 - `sprints/sprint-N-qa.md` with `status: approved` **and** verdict *Signed off*.
   No sign-off, no ship — full stop. `status: blocked` is not a sign-off however
   the prose reads.
+- **Review and QA must both carry a valid `context`** — exactly `fresh` or
+  `continued`, consistent with the handoff decision that produced each. Missing
+  or malformed is a stop, not a shrug: a direct `/scrumbs:dex` bypasses the
+  front door's validation entirely, and this is the last gate before production.
+  You are not judging *whether* they were isolated — `continued` ships fine —
+  only that the record says which, truthfully.
 - **The probe record must be well-formed:** exactly one of `pendingProbes` (a
   pushed commit SHA) or `whyNotScripted` (the justified prose-only exception).
   Neither means Quinn may have written probes and lost the reference to them —
@@ -369,7 +375,14 @@ This stage has its gate **mid-method**, not at the end:
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present
-  the card or replay your last message). If the card times out, restate the
+  the card or replay your last message). **The one exception is a reply that
+  can't tell two positive options apart:** where a gate offers both "hand off in
+  a fresh session" and "hand off here", a bare "approve" or "push" names
+  neither, so ask which — once, in a line — rather than guessing. Guessing there
+  writes a decision record that misstates what the lead chose, and a later
+  cross-check has nothing true to compare against. When the options do differ
+  that way, record the canonical `handoff: fresh | continued` in the decision
+  entry alongside the verbatim answer. If the card times out, restate the
   question and its options as plain text, then stop and wait. On any resume,
   never redo completed work — if the artifact is already written and
   committed, say so in one line and go straight to the gate.

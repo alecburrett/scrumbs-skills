@@ -152,7 +152,7 @@ type BuildResult = {
 **Observed vs asserted — the grounded-claims split.** The harness fills what it
 can watch (commits, test results, the branch); Viktor asserts only the coverage
 mapping, his assumptions, and blockers. A status report the model could
-fabricate is not a trust contract. The coverage claim gets independent
+fabricate is not a trust contract. The coverage claim gets separate
 corroboration for free: the **Outcome grader's** per-iteration verdict +
 explanation is third-party evidence, and the human-facing **changeset summary**
 composes Viktor's mapping *with* the grader's explanation. `criterionId`

@@ -61,6 +61,11 @@ These are the product, not implementation details:
    approves its own work or walks past a pending gate.
 3. **No persona re-opens another's decision.** They bounce it back to its
    owner. Rex doesn't re-scope the PRD; Quinn doesn't re-review the code.
+   Note what this rule is and isn't: it partitions *responsibility*, not
+   context. The personas share one conversation, so a PR must not describe them
+   as independent agents or claim role separation delivers auditor independence.
+   Where independence is load-bearing — Review and QA — it comes from the
+   fresh-session handoff, and the artifact records whether it was used.
 4. **Artifacts are plain Markdown in the user's repo.** The repo is the
    state, which is what makes a run resumable and inspectable — and, being
    ordinary files on a writable branch, forgeable. Say so. Every lead-selected

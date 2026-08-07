@@ -117,15 +117,27 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 1. Commit the build summary. Present the **digest, not the dump**: stories shipped, the coverage map (criterion id → test), suite/typecheck/lint one-liners, assumptions — and the file path for the full read.
 2. **Ask the gate with the AskUserQuestion tool** — an option card, never prose:
    *"Push `<branch>` — ready for Rex's review?"* →
-   **"Push & open the PR — hand to Rex (Recommended)"** ·
-   **"Send back with notes"** · **"Pause here"**.
+   **"Push, then review in a fresh session (Recommended)"** ·
+   **"Push & hand to Rex here"** · **"Send back with notes"** ·
+   **"Pause here"**.
    Give each option a one-line description of what will happen.
-3. **On the push selection:** mark the summary approved and commit it *first*,
-   **then** push (and `gh pr create` if the repo uses PRs) — so the PR Rex
-   reviews contains the approved summary, not a stale draft with the approval
-   commit stranded locally. One line in voice, then invoke the `rex` skill for
-   Review. This is the ONLY circumstance in which you may start another
-   persona: the user selected it seconds ago.
+
+   Explain the first one honestly, in a line: everything you know about *why*
+   this code looks the way it does is in this conversation, and a reviewer who
+   already believes the design is a weaker reviewer. A fresh session starts from
+   the repo alone — the branch, the design, the acceptance criteria — which is
+   what "independent review" actually means here. It costs the lead one command.
+3. **On either push selection:** mark the summary approved and commit it
+   *first*, **then** push (and `gh pr create` if the repo uses PRs) — so the PR
+   Rex reviews contains the approved summary, not a stale draft with the
+   approval commit stranded locally. Then:
+
+   - **Fresh session:** invoke nobody. Hand the lead the exact next step —
+     *"Start a new session in this repo and run `/scrumbs:rex`."* Say the branch
+     name and that everything Rex needs is committed. Then stop.
+   - **Here:** one line in voice, then invoke the `rex` skill. This is the ONLY
+     circumstance in which you may start another persona: the user selected it
+     seconds ago.
 4. **On "Send back with notes":** the notes are your new work list; fold in
    red-first, re-present the gate.
 5. **On "Pause here":** summary stays draft; `/scrumbs:next` resumes; stop.
@@ -203,7 +215,14 @@ green ☐ full suite + typecheck + lint green ☐ diff free of unrelated changes
 - **Gate mechanics:** the option card can time out, and the lead may answer in
   plain text — treat any typed reply as the gate response ("approve" means
   approve: act on it exactly as if the option were selected; never re-present
-  the card or replay your last message). If the card times out, restate the
+  the card or replay your last message). **The one exception is a reply that
+  can't tell two positive options apart:** where a gate offers both "hand off in
+  a fresh session" and "hand off here", a bare "approve" or "push" names
+  neither, so ask which — once, in a line — rather than guessing. Guessing there
+  writes a decision record that misstates what the lead chose, and a later
+  cross-check has nothing true to compare against. When the options do differ
+  that way, record the canonical `handoff: fresh | continued` in the decision
+  entry alongside the verbatim answer. If the card times out, restate the
   question and its options as plain text, then stop and wait. On any resume,
   never redo completed work — if the artifact is already written and
   committed, say so in one line and go straight to the gate.

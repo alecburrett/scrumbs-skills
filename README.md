@@ -112,13 +112,33 @@ artifact still reads perfectly on its own.
 ## Why personas, and not one big prompt
 
 Because a product owner who is also the developer will always cut the
-awkward requirement. Splitting the work across seven agents with narrow
-remits and hard handoffs is what keeps each one honest:
+awkward requirement. Narrow remits and hard handoffs make that cut visible:
 
 - Pablo is **pre-technical on purpose** — no stack, no UI, no solutions.
 - Rex **designs and judges but never implements**. Viktor implements.
 - Quinn judges **behaviour**, not code — Rex already did the code.
 - Nobody re-opens someone else's decision. They bounce it back to its owner.
+
+**What that buys, precisely.** A different set of questions gets asked at each
+stage, in a fixed order, with a written record and a gate you control. Scope
+that would have been silently dropped has to be dropped *out loud*. That's
+worth a lot, and it's most of what goes wrong on a small project.
+
+**What it doesn't buy: independence.** The personas are Markdown skills loaded
+into one Claude Code conversation, not seven separate agents. By the time Rex
+reviews the code, the same context that designed it is still in the room — he is
+not a second opinion, he's the same one wearing a different hat. Quinn's "fresh
+adversarial pass" is fresh in framing, not in memory.
+
+Where that actually matters — **Review and QA** — Scrumbs offers the real thing
+instead of pretending: hand off into a **new session**. Your repo is the state,
+so a fresh session picks up exactly where the last one stopped, with none of the
+reasoning that produced the code. Both stages ask which you want and record your
+answer on the artifact.
+
+That record is your word, not a proof — nothing here can verify a session was
+fresh. But it's on the record, it's cross-checked against the handoff you chose,
+and a review that wasn't independent has to say so.
 
 Each persona is a plain Markdown skill. Read one, disagree with it, change
 it — it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/).

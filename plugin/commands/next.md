@@ -250,6 +250,69 @@ entry must be the `approved` promote decision, complete. That is deliberate —
 resuming into production off an artifact that merely *looks* half-written is the
 one mistake in this whole lifecycle that cannot be undone.
 
+### `context` — how isolated a verdict actually was
+
+Review and QA carry `context: fresh | continued`. `fresh` means that session
+began at this stage and knows only what the repo says; `continued` means the
+code was built or reviewed earlier in the same conversation.
+
+**It is required on both, and fails closed when missing** — an unstated context
+is not an implied `fresh`.
+
+**It is user-attested, not verified.** Nothing in the repo can prove a session
+was fresh: there is no session identity a skill can read, so `fresh` is a claim
+the persona records on the lead's word, exactly like `by` and `at` on a
+decision. Say so wherever it's reported. It buys the same thing the rest of the
+record buys — a stated claim someone can contradict later — and not proof.
+
+**One cross-check is available, and it's worth running.** The upstream gate
+decision records `handoff: fresh | continued` alongside the lead's verbatim
+answer — Viktor's on the Build summary, Rex's on the Review. If a Review says
+`context: fresh` while the Build decision that handed it over says
+`handoff: continued`, those two records disagree — surface it. It won't catch a
+determined misstatement, but it catches the ordinary case of a field filled in
+on autopilot.
+
+The canonical `handoff` field exists because a typed "approve" can't distinguish
+two positive options; personas ask which, rather than guessing, precisely so
+this comparison has something true on both sides.
+
+**An approved artifact from before `context` existed is legacy, not malformed.**
+Same distinction as a legacy `schema`, and for the same reason: rejecting it
+outright is a dead end. Rex only re-enters on a missing, draft or stale Review,
+and Quinn can't replace an approved QA at the current attempt — so a pre-change
+sprint could reach neither QA nor Deploy without fabricating a field or forcing
+a synthetic rebuild.
+
+Its owner repairs it: Rex and Quinn may re-enter at the *same* attempt and
+revision purely to attach an attested `context`. Ideally they take the
+fresh-session handoff and genuinely re-judge; at minimum they ask the lead what
+happened and record the answer with today's date. **Never invent the history** —
+an attested `continued` is worth more than a fabricated `fresh`.
+
+**Recommend that repair, don't just permit it.** Check for it *before* the
+ordinary first-non-approved scan, because the scan will skip right past an
+approved artifact and recommend the next stage instead — where the receiving
+persona stops on the missing field, and the one persona who could fix it is
+never suggested. That's a dead end reached by following the recommended path,
+which is the worst kind.
+
+So: if an approved Review or QA at the current attempt is missing `context`,
+recommend **its owner** for a repair-only pass — **Review before QA**, since
+Quinn's preconditions read the Review. Say plainly that it's a repair: the
+verdict, status, attempt, revision and prior decisions are all preserved, and
+the only thing being added is the isolation record.
+
+**Every accepting persona validates it, not just this command.** Quinn checks
+the Review's, Dex checks both. A direct `/scrumbs:quinn` or `/scrumbs:dex` never
+passes through here, and validation that only runs on the front door is
+validation people route around without meaning to.
+
+**Preserve it per attempt.** Because Review and QA overwrite one file per stage,
+carry each attempt's `context` into the **Previous attempts** section along with
+its verdict. Otherwise a re-review in a fresh session quietly erases the fact
+that attempt 1 was judged in the room where it was written.
+
 ### Attempts and revisions
 
 **Build, Review and QA** — the three stages that can legitimately loop — carry
