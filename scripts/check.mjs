@@ -571,10 +571,13 @@ const CHECKS = {
         // catch. Unrelated commands like /plugin are ignored by distance.
         const TOKEN = /\/([A-Za-z][A-Za-z0-9_-]*)(?::([^\s`*\[\]()<>"']+))?/g;
         for (const m of line.matchAll(TOKEN)) {
-          // A slash command starts a token. Skip matches inside a URL or path
-          // (github.com/alecburrett/scrumbs-skills is not a command).
+          // Skip only when this really is part of a longer path or URL —
+          // github.com/alecburrett/scrumbs-skills, or ~/.claude/commands/…
+          // Anything else is a boundary, including Markdown and HTML wrappers:
+          // `[/scrumbs:start](#x)` and `<kbd>/scrumbs:start</kbd>` show a command
+          // to a reader and must be validated like any other.
           const before = m.index > 0 ? line[m.index - 1] : "";
-          if (before && !/[\s`(*"'|]/.test(before)) continue;
+          if (before && /[\w/.~:-]/.test(before)) continue;
           const ns = m[1];
           const cmd = (m[2] ?? "").replace(/[.,;:!?]+$/, "");
           const lower = ns.toLowerCase();
@@ -970,6 +973,16 @@ const MUTATIONS = [
     category: "documented-commands",
     apply: (r) => (r[".claude-plugin/marketplace.json"] = r[".claude-plugin/marketplace.json"].replace(
       "/scrumbs:next", "/scrumbs")),
+  },
+  {
+    name: "an invalid command inside a Markdown link",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nSee [/scrumbs:start](#commands) to begin.\n"),
+  },
+  {
+    name: "an invalid command wrapped in HTML",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nPress <kbd>/scrumbs:start</kbd> to begin.\n"),
   },
   {
     name: "the namespace is misspelled",
