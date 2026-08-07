@@ -11,7 +11,7 @@ one at a time, in order, and every one of them stops and asks you before
 anything moves on.
 
 ```
-/scrumbs
+/scrumbs:next
 ```
 
 That's the whole thing. It tells you where you are, and who's up next.
@@ -46,10 +46,14 @@ claude plugin install scrumbs
 Then, inside the git repo you want built:
 
 ```
-/scrumbs
+/scrumbs:next
 ```
 
 <sub>Already in a Claude Code session? `/plugin marketplace add alecburrett/scrumbs-skills` works too.</sub>
+
+<sub>Typing that a lot? Make yourself a shorter one: save a file at
+`~/.claude/commands/scrumbs.md` containing *"Do exactly what `/scrumbs:next`
+does."* and you can just type `/scrumbs`.</sub>
 
 ---
 
