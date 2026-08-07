@@ -615,15 +615,28 @@ const CHECKS = {
           const before = m.index > 0 ? line[m.index - 1] : "";
           if (before && /[\w/.~:-]/.test(before)) continue;
           const ns = m[1];
-          const cmd = (m[2] ?? "").replace(/[.,;:!?]+$/, "");
+          const cmdRaw = m[2] ?? "";
+          const cmd = cmdRaw.replace(/[.,;:!?]+$/, "");
           const lower = ns.toLowerCase();
 
-          // `/scrumbs:<name>` is generic notation: a colon follows, so it is not a
-          // bare command, and `<name>` is deliberately not a real one.
-          const afterNs = line[m.index + 1 + ns.length] ?? "";
-          if (afterNs === ":" && !cmd) continue;
+          // What actually follows the namespace, so an incomplete command is told
+          // apart from deliberate notation.
+          const after = line.slice(m.index + 1 + ns.length);
+          const hasColon = after.startsWith(":");
+          const rest = hasColon ? after.slice(1) : "";
+          // `/scrumbs:<name>` and `/scrumbs:{name}` are metavariables, not
+          // commands. `/scrumbs:` and `/scrumbs: next` are just broken.
+          const isMetavar = /^[<{]/.test(rest);
+
+          if (hasColon && !isMetavar && !cmd)
+            f.push(
+              `${path}:${i + 1}: /${ns}: is missing its command name` +
+                (ns === pluginName ? ` — did you mean /${pluginName}:next?` : ""),
+            );
 
           if (ns === pluginName) {
+            if (isMetavar) continue;
+            if (hasColon && !cmd) continue; // already reported above
             if (!cmd) {
               // A bare /plugin isn't a command; plugin commands are always
               // namespaced. The only legitimate mention explains how to create a
@@ -642,6 +655,7 @@ const CHECKS = {
             }
             continue;
           }
+          if (isMetavar) continue;
 
           const nearMiss =
             lower === pluginName || // case drift
@@ -1017,6 +1031,26 @@ const MUTATIONS = [
     name: "an UNmarked fenced example of a dead command",
     category: "documented-commands",
     apply: (r) => (r["README.md"] += "\nIf you see this, you're on an old version:\n\n```\n/scrumbs\n```\n"),
+  },
+  {
+    name: "a command with a trailing colon and no name",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart with /scrumbs: to begin.\n"),
+  },
+  {
+    name: "a space between the colon and the command",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart with /scrumbs: next to begin.\n"),
+  },
+  {
+    name: "a command that is only punctuation",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart with /scrumbs:!!! to begin.\n"),
+  },
+  {
+    name: "a misspelled namespace with no command name",
+    category: "documented-commands",
+    apply: (r) => (r["README.md"] += "\nStart with /Scrumbs: to begin.\n"),
   },
   {
     name: "an unrelated shortcut path shelters a bare command",
@@ -1416,6 +1450,11 @@ const MUST_STAY_GREEN = [
     name: "the repo URL, which contains the plugin name",
     category: "documented-commands",
     apply: (r) => (r["README.md"] += "\nSee https://github.com/alecburrett/scrumbs-skills for more.\n"),
+  },
+  {
+    name: "a {name} metavariable in the docs",
+    category: "documented-commands",
+    apply: (r) => (r["CONTRIBUTING.md"] += "\nPlugin commands are always `/scrumbs:{name}`.\n"),
   },
   {
     name: "a command inside smart quotes",
