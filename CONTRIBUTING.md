@@ -1,7 +1,14 @@
 # Contributing
 
-Scrumbs is prompts and Markdown. There's no build, no test suite, and no
-toolchain — if you can edit a text file you can change how the team behaves.
+Scrumbs is prompts and Markdown — if you can edit a text file you can change how
+the team behaves. There's no build step and no dependencies, but there **is** a
+conformance check, and it runs on every PR:
+
+```sh
+node scripts/check.mjs
+```
+
+Run it before you push. It takes about a second and needs nothing installed.
 
 ## The two layers
 
@@ -28,15 +35,38 @@ claude plugin install scrumbs
 ```
 
 Then run a real stage on a real repo. A persona's prompt reads fine and
-behaves badly more often than you'd think.
+behaves badly more often than you'd think — the checker catches contradictions
+between files, not a rule that is consistently wrong everywhere.
+
+## What `scripts/check.mjs` enforces
+
+Each of these exists because the invariant was already broken once, in a way
+nobody noticed by reading:
+
+| Check | Catches |
+|---|---|
+| **Shared bullets byte-identical** | a rule fixed in one skill and left wrong in the other six — the drift that let the retro hand off to the wrong persona for as long as it did |
+| **Maintainer comment names them** | a fifth bullet becoming shared without the comment saying so, so the next person syncs four of five |
+| **Status vocabulary** | a skill writing a status the front door can't route |
+| **Handoffs name real personas** | `invoke \`x\`` where `x` isn't a skill, including near-misses like the front-door command |
+| **Header templates carry `schema`** | artifacts that read as legacy the moment they're written |
+| **Absent machinery** | re-introducing a harness, a ledger, a vault, a grader — anything the plugin can't actually provide |
+| **Packaging** | a skill without a spec, frontmatter that disagrees with its directory, invalid manifest JSON |
+
+Adding a check is welcome. Adding one that can't fail isn't: break the invariant
+locally first and confirm the checker actually goes red, or you've written a
+test that only ever agrees with you.
 
 ### The shared bullets
 
 Every skill ends with a `## Team rituals (all personas)` section. Four of those
 bullets — **"Explicit, never silent"**, **"Closed means closed"**,
 **"Record the gate"** and **"Gate mechanics"** — are byte-identical across all
-seven skills on purpose. Change them in every skill or in none; a partial edit is
-a silent divergence nobody notices for months.
+seven skills on purpose. Change them in every skill or in none; a partial edit
+used to be a silent divergence nobody noticed for months, which is exactly why
+`scripts/check.mjs` now fails on it. If you add a fifth shared bullet, add it to
+`CANONICAL_BULLETS` in that script and to the maintainer comment in all seven
+skills — the checker verifies both.
 
 The two newer ones are shared for the same structural reason. "Closed means
 closed": a terminal project has to be refused by *every* persona reachable
@@ -90,4 +120,4 @@ stage table (`plugin/commands/next.md`).
 
 Say what behaviour changed and what you saw when you ran it. "Pablo stopped
 asking three questions at once" beats a diff summary. Small and specific
-lands quickly.
+lands quickly. `node scripts/check.mjs` must pass; CI runs it too.
