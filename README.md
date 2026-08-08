@@ -36,9 +36,9 @@ step.
 
 ### Sharper product decisions
 
-Pablo turns an early idea into explicit requirements, success criteria and
-boundaries. The team knows what it is building, why it matters and—just as
-importantly—what is out of scope.
+Early product discovery turns an idea into explicit requirements, success
+criteria and boundaries. The team knows what it is building, why it matters
+and—just as importantly—what is out of scope.
 
 ### A practical route from idea to release
 
@@ -68,9 +68,9 @@ history.
 
 ### A workflow that improves every sprint
 
-Deployment is not the end of the loop. Stella captures what the team learned,
-and Pablo uses that evidence to help prioritise the next sprint. Each cycle can
-start smarter than the last.
+Deployment is not the end of the loop. Each retrospective captures what the
+team learned, and that evidence helps prioritise the next sprint. Each cycle
+can start smarter than the last.
 
 ---
 
