@@ -1,194 +1,239 @@
 # Scrumbs
 
-### Seven teammates who won't let you skip the boring parts.
+## Turn your coding agent into a full delivery team
 
-Ask an AI to build your thing and it will build *something*. It'll also quietly
-drop the requirement you'd have argued about, skip the test that was awkward to
-write, and tell you it reviewed its own work.
+[![Star Scrumbs on GitHub](https://img.shields.io/github/stars/alecburrett/scrumbs-skills?style=for-the-badge&logo=github&label=Star%20Scrumbs)](https://github.com/alecburrett/scrumbs-skills/stargazers)
+[![Follow Alec Burrett](https://img.shields.io/github/followers/alecburrett?style=for-the-badge&logo=github&label=Follow)](https://github.com/alecburrett)
+[![MIT licence](https://img.shields.io/badge/licence-MIT-blue?style=for-the-badge)](./LICENSE)
 
-Scrumbs gives you a team instead. Seven of them, each with one job. They work
-one at a time, in order, and every one of them stops and asks you before
-anything moves on.
+Scrumbs gives Claude Code seven focused AI teammates who help turn an idea into
+a clear, tested, reviewed and release-ready increment.
 
-```
+Instead of asking one agent to discover the requirements, design the solution,
+write the code, review itself, test its own assumptions and ship—all in one
+heroic leap—Scrumbs gives every part of delivery a clear owner. Each teammate
+brings a different perspective, hands over real context and asks for your
+approval before the project moves forward.
+
+The result is a workflow that helps you build with more clarity, catch problems
+earlier and keep momentum across long-running projects.
+
+```text
 /scrumbs:next
 ```
 
-That's the whole thing. It tells you where you are, and who's up next.
+One command shows where the project is and recommends the single best next
+step.
+
+> If Scrumbs would add value to your projects, [give the repository a
+> star](https://github.com/alecburrett/scrumbs-skills) and [follow Alec
+> Burrett](https://github.com/alecburrett) for new skills, workflow improvements
+> and releases.
 
 ---
 
-## What you get out of it
+## What Scrumbs adds to a project
 
-- **You always know what's happening.** One teammate, one job, one question at a
-  time. Never a wall of output you have to audit afterwards.
-- **The awkward conversations actually happen.** Someone asks what you're *not*
-  building. Someone pushes back on scope. Someone tries to break it before your
-  users do.
-- **Nothing moves without you.** Every step ends with a plain question and a
-  couple of options. You pick. Ask them to "just do the whole thing" and they'll
-  politely decline.
-- **You can stop and come back.** Each step gets written to your repo when it's
-  done, so you can walk away between steps and pick up next week — or in a fresh
-  session — without re-explaining anything.
-- **You end up with the paperwork you'd never have written.** A spec, a plan, a
-  record of what was decided and why. Useful long after the code lands.
+### Sharper product decisions
+
+Pablo turns an early idea into explicit requirements, success criteria and
+boundaries. The team knows what it is building, why it matters and—just as
+importantly—what is out of scope.
+
+### A practical route from idea to release
+
+Every stage has an owner and a useful output. Product thinking becomes a sprint
+plan, the plan becomes a technical design, the design becomes tested code, and
+the code earns its way through review, QA and deployment.
+
+### Better checks at the moments that matter
+
+The teammate who builds the code is not the teammate who reviews it or tests
+it. Scrumbs can offer a fresh Claude Code session for review and QA, giving the
+work a valuable cold read before it reaches users.
+
+### Human control without losing momentum
+
+You remain the project lead. Each stage presents a clear decision, records the
+answer and waits for you to choose what happens next. Scrumbs provides
+structure and momentum without silently taking the project in a direction you
+did not approve.
+
+### Project memory that survives the chat
+
+Requirements, decisions, plans, review findings and release notes are written
+as ordinary Markdown in your repository. You can pause, switch sessions or
+return weeks later without rebuilding the whole story from conversation
+history.
+
+### A workflow that improves every sprint
+
+Deployment is not the end of the loop. Stella captures what the team learned,
+and Pablo uses that evidence to help prioritise the next sprint. Each cycle can
+start smarter than the last.
 
 ---
 
-## Install
+## Meet your AI delivery team
+
+| Teammate | Role | Value they bring |
+|---|---|---|
+| 📋 **Pablo** | Product Owner | Clarifies the problem, defines value and protects the scope |
+| 🎨 **Iris** | Product Designer | Creates a coherent experience and keeps UI work aligned |
+| 🌀 **Stella** | Scrum Master | Shapes achievable sprints and turns lessons into improvements |
+| 🏗️ **Rex** | Tech Lead | Designs the technical approach and reviews the implementation |
+| 🔴 **Viktor** | Senior Developer | Builds the increment test-first and records what changed |
+| 🔍 **Quinn** | QA Engineer | Verifies acceptance criteria and hunts for real-world edge cases |
+| 🚀 **Dex** | DevOps Engineer | Prepares a safe, visible and reversible path to production |
+
+Together, they cover the delivery loop:
+
+```text
+Idea
+  → Requirements → PRD → Design
+  → Sprint Plan → Technical Design → Build
+  → Review → QA → Deploy → Retrospective
+                                  ↘ next sprint
+```
+
+No mystery hand-offs. No silent stage changes. You can see who owns the work,
+what they produced and what decision is needed next.
+
+---
+
+## Quick start
+
+Install Scrumbs from the Claude Code plugin marketplace:
 
 ```sh
 claude plugin marketplace add alecburrett/scrumbs-skills
 claude plugin install scrumbs
 ```
 
-Then, inside the git repo you want built:
+Open the Git repository you want to work on and run:
 
-```
+```text
 /scrumbs:next
 ```
 
-<sub>Already in a Claude Code session? `/plugin marketplace add alecburrett/scrumbs-skills` works too.</sub>
+Scrumbs reads the project artifacts, shows your current position and points you
+to exactly one next action. You stay oriented without having to memorise the
+workflow.
 
-<sub>Typing that a lot? Make yourself a shorter one: save a file at
-`~/.claude/commands/scrumbs.md` containing *"Do exactly what `/scrumbs:next`
-does."* and you can just type `/scrumbs`.</sub>
+Already inside Claude Code? This works too:
 
----
-
-## Meet the team
-
-| | Who | Role | They say |
-|---|---|---|---|
-| 📋 | **Pablo** | Product Owner | *"Let's get clear on what we're building."* |
-| 🎨 | **Iris** | Product Designer | *"Let's give this thing a face."* |
-| 🌀 | **Stella** | Scrum Master | *"Let's break this into a sprint."* |
-| 🏗️ | **Rex** | Tech Lead | *"Let's shape how we build this."* |
-| 🔴 | **Viktor** | Senior Developer | *"Red first, then green."* |
-| 🔍 | **Quinn** | QA Engineer | *"Now… what if the user does this?"* |
-| 🚀 | **Dex** | DevOps Engineer | *"We're green. Let's ship it."* |
-
----
-
-## How it goes
-
-You tell **Pablo** your idea. He asks one question at a time, pushes back when
-the scope creeps, and writes down what you agreed — including what you're *not*
-building. **Iris** gives it a look and a feel. **Stella** cuts it into a sprint
-you can actually finish.
-
-Then **Rex** works out how to build it, **Viktor** builds it test-first, Rex
-comes back and reviews it, **Quinn** tries hard to break it, and **Dex** ships
-it — showing you exactly what's about to go live, and how to undo it, before
-anything reaches your users.
-
-**Stella** runs the retro, and the next sprint starts from what you actually
-learned rather than what you meant to do.
-
-You say yes before each step begins. If you don't like something, you say so and
-it goes back to whoever owns it.
-
----
-
-## What you're left with
-
-Real files, in your repo, in plain Markdown:
-
-```
-docs/BRIEF.md      what we're building, and what we're not
-docs/PRD.md        the spec, with numbered things it has to do
-docs/DESIGN.md     how it should look and feel        (if it has a screen)
-docs/BACKLOG.md    everything we parked, and who asked for it
-
-sprints/           a handful of files per sprint: the plan, the approach,
-                   what got built, the review, the testing, what shipped,
-                   and what we learned
-
-CHANGELOG.md       what shipped, in a line each
+```text
+/plugin marketplace add alecburrett/scrumbs-skills
 ```
 
-Delete the plugin tomorrow and every one of these still makes sense on its own.
-They're notes, not a database.
+---
+
+## Designed for real projects, not one perfect scenario
+
+Scrumbs adjusts the amount of ceremony while protecting the quality of the
+delivery loop.
+
+- **Starting something new?** It helps turn the initial idea into a product
+  brief, PRD, design direction and achievable first sprint.
+- **Improving an existing codebase?** It reads the project first and focuses on
+  the change, preserving useful context without making you describe the whole
+  product again.
+- **Building an API, library, CLI or infrastructure project?** Iris steps out
+  when there is no user interface, keeping the workflow relevant.
+- **Shipping a feature?** The full team helps take it from product intent to a
+  reviewed release.
+- **Fixing a defect or hotfix?** Planning becomes compact and focused while
+  Review, QA and Deploy remain in place—exactly where they add the most value.
+- **Working across several sessions?** Repository-based artifacts make every
+  approved hand-off resumable and inspectable.
+
+The workflow fits the work; the commitment to a clear definition of done,
+review and testing stays strong.
 
 ---
 
-## Fresh eyes where it counts
+## Useful outputs, committed alongside the code
 
-Reviewing your own work is hard, and it's no easier for an AI that just spent an
-hour writing the thing.
+Scrumbs leaves behind a project record your team can read without installing
+anything:
 
-So before the review, and again before the testing, Scrumbs offers to carry on
-in a **brand new session**. Everything it needs is already written down in your
-repo, so the new session picks up the work — and none of the reasoning that
-produced it. Rex reads your code cold, the way a colleague would on a Monday
-morning.
+```text
+docs/BRIEF.md      what you are building, for whom and where the boundaries are
+docs/PRD.md        prioritised requirements and numbered acceptance criteria
+docs/DESIGN.md     the product's visual direction and living design decisions
+docs/BACKLOG.md    valuable ideas deliberately saved for later
 
-It's your call each time, and whichever you choose gets written down.
+sprints/           sprint plans, technical designs, build summaries,
+                   reviews, QA results, release records and retrospectives
 
----
+CHANGELOG.md       a concise history of what shipped
+```
 
-## It fits what you're actually building
-
-A command-line tool doesn't need a colour palette, and a one-line bug fix
-doesn't need a morning of planning.
-
-- **No screen?** Iris sits the project out entirely — no token design step.
-- **Existing codebase?** Pablo reads what's there and focuses on the change
-  you're making, instead of interviewing you about an app you shipped two years
-  ago.
-- **Just a bug, or something urgent?** The planning shrinks to a few lines.
-
-Two things never shrink: **you still say what "done" means before anyone writes
-code**, and **the review and the testing still happen**. Something rushed
-straight to your users is exactly when you want a second look.
+These are plain Markdown files in Git. They are easy to inspect, discuss,
+diff, review and keep long after a Claude Code session ends—or even if you stop
+using the plugin.
 
 ---
 
-## Why a team, and not one big prompt
+## Why the specialist workflow works
 
-Because whoever writes the spec will always be tempted to quietly drop the
-tricky bit while building it. Splitting the work up makes that hard to do
-silently:
+Each Scrumbs teammate owns a distinct question:
 
-- Pablo talks about the problem, never the solution.
-- Rex decides how it gets built; Viktor is the one who builds it.
-- Quinn judges whether it *works*, not whether the code is tidy — Rex already
-  did that.
-- Nobody overrules anybody. They hand it back to whoever owns it.
+- **Pablo:** Are we solving the right problem, with clear boundaries?
+- **Iris:** Will the experience feel intentional and coherent?
+- **Stella:** Is this a sprint the team can genuinely finish?
+- **Rex:** Is the technical approach sound, and was it implemented well?
+- **Viktor:** Can we prove the code works as we build it?
+- **Quinn:** Does the increment satisfy the acceptance criteria in practice?
+- **Dex:** Can this exact candidate be released safely and reversed if needed?
 
-The point isn't ceremony. It's that a different question gets asked at each
-stage, and the answers get written down.
+That separation creates useful tension. The requirements do not quietly shrink
+during implementation. A tidy code review does not stand in for product QA. A
+successful build does not automatically become a production deployment.
 
----
-
-## Being straight with you
-
-Scrumbs is a set of prompts and a paper trail, not a lock on the door. It'll
-keep an honest team honest, catch the ordinary slips, and leave you a record you
-can read months later. It can't stop someone determined to cut corners, and it
-doesn't pretend to — if you need something properly enforced, that's what branch
-protection and required reviewers are for. Scrumbs is happy to sit behind them.
-
-We'd rather tell you that now than have you find out later.
+Scrumbs turns those distinctions into a lightweight, repeatable habit.
 
 ---
 
-## Read the prompts
+## Built for trust and transparency
 
-Every teammate is a plain Markdown file. Read one, disagree with it, change it —
-it's a prompt, not a black box: [`plugin/skills/`](./plugin/skills/). The longer
-write-ups behind them live in [`personas/`](./personas/).
+Every teammate is defined in Markdown. You can inspect the prompts, understand
+the quality bar and propose improvements:
+
+- [`plugin/skills/`](./plugin/skills/) contains the skills Claude Code runs.
+- [`personas/`](./personas/) contains the detailed thinking behind each role.
+- [`plugin/commands/next.md`](./plugin/commands/next.md) defines the front door
+  and lifecycle routing.
+
+Scrumbs records decisions and catches everyday drift, broken hand-offs and
+stale review evidence. It complements—not replaces—GitHub branch protection,
+required reviewers and CI. That makes it easy to layer into the engineering
+controls your project already trusts.
+
+---
+
+## Help Scrumbs grow
+
+Scrumbs is open source, MIT licensed and built to improve through real project
+experience.
+
+- ⭐ **[Star the repository](https://github.com/alecburrett/scrumbs-skills)**
+  to help more builders discover it.
+- 👀 **[Follow Alec Burrett](https://github.com/alecburrett)** for future skills
+  and releases.
+- 🧪 Try Scrumbs on a real feature, defect or greenfield project and share what
+  made the workflow more useful.
+- 🛠️ Read [CONTRIBUTING.md](./CONTRIBUTING.md) to improve a persona, strengthen
+  a hand-off or propose a new capability.
+
+If you believe AI-assisted development should be clearer, more collaborative
+and more dependable, Scrumbs is built for you.
 
 ## Requirements
 
-[Claude Code](https://code.claude.com), and a git repo to work in.
-
-## Contributing
-
-Yes please — it's all Markdown, so the barrier is low. Start with
-[CONTRIBUTING.md](./CONTRIBUTING.md).
+- [Claude Code](https://code.claude.com)
+- A Git repository containing the project you want to build
 
 ## Licence
 
-MIT — see [LICENSE](./LICENSE).
+Scrumbs is available under the [MIT licence](./LICENSE).
